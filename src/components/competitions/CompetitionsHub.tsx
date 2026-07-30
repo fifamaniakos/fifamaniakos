@@ -11,7 +11,7 @@ interface CompetitionsHubProps {
   onAddMatchResult?: (match: MatchResult) => void;
 }
 
-const KNOWN_COMPETITIONS = ['1ra División', '2da División', 'UEFA Champions League', 'UEFA Europa League', 'Copa del Rey'];
+const KNOWN_COMPETITIONS = ['1ra División', '2da División', 'UEFA Champions League', 'UEFA Europa League', 'UEFA Conference League'];
 
 export const CompetitionsHub: React.FC<CompetitionsHubProps> = ({
   clubs,

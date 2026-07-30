@@ -82,12 +82,13 @@ export function generateFixtureForClubs(
 }
 
 /**
- * Genera automáticamente fixtures para todas las competiciones principales:
+ * Genera automáticamente el fixture de las ligas domésticas:
  * - 1ra División
  * - 2da División
- * - UEFA Champions League
- * - UEFA Europa League
- * - Copa del Rey
+ *
+ * Las copas europeas (Champions League, Europa League, Conference League) ya no
+ * tienen fase de grupos: sus cuadros eliminatorios se arman automáticamente a
+ * partir de la posición en la tabla de 1ra División (ver utils/bracketGenerator.ts).
  */
 export function generateAllCompetitionsFixtures(clubs: Club[]): MatchResult[] {
   if (!clubs || clubs.length === 0) return [];
@@ -97,20 +98,8 @@ export function generateAllCompetitionsFixtures(clubs: Club[]): MatchResult[] {
 
   const targetDiv1 = div1Clubs.length >= 2 ? div1Clubs : clubs;
   const div1Matches = generateFixtureForClubs(targetDiv1, '1ra División', true);
-  
+
   const div2Matches = div2Clubs.length >= 2 ? generateFixtureForClubs(div2Clubs, '2da División', true) : [];
 
-  // UEFA Champions League (Top 8 equipos)
-  const uefaClubs = targetDiv1.slice(0, 8);
-  const uefaMatches = uefaClubs.length >= 4 ? generateFixtureForClubs(uefaClubs, 'UEFA Champions League', true) : [];
-
-  // UEFA Europa League (Equipos 9 a 16)
-  const europaClubs = targetDiv1.slice(8, 16);
-  const europaMatches = europaClubs.length >= 4 ? generateFixtureForClubs(europaClubs, 'UEFA Europa League', true) : [];
-
-  // Copa del Rey (Cuadro de eliminiatoria directa / liga reducida)
-  const copaClubs = targetDiv1.slice(0, 16);
-  const copaMatches = copaClubs.length >= 4 ? generateFixtureForClubs(copaClubs, 'Copa del Rey', false) : [];
-
-  return [...div1Matches, ...div2Matches, ...uefaMatches, ...europaMatches, ...copaMatches];
+  return [...div1Matches, ...div2Matches];
 }

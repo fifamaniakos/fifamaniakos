@@ -290,14 +290,14 @@ export const Navbar: React.FC<NavbarProps> = ({
 
                 <button
                   onClick={() => {
-                    if (onSelectCompetition) onSelectCompetition('Copa del Rey');
+                    if (onSelectCompetition) onSelectCompetition('UEFA Conference League');
                     setActiveTab('clasificacion');
                     setShowCompeticionesMenu(false);
                   }}
                   className="w-full text-left px-3.5 py-2 text-xs font-bold flex items-center gap-2.5 transition-colors text-slate-700 hover:bg-slate-50"
                 >
-                  <Award className="w-4 h-4 shrink-0 text-purple-500" />
-                  <span>Copa del Rey</span>
+                  <Award className="w-4 h-4 shrink-0 text-emerald-500" />
+                  <span>UEFA Conference League</span>
                 </button>
 
                 <div className="border-t border-slate-100 my-1" />

@@ -142,38 +142,27 @@ export function computePlayerStatsForCompetition(
   return Object.values(statsMap);
 }
 
-export type EuropeanQualificationZone = 'CHAMPIONS' | 'EUROPA';
+export type EuropeanQualificationZone = 'CHAMPIONS' | 'EUROPA' | 'CONFERENCE';
 
 export interface QualificationZoneInfo {
   zone: EuropeanQualificationZone;
-  viaCopaDelRey: boolean;
 }
 
 export function computeDomesticQualificationZones(
-  sortedClubs: Club[],
-  copaDelReyChampionClubId?: string
+  sortedClubs: Club[]
 ): Record<string, QualificationZoneInfo> {
   const zones: Record<string, QualificationZoneInfo> = {};
 
   sortedClubs.forEach((club, idx) => {
     const pos = idx + 1;
-    if (pos <= 4) {
-      zones[club.id] = { zone: 'CHAMPIONS', viaCopaDelRey: false };
-    } else if (pos === 5) {
-      zones[club.id] = { zone: 'EUROPA', viaCopaDelRey: false };
+    if (pos <= 8) {
+      zones[club.id] = { zone: 'CHAMPIONS' };
+    } else if (pos <= 16) {
+      zones[club.id] = { zone: 'EUROPA' };
+    } else if (pos <= 24) {
+      zones[club.id] = { zone: 'CONFERENCE' };
     }
   });
-
-  if (copaDelReyChampionClubId) {
-    if (!zones[copaDelReyChampionClubId]) {
-      zones[copaDelReyChampionClubId] = { zone: 'EUROPA', viaCopaDelRey: true };
-    } else {
-      const nextUnclassified = sortedClubs.find((club, idx) => idx + 1 > 5 && !zones[club.id]);
-      if (nextUnclassified) {
-        zones[nextUnclassified.id] = { zone: 'EUROPA', viaCopaDelRey: true };
-      }
-    }
-  }
 
   return zones;
 }

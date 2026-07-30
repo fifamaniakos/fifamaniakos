@@ -859,7 +859,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                     <Sparkles className="w-4 h-4 text-emerald-400" /> CREAR Y GENERAR FIXTURE AUTOMÁTICO DE COMPETICIONES
                   </h3>
                   <p className="text-[11px] text-slate-300 font-tech">
-                    Genera el calendario completo de jornadas (Ida y Vuelta) para 1ra División, 2da División, UEFA Champions League, Europa League y Copa del Rey.
+                    Genera el calendario completo de jornadas (Ida y Vuelta) para 1ra División y 2da División. Los cuadros de Champions League, Europa League y Conference League se arman solos según la posición en 1ra División.
                   </p>
                 </div>
 

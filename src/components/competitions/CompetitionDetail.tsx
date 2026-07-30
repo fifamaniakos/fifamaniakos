@@ -5,8 +5,7 @@ import { StandingsTable } from './StandingsTable';
 import { PlayerStatsTable } from './PlayerStatsTable';
 import { FixtureJornadaList } from './FixtureJornadaList';
 import { FixtureJornadaDetail } from './FixtureJornadaDetail';
-import { computeCupStandings, groupFixtureIntoRounds } from '../../utils/competitionStats';
-import { getMatchWinnerClubId } from '../../utils/bracketGenerator';
+import { groupFixtureIntoRounds } from '../../utils/competitionStats';
 
 interface CompetitionDetailProps {
   competition: string;
@@ -42,13 +41,6 @@ export const CompetitionDetail: React.FC<CompetitionDetailProps> = ({
   const [selectedRoundKey, setSelectedRoundKey] = useState<string | null>(null);
 
   const competitionMatches = matches.filter(m => m.competition === competition);
-
-  const copaDelReyFinal = matches.find(
-    m => m.competition === 'Copa del Rey' && m.phase === 'FINAL' && m.status === 'CONFIRMADO'
-  );
-  const copaDelReyChampionClubId = copaDelReyFinal
-    ? getMatchWinnerClubId(copaDelReyFinal)
-    : computeCupStandings(clubs, matches, 'Copa del Rey')[0]?.clubId;
 
   const rounds = activeTab === 'fixture' ? groupFixtureIntoRounds(competitionMatches, competition) : [];
   const activeRound = rounds.find(r => r.key === selectedRoundKey) || null;
@@ -110,7 +102,6 @@ export const CompetitionDetail: React.FC<CompetitionDetailProps> = ({
           clubs={clubs}
           matches={competitionMatches}
           competition={competition}
-          copaDelReyChampionClubId={copaDelReyChampionClubId}
         />
       )}
 

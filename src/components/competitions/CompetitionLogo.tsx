@@ -154,36 +154,31 @@ export const CompetitionLogo: React.FC<CompetitionLogoProps> = ({
     );
   }
 
-  // 👑 COPA DEL REY (Royal Crown & Cup)
-  if (competition === 'Copa del Rey') {
+  // 🛡️ UEFA CONFERENCE LEAGUE (Emerald Shield Trophy)
+  if (competition === 'UEFA Conference League') {
     return (
-      <div className={`relative flex items-center justify-center shrink-0 shadow-xl rounded-xl overflow-hidden ring-1 ring-amber-300/40 ${currentSize} ${className}`}>
+      <div className={`relative flex items-center justify-center shrink-0 shadow-xl rounded-xl overflow-hidden ring-1 ring-emerald-400/40 ${currentSize} ${className}`}>
         <svg viewBox="0 0 100 100" className="w-full h-full" fill="none">
           <defs>
-            <linearGradient id="copa-bg" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stopColor="#BE123C" />
-              <stop offset="50%" stopColor="#9F1239" />
-              <stop offset="100%" stopColor="#4C0519" />
+            <linearGradient id="uecl-bg" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor="#10B981" />
+              <stop offset="50%" stopColor="#059669" />
+              <stop offset="100%" stopColor="#022C22" />
             </linearGradient>
-            <linearGradient id="gold-crown" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stopColor="#FFFBEB" />
-              <stop offset="30%" stopColor="#FCD34D" />
-              <stop offset="70%" stopColor="#F59E0B" />
-              <stop offset="100%" stopColor="#B45309" />
+            <linearGradient id="uecl-shield" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor="#FFFFFF" />
+              <stop offset="50%" stopColor="#D1FAE5" />
+              <stop offset="100%" stopColor="#6EE7B7" />
             </linearGradient>
-            <filter id="crown-shadow" x="-20%" y="-20%" width="140%" height="140%">
-              <feDropShadow dx="0" dy="2" stdDeviation="2" floodColor="#000000" floodOpacity="0.5" />
+            <filter id="uecl-glow" x="-20%" y="-20%" width="140%" height="140%">
+              <feDropShadow dx="0" dy="0" stdDeviation="3" floodColor="#34D399" floodOpacity="0.7" />
             </filter>
           </defs>
-          <rect width="100" height="100" rx="24" fill="url(#copa-bg)" />
-          <g filter="url(#crown-shadow)">
-            <path d="M22 34 L33 46 L50 26 L67 46 L78 34 L72 58 L28 58 Z" fill="url(#gold-crown)" />
-            <circle cx="22" cy="32" r="3.5" fill="#FFFFFF" />
-            <circle cx="50" cy="24" r="4.5" fill="#FFFFFF" />
-            <circle cx="78" cy="32" r="3.5" fill="#FFFFFF" />
-            <path d="M37 58 L63 58 L58 74 L42 74 Z M33 74 L67 74 L67 82 L33 82 Z" fill="url(#gold-crown)" />
+          <rect width="100" height="100" rx="24" fill="url(#uecl-bg)" />
+          <g filter="url(#uecl-glow)">
+            <path d="M50 18 L76 28 L76 52 C76 70 50 84 50 84 C50 84 24 70 24 52 L24 28 Z" fill="url(#uecl-shield)" />
           </g>
-          <text x="50" y="93" textAnchor="middle" fill="#FFFFFF" fontSize="10" fontWeight="900" fontFamily="sans-serif">RFEF</text>
+          <path d="M40 50 L47 58 L62 40" stroke="#059669" strokeWidth="5" fill="none" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
       </div>
     );

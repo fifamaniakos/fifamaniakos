@@ -1,29 +1,35 @@
 import React from 'react';
 import { Club, MatchResult } from '../../types';
-import { computeCupStandings, computeDomesticQualificationZones } from '../../utils/competitionStats';
-import { Star, Globe } from 'lucide-react';
-import { ClubLogo } from '../ClubLogo';
+import { computeDomesticQualificationZones } from '../../utils/competitionStats';
+import { getSeededClubsForCompetition } from '../../utils/bracketGenerator';
+import { Star, Globe, Shield } from 'lucide-react';
 
 interface StandingsTableProps {
   clubs: Club[];
   matches: MatchResult[];
   competition: string;
-  copaDelReyChampionClubId?: string;
 }
 
 const DOMESTIC_COMPETITIONS = ['1ra División', '2da División'];
+const BRACKET_COMPETITIONS = ['UEFA Champions League', 'UEFA Europa League', 'UEFA Conference League'];
 
-export const StandingsTable: React.FC<StandingsTableProps> = ({ clubs, matches, competition, copaDelReyChampionClubId }) => {
-  const isDomestic = DOMESTIC_COMPETITIONS.includes(competition);
-
-  if (isDomestic) {
-    return <DomesticStandings clubs={clubs} competition={competition} copaDelReyChampionClubId={copaDelReyChampionClubId} />;
+export const StandingsTable: React.FC<StandingsTableProps> = ({ clubs, competition }) => {
+  if (DOMESTIC_COMPETITIONS.includes(competition)) {
+    return <DomesticStandings clubs={clubs} competition={competition} />;
   }
 
-  return <CupStandings clubs={clubs} matches={matches} competition={competition} />;
+  if (BRACKET_COMPETITIONS.includes(competition)) {
+    return <BracketSeeding clubs={clubs} competition={competition} />;
+  }
+
+  return (
+    <div className="fc-card p-10 text-center border-dashed border-slate-300 bg-white text-slate-500 text-sm font-tech">
+      No hay clasificación disponible para {competition}.
+    </div>
+  );
 };
 
-const DomesticStandings: React.FC<{ clubs: Club[]; competition: string; copaDelReyChampionClubId?: string }> = ({ clubs, competition, copaDelReyChampionClubId }) => {
+const DomesticStandings: React.FC<{ clubs: Club[]; competition: string }> = ({ clubs, competition }) => {
   const isFirstDiv = competition === '1ra División';
 
   const sortedClubs = [...clubs]
@@ -41,18 +47,16 @@ const DomesticStandings: React.FC<{ clubs: Club[]; competition: string; copaDelR
       return b.goalsFor - a.goalsFor;
     });
 
-  const qualificationZones = isFirstDiv ? computeDomesticQualificationZones(sortedClubs, copaDelReyChampionClubId) : {};
+  const qualificationZones = isFirstDiv ? computeDomesticQualificationZones(sortedClubs) : {};
 
   return (
     <div className="space-y-4">
-      <div className="fc-card p-3 rounded-2xl border-slate-200 bg-slate-50 flex items-center gap-2 text-[10px] font-mono text-slate-600 flex-wrap">
+      <div className="fc-card p-3 rounded-2xl border-slate-200 bg-slate-50 flex items-center gap-3 text-[10px] font-mono text-slate-600 flex-wrap">
         {isFirstDiv ? (
           <>
-            <span className="flex items-center gap-1"><Star className="w-3 h-3 text-indigo-600 fill-indigo-600" /> Pos 1-4: UEFA Champions League</span>
-            <span className="flex items-center gap-1"><Globe className="w-3 h-3 text-amber-600" /> Pos 5 + Campeón Copa del Rey: UEFA Europa League</span>
-            <span className="text-slate-400">
-              (si el campeón de Copa ya clasificó por liga, la plaza pasa al siguiente mejor ubicado)
-            </span>
+            <span className="flex items-center gap-1"><Star className="w-3 h-3 text-indigo-600 fill-indigo-600" /> Pos 1-8: UEFA Champions League</span>
+            <span className="flex items-center gap-1"><Globe className="w-3 h-3 text-amber-600" /> Pos 9-16: UEFA Europa League</span>
+            <span className="flex items-center gap-1"><Shield className="w-3 h-3 text-emerald-600" /> Pos 17-24: UEFA Conference League</span>
           </>
         ) : (
           <>
@@ -99,7 +103,8 @@ const DomesticStandings: React.FC<{ clubs: Club[]; competition: string; copaDelR
                       key={club.id}
                       className={`hover:bg-slate-50 transition-colors ${
                         zoneInfo?.zone === 'CHAMPIONS' || isDirectPromotion ? 'border-l-4 border-l-indigo-500 bg-indigo-50/40' :
-                        zoneInfo?.zone === 'EUROPA' || isPlayoffPromotion ? 'border-l-4 border-l-amber-500 bg-amber-50/30' : ''
+                        zoneInfo?.zone === 'EUROPA' || isPlayoffPromotion ? 'border-l-4 border-l-amber-500 bg-amber-50/30' :
+                        zoneInfo?.zone === 'CONFERENCE' ? 'border-l-4 border-l-emerald-500 bg-emerald-50/30' : ''
                       }`}
                     >
                       <td className="py-3.5 px-4 text-center font-display font-black text-sm">
@@ -114,7 +119,7 @@ const DomesticStandings: React.FC<{ clubs: Club[]; competition: string; copaDelR
 
                       <td className="py-3.5 px-4">
                         <div className="flex items-center gap-3">
-                          <ClubLogo src={club.logoUrl} alt={club.name} className="w-8 h-8 rounded-lg object-cover border border-slate-200 shrink-0" />
+                          <img src={club.logoUrl} alt={club.name} className="w-8 h-8 rounded-lg object-cover border border-slate-200 shrink-0" />
                           <div>
                             <div className="font-bold text-sm text-slate-900 flex items-center gap-2">
                               {club.name}
@@ -128,7 +133,12 @@ const DomesticStandings: React.FC<{ clubs: Club[]; competition: string; copaDelR
                               )}
                               {zoneInfo?.zone === 'EUROPA' && (
                                 <span className="text-[9px] bg-amber-100 text-amber-800 px-1.5 py-0.5 rounded font-mono font-bold flex items-center gap-0.5">
-                                  <Globe className="w-2.5 h-2.5" /> UEL{zoneInfo.viaCopaDelRey ? ' 🏆' : ''}
+                                  <Globe className="w-2.5 h-2.5" /> UEL
+                                </span>
+                              )}
+                              {zoneInfo?.zone === 'CONFERENCE' && (
+                                <span className="text-[9px] bg-emerald-100 text-emerald-800 px-1.5 py-0.5 rounded font-mono font-bold flex items-center gap-0.5">
+                                  <Shield className="w-2.5 h-2.5" /> UECL
                                 </span>
                               )}
                             </div>
@@ -178,68 +188,56 @@ const DomesticStandings: React.FC<{ clubs: Club[]; competition: string; copaDelR
   );
 };
 
-const CupStandings: React.FC<{ clubs: Club[]; matches: MatchResult[]; competition: string }> = ({ clubs, matches, competition }) => {
-  const rows = computeCupStandings(clubs, matches, competition);
+const BracketSeeding: React.FC<{ clubs: Club[]; competition: string }> = ({ clubs, competition }) => {
+  const seeded = getSeededClubsForCompetition(clubs, competition);
 
   return (
-    <div className="fc-card rounded-2xl overflow-hidden border-slate-200 shadow-md bg-white">
-      <div className="overflow-x-auto">
-        <table className="w-full text-left border-collapse">
-          <thead>
-            <tr className="bg-slate-100 text-slate-800 font-tech font-extrabold text-xs uppercase border-b border-slate-200 tracking-wider">
-              <th className="py-3.5 px-4 w-12 text-center">Pos</th>
-              <th className="py-3.5 px-4">Club</th>
-              <th className="py-3.5 px-3 text-center">PJ</th>
-              <th className="py-3.5 px-3 text-center">PG</th>
-              <th className="py-3.5 px-3 text-center">PE</th>
-              <th className="py-3.5 px-3 text-center">PP</th>
-              <th className="py-3.5 px-3 text-center">GF</th>
-              <th className="py-3.5 px-3 text-center">GC</th>
-              <th className="py-3.5 px-3 text-center">DG</th>
-              <th className="py-3.5 px-4 text-center">PTS</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-slate-100 text-xs font-sans">
-            {rows.length === 0 ? (
-              <tr>
-                <td colSpan={10} className="py-8 text-center text-slate-500 font-tech">
-                  Todavía no hay partidos confirmados en {competition}.
-                </td>
+    <div className="space-y-4">
+      <div className="fc-card p-3 rounded-2xl border-slate-200 bg-slate-50 text-[11px] font-tech text-slate-600">
+        Esta copa no tiene fase de grupos: sus 8 clubes clasifican directo por su posición en 1ra División,
+        y el cuadro (Cuartos → Semifinal → Final) se arma y avanza automáticamente en la pestaña <strong>Fixture</strong>.
+      </div>
+
+      <div className="fc-card rounded-2xl overflow-hidden border-slate-200 shadow-md bg-white">
+        <div className="overflow-x-auto">
+          <table className="w-full text-left border-collapse">
+            <thead>
+              <tr className="bg-slate-100 text-slate-800 font-tech font-extrabold text-xs uppercase border-b border-slate-200 tracking-wider">
+                <th className="py-3.5 px-4 w-12 text-center">Bombo</th>
+                <th className="py-3.5 px-4">Club</th>
+                <th className="py-3.5 px-4 text-center">Posición en 1ra División</th>
               </tr>
-            ) : (
-              rows.map((row, idx) => {
-                const pos = idx + 1;
-                const diff = row.goalsFor - row.goalsAgainst;
-                return (
-                  <tr key={row.clubId} className="hover:bg-slate-50 transition-colors">
+            </thead>
+            <tbody className="divide-y divide-slate-100 text-xs font-sans">
+              {seeded.length === 0 ? (
+                <tr>
+                  <td colSpan={3} className="py-8 text-center text-slate-500 font-tech">
+                    Todavía no hay clubes registrados en 1ra División para sembrar esta copa.
+                  </td>
+                </tr>
+              ) : (
+                seeded.map(({ seed, club, domesticPosition }) => (
+                  <tr key={club.id} className="hover:bg-slate-50 transition-colors">
                     <td className="py-3.5 px-4 text-center font-display font-black text-sm">
-                      <span className={`w-6 h-6 rounded-full inline-flex items-center justify-center ${
-                        pos === 1 ? 'bg-amber-400 text-black' :
-                        pos === 2 ? 'bg-slate-300 text-black' :
-                        pos === 3 ? 'bg-amber-700 text-white' : 'text-slate-500'
-                      }`}>
-                        {pos}
+                      <span className="w-6 h-6 rounded-full inline-flex items-center justify-center bg-slate-100 text-slate-700">
+                        {seed}
                       </span>
                     </td>
-                    <td className="py-3.5 px-4 font-bold text-slate-900">{row.club.name}</td>
-                    <td className="py-3.5 px-3 text-center font-mono text-slate-700">{row.played}</td>
-                    <td className="py-3.5 px-3 text-center font-mono font-bold text-emerald-700">{row.won}</td>
-                    <td className="py-3.5 px-3 text-center font-mono text-slate-500">{row.drawn}</td>
-                    <td className="py-3.5 px-3 text-center font-mono text-rose-600">{row.lost}</td>
-                    <td className="py-3.5 px-3 text-center font-mono text-slate-700">{row.goalsFor}</td>
-                    <td className="py-3.5 px-3 text-center font-mono text-slate-500">{row.goalsAgainst}</td>
-                    <td className="py-3.5 px-3 text-center font-mono font-bold text-slate-800">
-                      {diff > 0 ? `+${diff}` : diff}
+                    <td className="py-3.5 px-4">
+                      <div className="flex items-center gap-3">
+                        <img src={club.logoUrl} alt={club.name} className="w-8 h-8 rounded-lg object-cover border border-slate-200 shrink-0" />
+                        <span className="font-bold text-sm text-slate-900">{club.name}</span>
+                      </div>
                     </td>
-                    <td className="py-3.5 px-4 text-center font-display font-black text-lg text-[#00ba68]">
-                      {row.points}
+                    <td className="py-3.5 px-4 text-center font-mono font-bold text-slate-700">
+                      {domesticPosition}º
                     </td>
                   </tr>
-                );
-              })
-            )}
-          </tbody>
-        </table>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );
