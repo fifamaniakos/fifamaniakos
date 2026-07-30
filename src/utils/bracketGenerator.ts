@@ -51,6 +51,90 @@ export function getPositionBand(competition: string): [number, number] | undefin
   return BRACKET_CONFIG[competition]?.positionBand;
 }
 
+export interface BracketSlotTeam {
+  club: Club | null;
+  isWinner: boolean;
+}
+
+export interface BracketMatchSlot {
+  home: BracketSlotTeam;
+  away: BracketSlotTeam;
+  status: 'PENDIENTE' | 'CONFIRMADO';
+}
+
+export interface KnockoutBracketData {
+  quarterfinals: [BracketMatchSlot, BracketMatchSlot, BracketMatchSlot, BracketMatchSlot];
+  semifinals: [BracketMatchSlot, BracketMatchSlot];
+  final: BracketMatchSlot;
+}
+
+function slotFromMatch(
+  clubs: Club[],
+  match: MatchResult | undefined,
+  fallbackHomeId: string | undefined,
+  fallbackAwayId: string | undefined
+): BracketMatchSlot {
+  const homeId = match?.homeClubId ?? fallbackHomeId;
+  const awayId = match?.awayClubId ?? fallbackAwayId;
+  const homeClub = homeId ? clubs.find(c => c.id === homeId) ?? null : null;
+  const awayClub = awayId ? clubs.find(c => c.id === awayId) ?? null : null;
+  const isConfirmed = match?.status === 'CONFIRMADO';
+  const winnerId = isConfirmed && match ? getMatchWinnerClubId(match) : null;
+
+  return {
+    home: { club: homeClub, isWinner: isConfirmed && winnerId === homeId },
+    away: { club: awayClub, isWinner: isConfirmed && winnerId === awayId },
+    status: isConfirmed ? 'CONFIRMADO' : 'PENDIENTE'
+  };
+}
+
+/**
+ * Builds a display-ready bracket (Cuartos -> Semifinal -> Final) for one of the
+ * three UEFA cups, seeded straight from the 1ra División standings. Falls back to
+ * the seeded clubs (no match generated yet) for rounds that don't exist as
+ * MatchResult rows yet. Returns null if fewer than 8 clubs are seeded.
+ */
+export function getKnockoutBracketData(
+  clubs: Club[],
+  matches: MatchResult[],
+  competition: string
+): KnockoutBracketData | null {
+  const seeded = getSeededClubsForCompetition(clubs, competition);
+  if (seeded.length < 8) return null;
+
+  const competitionMatches = matches.filter(m => m.competition === competition);
+  const quarterfinalMatches = competitionMatches
+    .filter(m => m.phase === 'CUARTOS')
+    .sort((a, b) => a.matchday - b.matchday);
+  const semifinalMatches = competitionMatches
+    .filter(m => m.phase === 'SEMIFINAL')
+    .sort((a, b) => a.matchday - b.matchday);
+  const finalMatch = competitionMatches.find(m => m.phase === 'FINAL');
+
+  const quarterfinals = [0, 1, 2, 3].map(i =>
+    slotFromMatch(clubs, quarterfinalMatches[i], seeded[i]?.club.id, seeded[7 - i]?.club.id)
+  ) as KnockoutBracketData['quarterfinals'];
+
+  const qfWinnerId = (i: number): string | undefined => {
+    const qf = quarterfinalMatches[i];
+    return qf && qf.status === 'CONFIRMADO' ? getMatchWinnerClubId(qf) : undefined;
+  };
+
+  const semifinals: KnockoutBracketData['semifinals'] = [
+    slotFromMatch(clubs, semifinalMatches[0], qfWinnerId(0), qfWinnerId(3)),
+    slotFromMatch(clubs, semifinalMatches[1], qfWinnerId(1), qfWinnerId(2))
+  ];
+
+  const sfWinnerId = (i: number): string | undefined => {
+    const sf = semifinalMatches[i];
+    return sf && sf.status === 'CONFIRMADO' ? getMatchWinnerClubId(sf) : undefined;
+  };
+
+  const final = slotFromMatch(clubs, finalMatch, sfWinnerId(0), sfWinnerId(1));
+
+  return { quarterfinals, semifinals, final };
+}
+
 function buildRoundMatches(
   competition: string,
   phase: MatchPhase,
