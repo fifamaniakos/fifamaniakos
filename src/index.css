@@ -1,0 +1,237 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --fc-green: #02f59b;
+    --fc-green-dark: #00ba68;
+    --fc-green-glow: rgba(2, 245, 155, 0.25);
+    --fc-bg: #f1f5f9;
+    --fc-card-bg: #ffffff;
+  }
+
+  body {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    background-color: #f1f5f9;
+    color: #0f172a;
+    overflow-x: hidden;
+  }
+
+  h1, h2, h3, .font-display {
+    font-family: 'Barlow Condensed', sans-serif;
+  }
+
+  .font-tech {
+    font-family: 'Rajdhani', sans-serif;
+  }
+}
+
+/* Moving Ticker Marquee Keyframes */
+@keyframes marquee {
+  0% { transform: translateX(0%); }
+  100% { transform: translateX(-50%); }
+}
+
+.animate-marquee {
+  display: flex;
+  width: max-content;
+  animation: marquee 30s linear infinite;
+}
+
+.animate-marquee:hover {
+  animation-play-state: paused;
+}
+
+/* Custom EA FC Light Theme Accents & Utilities */
+.fc-card {
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 4px 16px -2px rgba(15, 23, 42, 0.05);
+  position: relative;
+  overflow: hidden;
+}
+
+.fc-card-hover {
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.fc-card-hover:hover {
+  border-color: #00ba68;
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px -4px rgba(0, 186, 104, 0.15);
+}
+
+.fc-button-primary {
+  background: linear-gradient(135deg, #02f59b 0%, #00d282 100%);
+  color: #040d08;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px));
+  transition: all 0.2s ease;
+}
+
+.fc-button-primary:hover {
+  background: linear-gradient(135deg, #00e086 0%, #00ba68 100%);
+  box-shadow: 0 4px 16px rgba(0, 186, 104, 0.3);
+  transform: scale(1.02);
+}
+
+.fc-badge-triangle {
+  clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+}
+
+.fc-gold-card {
+  background: linear-gradient(135deg, #fef08a 0%, #f59e0b 50%, #b45309 100%);
+  border: 1px solid #fde047;
+  color: #0f172a;
+}
+
+.fc-special-card {
+  background: linear-gradient(135deg, #02f59b 0%, #059669 50%, #064e3b 100%);
+  border: 1px solid #34d399;
+  color: #ffffff;
+}
+
+/* Pitch Texture */
+.pitch-bg {
+  background-color: #064e3b;
+  background-image: 
+    repeating-linear-gradient(0deg, transparent, transparent 40px, rgba(255,255,255,0.06) 40px, rgba(255,255,255,0.06) 80px),
+    linear-gradient(to right, rgba(255,255,255,0.1) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255,255,255,0.1) 1px, transparent 1px);
+  background-size: 100% 80px, 40px 40px, 40px 40px;
+}
+
+/* Cyber Card (Tienda de Presupuesto) */
+.cc-container {
+  position: relative;
+  perspective: 800px;
+}
+
+.cc-card {
+  position: relative;
+  border-radius: 20px;
+  background: linear-gradient(45deg, #0b1220, #131c2e);
+  border: 2px solid rgba(2, 245, 155, 0.18);
+  overflow: hidden;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.35), inset 0 0 20px rgba(0, 0, 0, 0.25);
+  transition: transform 120ms ease-out, box-shadow 300ms ease, border-color 300ms ease;
+  transform-style: preserve-3d;
+}
+
+.cc-card.cc-hover {
+  border-color: rgba(2, 245, 155, 0.5);
+  box-shadow: 0 0 30px rgba(2, 245, 155, 0.2), inset 0 0 20px rgba(0, 0, 0, 0.25);
+}
+
+.cc-glare {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(125deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.05) 45%, rgba(255,255,255,0.12) 50%, rgba(255,255,255,0.05) 55%, rgba(255,255,255,0) 100%);
+  opacity: 0;
+  transition: opacity 300ms ease;
+  pointer-events: none;
+}
+
+.cc-card.cc-hover .cc-glare {
+  opacity: 1;
+}
+
+.cc-glow-1,
+.cc-glow-2 {
+  position: absolute;
+  width: 130px;
+  height: 130px;
+  border-radius: 50%;
+  filter: blur(20px);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+}
+
+.cc-glow-1 {
+  top: -35px;
+  left: -35px;
+  background: radial-gradient(circle at center, rgba(2, 245, 155, 0.35) 0%, rgba(2, 245, 155, 0) 70%);
+}
+
+.cc-glow-2 {
+  bottom: -35px;
+  right: -35px;
+  background: radial-gradient(circle at center, rgba(0, 186, 104, 0.3) 0%, rgba(0, 186, 104, 0) 70%);
+}
+
+.cc-card.cc-hover .cc-glow-1,
+.cc-card.cc-hover .cc-glow-2 {
+  opacity: 1;
+}
+
+.cc-corner span {
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(0, 186, 104, 0.35);
+  transition: all 0.3s ease;
+  pointer-events: none;
+}
+
+.cc-corner span:nth-child(1) { top: 10px; left: 10px; border-right: 0; border-bottom: 0; }
+.cc-corner span:nth-child(2) { top: 10px; right: 10px; border-left: 0; border-bottom: 0; }
+.cc-corner span:nth-child(3) { bottom: 10px; left: 10px; border-right: 0; border-top: 0; }
+.cc-corner span:nth-child(4) { bottom: 10px; right: 10px; border-left: 0; border-top: 0; }
+
+.cc-card.cc-hover .cc-corner span {
+  border-color: rgba(2, 245, 155, 0.9);
+  box-shadow: 0 0 10px rgba(2, 245, 155, 0.5);
+}
+
+.cc-scanline {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(to bottom, transparent, rgba(2, 245, 155, 0.12), transparent);
+  transform: translateY(-100%);
+  animation: cc-scan 2.4s linear infinite;
+}
+
+@keyframes cc-scan {
+  0% { transform: translateY(-100%); }
+  100% { transform: translateY(100%); }
+}
+
+.cc-particles span {
+  position: absolute;
+  width: 3px;
+  height: 3px;
+  background: #02f59b;
+  border-radius: 50%;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.cc-card.cc-hover .cc-particles span {
+  animation: cc-particle-float 2s infinite;
+}
+
+@keyframes cc-particle-float {
+  0% { transform: translate(0, 0); opacity: 0; }
+  50% { opacity: 1; }
+  100% { transform: translate(calc(var(--x, 0) * 26px), calc(var(--y, 0) * 26px)); opacity: 0; }
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #00ba68;
+}
+

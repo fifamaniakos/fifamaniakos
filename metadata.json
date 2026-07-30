@@ -1,0 +1,6 @@
+{
+  "name": "FIFAMANIAKOS - Liga Online FC 27",
+  "description": "Plataforma oficial para la liga online FIFAMANIAKOS en FC 27, desarrollada por Juan Pablo Dimenza. Incluye foro de la comunidad, panel de administración, gestión de clubes, plantillas de jugadores, mercado de fichajes y reporte de resultados.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
