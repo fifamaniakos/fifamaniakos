@@ -1,8 +1,8 @@
 import React from 'react';
 import { Club, MatchResult } from '../../types';
 import { computeDomesticQualificationZones } from '../../utils/competitionStats';
-import { getSeededClubsForCompetition } from '../../utils/bracketGenerator';
 import { Star, Globe, Shield } from 'lucide-react';
+import { KnockoutBracket } from './KnockoutBracket';
 
 interface StandingsTableProps {
   clubs: Club[];
@@ -13,13 +13,13 @@ interface StandingsTableProps {
 const DOMESTIC_COMPETITIONS = ['1ra División', '2da División'];
 const BRACKET_COMPETITIONS = ['UEFA Champions League', 'UEFA Europa League', 'UEFA Conference League'];
 
-export const StandingsTable: React.FC<StandingsTableProps> = ({ clubs, competition }) => {
+export const StandingsTable: React.FC<StandingsTableProps> = ({ clubs, matches, competition }) => {
   if (DOMESTIC_COMPETITIONS.includes(competition)) {
     return <DomesticStandings clubs={clubs} competition={competition} />;
   }
 
   if (BRACKET_COMPETITIONS.includes(competition)) {
-    return <BracketSeeding clubs={clubs} competition={competition} />;
+    return <KnockoutBracket clubs={clubs} matches={matches} competition={competition} />;
   }
 
   return (
@@ -179,61 +179,6 @@ const DomesticStandings: React.FC<{ clubs: Club[]; competition: string }> = ({ c
                     </tr>
                   );
                 })
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-const BracketSeeding: React.FC<{ clubs: Club[]; competition: string }> = ({ clubs, competition }) => {
-  const seeded = getSeededClubsForCompetition(clubs, competition);
-
-  return (
-    <div className="space-y-4">
-      <div className="fc-card p-3 rounded-2xl border-slate-200 bg-slate-50 text-[11px] font-tech text-slate-600">
-        Esta copa no tiene fase de grupos: sus 8 clubes clasifican directo por su posición en 1ra División,
-        y el cuadro (Cuartos → Semifinal → Final) se arma y avanza automáticamente en la pestaña <strong>Fixture</strong>.
-      </div>
-
-      <div className="fc-card rounded-2xl overflow-hidden border-slate-200 shadow-md bg-white">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="bg-slate-100 text-slate-800 font-tech font-extrabold text-xs uppercase border-b border-slate-200 tracking-wider">
-                <th className="py-3.5 px-4 w-12 text-center">Bombo</th>
-                <th className="py-3.5 px-4">Club</th>
-                <th className="py-3.5 px-4 text-center">Posición en 1ra División</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100 text-xs font-sans">
-              {seeded.length === 0 ? (
-                <tr>
-                  <td colSpan={3} className="py-8 text-center text-slate-500 font-tech">
-                    Todavía no hay clubes registrados en 1ra División para sembrar esta copa.
-                  </td>
-                </tr>
-              ) : (
-                seeded.map(({ seed, club, domesticPosition }) => (
-                  <tr key={club.id} className="hover:bg-slate-50 transition-colors">
-                    <td className="py-3.5 px-4 text-center font-display font-black text-sm">
-                      <span className="w-6 h-6 rounded-full inline-flex items-center justify-center bg-slate-100 text-slate-700">
-                        {seed}
-                      </span>
-                    </td>
-                    <td className="py-3.5 px-4">
-                      <div className="flex items-center gap-3">
-                        <img src={club.logoUrl} alt={club.name} className="w-8 h-8 rounded-lg object-cover border border-slate-200 shrink-0" />
-                        <span className="font-bold text-sm text-slate-900">{club.name}</span>
-                      </div>
-                    </td>
-                    <td className="py-3.5 px-4 text-center font-mono font-bold text-slate-700">
-                      {domesticPosition}º
-                    </td>
-                  </tr>
-                ))
               )}
             </tbody>
           </table>
