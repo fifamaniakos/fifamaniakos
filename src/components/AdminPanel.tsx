@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Modal } from './Modal';
+import { ClubLogo } from './ClubLogo';
 import {
   Club,
   MatchResult,
@@ -688,7 +689,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                         </div>
                       </div>
                     ) : (
-                      <img
+                      <ClubLogo
                         src={club.logoUrl}
                         alt={club.name}
                         className="w-12 h-12 rounded-lg object-cover border border-slate-300 shrink-0"

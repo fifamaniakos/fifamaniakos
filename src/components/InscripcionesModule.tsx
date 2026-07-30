@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { ClubLogo } from './ClubLogo';
 import { UserPlus, Search, Shield, Monitor, MapPin, Users, DollarSign, ExternalLink, Trophy, Filter, LayoutGrid, List, Trash2, Edit, CheckCircle } from 'lucide-react';
 import { Club, Player } from '../types';
 import { FC27_STANDARD_LOGO } from '../data/initialData';
@@ -222,15 +223,11 @@ export const InscripcionesModule: React.FC<InscripcionesModuleProps> = ({
                   </div>
 
                   <div className="flex items-center gap-3.5 mt-3">
-                    <div className="w-14 h-14 rounded-2xl bg-white p-1 shadow-md border-2 border-[#00ba68] shrink-0 group-hover:scale-105 transition-transform overflow-hidden">
-                      <img
-                        src={club.logoUrl || FC27_STANDARD_LOGO}
+                    <div className="w-14 h-14 rounded-2xl bg-white p-1 shadow-md border-2 border-[#00ba68] shrink-0 group-hover:scale-105 transition-transform overflow-hidden flex items-center justify-center">
+                      <ClubLogo
+                        src={club.logoUrl}
                         alt={club.name}
                         className="w-full h-full object-cover rounded-xl"
-                        referrerPolicy="no-referrer"
-                        onError={(e) => {
-                          (e.target as HTMLImageElement).src = FC27_STANDARD_LOGO;
-                        }}
                       />
                     </div>
                     <div className="overflow-hidden">
@@ -327,14 +324,10 @@ export const InscripcionesModule: React.FC<InscripcionesModuleProps> = ({
                     <tr key={club.id} className="hover:bg-slate-50 transition-colors">
                       <td className="p-3 pl-5">
                         <div className="flex items-center gap-3">
-                          <img
-                            src={club.logoUrl || FC27_STANDARD_LOGO}
+                          <ClubLogo
+                            src={club.logoUrl}
                             alt={club.name}
                             className="w-9 h-9 rounded-xl object-cover border border-slate-300 shadow-sm shrink-0"
-                            referrerPolicy="no-referrer"
-                            onError={(e) => {
-                              (e.target as HTMLImageElement).src = FC27_STANDARD_LOGO;
-                            }}
                           />
                           <div>
                             <div className="font-display font-bold uppercase text-slate-900 text-sm">

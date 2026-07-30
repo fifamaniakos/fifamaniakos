@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { ClubLogo } from './ClubLogo';
 import { Club, Player } from '../types';
 import { DRAFT_BOMBO_TEAMS } from '../data/initialData';
 import { SOFIFA_PLAYERS, SoFifaPlayerPreset } from '../data/sofifaData';
@@ -489,10 +490,10 @@ export const DraftLotteryModule: React.FC<DraftLotteryModuleProps> = ({
                   >
                     {currentSelectedClub ? (
                       <div className="flex items-center gap-2.5">
-                        <img
-                          src={currentSelectedClub.badgeUrl || currentSelectedClub.logoUrl || 'https://images.unsplash.com/photo-1508098682722-e99c43a406b2?w=100&auto=format&fit=crop&q=80'}
+                        <ClubLogo
+                          src={currentSelectedClub.logoUrl || currentSelectedClub.badgeUrl}
                           alt={currentSelectedClub.name}
-                          className="w-9 h-9 object-contain rounded-full bg-white p-0.5 border border-slate-200 shadow-xs shrink-0"
+                          className="w-9 h-9 object-cover rounded-full border border-slate-200 shadow-xs shrink-0"
                         />
                         <div className="leading-tight">
                           <div className="flex items-center gap-1.5">
@@ -538,10 +539,10 @@ export const DraftLotteryModule: React.FC<DraftLotteryModuleProps> = ({
                             }`}
                           >
                             <div className="flex items-center gap-2.5">
-                              <img
-                                src={c.badgeUrl || c.logoUrl || 'https://images.unsplash.com/photo-1508098682722-e99c43a406b2?w=100&auto=format&fit=crop&q=80'}
+                              <ClubLogo
+                                src={c.logoUrl || c.badgeUrl}
                                 alt={c.name}
-                                className="w-8 h-8 object-contain rounded-full bg-white p-0.5 border border-slate-200 shadow-xs shrink-0"
+                                className="w-8 h-8 object-cover rounded-full border border-slate-200 shadow-xs shrink-0"
                               />
                               <div className="leading-tight">
                                 <div className="flex items-center gap-1.5">
@@ -801,10 +802,10 @@ export const DraftLotteryModule: React.FC<DraftLotteryModuleProps> = ({
               {draftMode === 'teams' && highlightedPreset && (
                 <div className={`space-y-3 transition-all duration-150 ${isSpinning ? 'scale-95 opacity-80 blur-xs' : 'scale-100 opacity-100'}`}>
                   <div className="w-28 h-28 mx-auto rounded-2xl bg-slate-50 border-2 border-emerald-500 p-3 shadow-md flex items-center justify-center">
-                    <img
+                    <ClubLogo
                       src={highlightedPreset.logoUrl}
                       alt={highlightedPreset.name}
-                      className="max-h-full max-w-full object-contain"
+                      className="w-full h-full object-cover rounded-xl"
                     />
                   </div>
                   <div>

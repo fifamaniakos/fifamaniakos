@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
+import { ClubLogo } from './ClubLogo';
 import { Club, Player, TransferItem, FinancialTransaction } from '../types';
 import { SOFIFA_PLAYERS, SoFifaPlayerPreset } from '../data/sofifaData';
 import { SofifaPlayersExplorer } from './SofifaPlayersExplorer';
@@ -413,7 +414,7 @@ export const TransferMarket: React.FC<TransferMarketProps> = ({
                   {/* Team Header */}
                   <div className="flex items-center justify-between border-b border-slate-200 pb-3">
                     <div className="flex items-center gap-3">
-                      <img src={club.logoUrl} alt={club.name} className="w-10 h-10 rounded-full object-cover border-2 border-emerald-500 shadow-sm" />
+                      <ClubLogo src={club.logoUrl} alt={club.name} className="w-10 h-10 rounded-full object-cover border-2 border-emerald-500 shadow-sm" />
                       <div>
                         <div className="flex items-center gap-2">
                           <h3 className="font-display font-extrabold text-lg text-slate-900 uppercase italic">{club.name}</h3>

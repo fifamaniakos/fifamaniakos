@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { ClubLogo } from './ClubLogo';
 import { Player, Club, PlayerPosition, FinancialTransaction, TransferItem } from '../types';
 import { Shield, Plus, DollarSign, Award, Users, Trash2, Edit, Edit3, Star, Zap, UserPlus, Sparkles, Check, Wallet, TrendingUp, TrendingDown, ArrowUpRight, ArrowDownLeft, FileText, Tag, X } from 'lucide-react';
 import { ImageUploader } from './ImageUploader';
@@ -154,7 +155,7 @@ export const SquadBuilder: React.FC<SquadBuilderProps> = ({
       {/* Header Info Banner */}
       <div className="fc-card p-6 rounded-2xl border-emerald-300 bg-gradient-to-r from-emerald-800 via-emerald-900 to-slate-900 text-white flex flex-col md:flex-row items-start md:items-center justify-between gap-6 shadow-xl">
         <div className="flex items-center gap-4">
-          <img src={currentClub.logoUrl} alt={currentClub.name} className="w-16 h-16 rounded-xl object-cover border-2 border-[#02f59b]" />
+          <ClubLogo src={currentClub.logoUrl} alt={currentClub.name} className="w-16 h-16 rounded-xl object-cover border-2 border-[#02f59b]" />
           <div>
             <div className="flex items-center gap-2">
               <h1 className="font-display font-black text-3xl text-white italic uppercase tracking-wider">

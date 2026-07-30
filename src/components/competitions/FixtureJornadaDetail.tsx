@@ -6,6 +6,7 @@ import { ArrowLeft, ChevronRight, Image as ImageIcon, CheckCircle2, PlusCircle, 
 import { ImageUploader } from '../ImageUploader';
 import { CompetitionLogo } from './CompetitionLogo';
 import { Modal } from '../Modal';
+import { ClubLogo } from '../ClubLogo';
 
 interface FixtureJornadaDetailProps {
   clubs: Club[];
@@ -232,7 +233,7 @@ export const FixtureJornadaDetail: React.FC<FixtureJornadaDetailProps> = ({
               <div className="flex items-center justify-center gap-6 flex-1 max-w-lg w-full">
                 <div className="flex items-center gap-3 text-right flex-1 justify-end">
                   <span className="font-display font-extrabold text-sm text-slate-900">{home?.name || 'Local'}</span>
-                  {home && <img src={home.logoUrl} alt={home.name} className="w-8 h-8 rounded object-cover border border-slate-200 shrink-0" />}
+                  <ClubLogo src={home?.logoUrl} alt={home?.name} className="w-8 h-8 rounded object-cover border border-slate-200 shrink-0" />
                 </div>
 
                 <div className="px-4 py-1.5 bg-slate-900 rounded-lg border border-emerald-500 font-display font-black text-xl text-[#02f59b] tracking-wider shrink-0 flex items-center gap-2 shadow-sm">
@@ -242,7 +243,7 @@ export const FixtureJornadaDetail: React.FC<FixtureJornadaDetailProps> = ({
                 </div>
 
                 <div className="flex items-center gap-3 text-left flex-1 justify-start">
-                  {away && <img src={away.logoUrl} alt={away.name} className="w-8 h-8 rounded object-cover border border-slate-200 shrink-0" />}
+                  <ClubLogo src={away?.logoUrl} alt={away?.name} className="w-8 h-8 rounded object-cover border border-slate-200 shrink-0" />
                   <span className="font-display font-extrabold text-sm text-slate-900">{away?.name || 'Visitante'}</span>
                 </div>
               </div>
@@ -281,9 +282,7 @@ export const FixtureJornadaDetail: React.FC<FixtureJornadaDetailProps> = ({
             <form onSubmit={handleConfirmReport} className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-5 gap-3 items-center bg-slate-50 p-4 rounded-xl border border-slate-200">
                 <div className="md:col-span-2 flex items-center gap-3">
-                  {reportHomeClub && (
-                    <img src={reportHomeClub.logoUrl} alt={reportHomeClub.name} className="w-12 h-12 rounded-lg object-cover border-2 border-[#00ba68] shrink-0" />
-                  )}
+                  <ClubLogo src={reportHomeClub?.logoUrl} alt={reportHomeClub?.name} className="w-12 h-12 rounded-lg object-cover border-2 border-[#00ba68] shrink-0" />
                   <select
                     value={reportHomeClubId}
                     onChange={(e) => setReportHomeClubId(e.target.value)}
@@ -325,9 +324,7 @@ export const FixtureJornadaDetail: React.FC<FixtureJornadaDetailProps> = ({
                       <option key={c.id} value={c.id}>{c.name} ({c.manager})</option>
                     ))}
                   </select>
-                  {reportAwayClub && (
-                    <img src={reportAwayClub.logoUrl} alt={reportAwayClub.name} className="w-12 h-12 rounded-lg object-cover border-2 border-slate-300 shrink-0" />
-                  )}
+                  <ClubLogo src={reportAwayClub?.logoUrl} alt={reportAwayClub?.name} className="w-12 h-12 rounded-lg object-cover border-2 border-slate-300 shrink-0" />
                 </div>
               </div>
 

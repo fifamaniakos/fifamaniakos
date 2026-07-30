@@ -13,15 +13,16 @@ const getInitials = (name: string) => name
   .join('')
   .toUpperCase();
 
-const PlayerAvatar: React.FC<{ name: string; photoUrl: string; className: string }> = ({ name, photoUrl, className }) => (
-  photoUrl ? (
-    <img src={photoUrl} alt={name} className={`${className} object-cover`} />
+const PlayerAvatar: React.FC<{ name: string; photoUrl: string; className: string }> = ({ name, photoUrl, className }) => {
+  const [hasError, setHasError] = useState(false);
+  return photoUrl && !hasError ? (
+    <img src={photoUrl} alt={name} className={`${className} object-cover`} onError={() => setHasError(true)} />
   ) : (
-    <div className={`${className} bg-slate-800 text-[#02f59b] font-display font-black flex items-center justify-center`}>
+    <div className={`${className} bg-slate-800 text-[#02f59b] font-display font-black flex items-center justify-center shrink-0`}>
       {getInitials(name)}
     </div>
-  )
-);
+  );
+};
 
 interface PlayerStatsTableProps {
   statType: StatType;
