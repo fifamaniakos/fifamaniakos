@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { ClubLogo } from './ClubLogo';
+import { PlayerAvatar } from './PlayerAvatar';
+import { ImageWithFallback } from './ImageWithFallback';
 import { Club, Player } from '../types';
 import { DRAFT_BOMBO_TEAMS } from '../data/initialData';
 import { SOFIFA_PLAYERS, SoFifaPlayerPreset } from '../data/sofifaData';
@@ -302,7 +304,7 @@ export const DraftLotteryModule: React.FC<DraftLotteryModuleProps> = ({
       >
         <div className="flex items-center gap-3">
           <div className="relative">
-            <img src={p.photoUrl} alt={p.name} className="w-9 h-9 object-cover rounded-md bg-slate-100 border border-slate-200" />
+            <PlayerAvatar name={p.name} photoUrl={p.photoUrl} className="w-9 h-9 rounded-md bg-slate-100 border border-slate-200" />
             {isCrack && (
               <span className="absolute -top-1.5 -right-1.5 bg-amber-400 text-slate-950 p-0.5 rounded-full shadow-xs">
                 <Star className="w-3 h-3 fill-slate-950" />
@@ -768,10 +770,10 @@ export const DraftLotteryModule: React.FC<DraftLotteryModuleProps> = ({
               {draftMode === 'players' && highlightedPlayer && (
                 <div className={`space-y-3 transition-all duration-150 ${isSpinning ? 'scale-95 opacity-80 blur-xs' : 'scale-100 opacity-100'}`}>
                   <div className="w-28 h-28 mx-auto rounded-2xl bg-slate-100 border-2 border-emerald-500 p-2 shadow-md flex items-center justify-center relative overflow-hidden">
-                    <img
-                      src={highlightedPlayer.photoUrl}
-                      alt={highlightedPlayer.name}
-                      className="max-h-full max-w-full object-cover rounded-xl"
+                    <PlayerAvatar
+                      name={highlightedPlayer.name}
+                      photoUrl={highlightedPlayer.photoUrl}
+                      className="max-h-full max-w-full rounded-xl"
                     />
                     <div className="absolute top-1 left-1 bg-emerald-600 px-2 py-0.5 rounded text-[11px] font-black text-white">
                       {highlightedPlayer.rating}
@@ -835,7 +837,7 @@ export const DraftLotteryModule: React.FC<DraftLotteryModuleProps> = ({
                 {lotteryHistory.map((item, idx) => (
                   <div key={idx} className="py-2.5 flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                      <img src={item.imgUrl} alt={item.title} className="w-8 h-8 object-contain rounded" />
+                      <ImageWithFallback src={item.imgUrl} alt={item.title} className="w-8 h-8 object-contain rounded" />
                       <div>
                         <strong className="text-slate-900 font-bold">{item.title}</strong>
                         <span className="block text-[10px] text-slate-500">Para: @{item.manager} ({item.subtext})</span>

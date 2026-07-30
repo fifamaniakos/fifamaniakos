@@ -2,27 +2,9 @@ import React, { useState } from 'react';
 import { Club, MatchResult, Player } from '../../types';
 import { Search, Filter, Target, Zap, AlertTriangle } from 'lucide-react';
 import { computePlayerStatsForCompetition } from '../../utils/competitionStats';
+import { PlayerAvatar } from '../PlayerAvatar';
 
 type StatType = 'goals' | 'assists' | 'cards';
-
-const getInitials = (name: string) => name
-  .split(' ')
-  .filter(Boolean)
-  .slice(0, 2)
-  .map(w => w[0])
-  .join('')
-  .toUpperCase();
-
-const PlayerAvatar: React.FC<{ name: string; photoUrl: string; className: string }> = ({ name, photoUrl, className }) => {
-  const [hasError, setHasError] = useState(false);
-  return photoUrl && !hasError ? (
-    <img src={photoUrl} alt={name} className={`${className} object-cover`} onError={() => setHasError(true)} />
-  ) : (
-    <div className={`${className} bg-slate-800 text-[#02f59b] font-display font-black flex items-center justify-center shrink-0`}>
-      {getInitials(name)}
-    </div>
-  );
-};
 
 interface PlayerStatsTableProps {
   statType: StatType;

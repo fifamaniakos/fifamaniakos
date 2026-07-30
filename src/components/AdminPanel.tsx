@@ -660,7 +660,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                   <div className="flex items-start gap-3">
                     {isEditing ? (
                       <div className="space-y-1 shrink-0">
-                        <img
+                        <ClubLogo
                           src={editLogoUrl || club.logoUrl}
                           alt={club.name}
                           className="w-12 h-12 rounded-lg object-cover border-2 border-emerald-500 shadow-sm"

@@ -2,6 +2,7 @@ import React from 'react';
 import { Trophy } from 'lucide-react';
 import { Club, MatchResult } from '../../types';
 import { BracketMatchSlot, BracketSlotTeam, getKnockoutBracketData } from '../../utils/bracketGenerator';
+import { ClubLogo } from '../ClubLogo';
 
 interface KnockoutBracketProps {
   clubs: Club[];
@@ -17,7 +18,7 @@ const TeamRow: React.FC<{ team: BracketSlotTeam; align?: 'left' | 'right' }> = (
   >
     {team.club ? (
       <>
-        <img src={team.club.logoUrl} alt={team.club.name} className="w-5 h-5 rounded object-cover shrink-0" />
+        <ClubLogo src={team.club.logoUrl} alt={team.club.name} className="w-5 h-5 rounded object-cover shrink-0" />
         <span className="truncate max-w-[110px]">{team.club.name}</span>
       </>
     ) : (

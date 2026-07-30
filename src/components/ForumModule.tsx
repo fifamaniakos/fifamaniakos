@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { ForumTopic, ForumCategory, ForumReply, Club } from '../types';
 import { MessageSquare, Plus, Eye, Heart, Pin, Share2, Search, CornerDownRight, Shield, User, Image as ImageIcon, ArrowLeft, Clock, Trash2, X, Edit3, Scale, Coins, Gavel, Dice5 } from 'lucide-react';
+import { ImageWithFallback } from './ImageWithFallback';
+import { ClubLogo } from './ClubLogo';
 
 interface ForumModuleProps {
   topics: ForumTopic[];
@@ -255,7 +257,7 @@ export const ForumModule: React.FC<ForumModuleProps> = ({
             {/* Author Profile Bar */}
             <div className="flex items-center justify-between bg-slate-50 p-3.5 rounded-xl border border-slate-200">
               <div className="flex items-center gap-3">
-                <img src={activeTopic.authorAvatar} alt={activeTopic.authorName} className="w-10 h-10 rounded-full object-cover border-2 border-[#00ba68]" />
+                <ImageWithFallback src={activeTopic.authorAvatar} alt={activeTopic.authorName} className="w-10 h-10 rounded-full object-cover border-2 border-[#00ba68]" />
                 <div>
                   <div className="font-bold text-sm text-slate-900 flex items-center gap-2">
                     {activeTopic.authorName}
@@ -301,8 +303,8 @@ export const ForumModule: React.FC<ForumModuleProps> = ({
                       key={club.id}
                       className="p-3 bg-white border border-slate-200 rounded-xl flex items-center gap-3 hover:border-emerald-400 transition-all shadow-xs"
                     >
-                      <img
-                        src={club.logoUrl || club.badgeUrl || 'https://images.unsplash.com/photo-1508098682722-e99c43a406b2?w=100&auto=format&fit=crop&q=80'}
+                      <ClubLogo
+                        src={club.logoUrl || club.badgeUrl}
                         alt={club.name}
                         className="w-10 h-10 object-contain rounded-full bg-white p-0.5 border border-slate-200 shrink-0"
                       />
@@ -333,7 +335,7 @@ export const ForumModule: React.FC<ForumModuleProps> = ({
             {/* Main Topic Image Attachment */}
             {activeTopic.imageUrl && (
               <div className="rounded-xl overflow-hidden border border-slate-200 bg-slate-900 max-h-[500px] flex items-center justify-center">
-                <img src={activeTopic.imageUrl} alt="Adjunto del tema" className="w-full h-full object-contain" />
+                <ImageWithFallback src={activeTopic.imageUrl} alt="Adjunto del tema" className="w-full h-full object-contain" />
               </div>
             )}
           </div>
@@ -348,7 +350,7 @@ export const ForumModule: React.FC<ForumModuleProps> = ({
               <div key={reply.id} className="bg-white border border-slate-200 rounded-xl p-4 shadow-sm space-y-3">
                 <div className="flex items-center justify-between border-b border-slate-100 pb-2">
                   <div className="flex items-center gap-2.5">
-                    <img src={reply.authorAvatar} alt={reply.authorName} className="w-8 h-8 rounded-full object-cover border border-slate-300" />
+                    <ImageWithFallback src={reply.authorAvatar} alt={reply.authorName} className="w-8 h-8 rounded-full object-cover border border-slate-300" />
                     <div>
                       <span className="font-bold text-xs text-slate-900">{reply.authorName}</span>
                       <span className="text-[10px] text-emerald-700 font-mono ml-2">({reply.authorClub})</span>
@@ -386,7 +388,7 @@ export const ForumModule: React.FC<ForumModuleProps> = ({
                 <p className="text-xs text-slate-700 leading-relaxed whitespace-pre-line">{reply.content}</p>
                 {reply.imageUrl && (
                   <div className="rounded-lg overflow-hidden border border-slate-200 max-h-80 bg-slate-900 mt-2">
-                    <img src={reply.imageUrl} alt="Adjunto de respuesta" className="w-full h-full object-cover" />
+                    <ImageWithFallback src={reply.imageUrl} alt="Adjunto de respuesta" className="w-full h-full object-cover" />
                   </div>
                 )}
               </div>
@@ -488,7 +490,7 @@ export const ForumModule: React.FC<ForumModuleProps> = ({
                 className="fc-card fc-card-hover p-4 rounded-2xl cursor-pointer flex flex-col md:flex-row items-start md:items-center justify-between gap-4 border-slate-200"
               >
                 <div className="flex items-start gap-3.5 flex-1 min-w-0">
-                  <img src={topic.authorAvatar} alt={topic.authorName} className="w-10 h-10 rounded-full object-cover border border-[#00ba68] shrink-0 mt-1 md:mt-0" />
+                  <ImageWithFallback src={topic.authorAvatar} alt={topic.authorName} className="w-10 h-10 rounded-full object-cover border border-[#00ba68] shrink-0 mt-1 md:mt-0" />
                   <div className="space-y-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
                       {topic.isPinned && (

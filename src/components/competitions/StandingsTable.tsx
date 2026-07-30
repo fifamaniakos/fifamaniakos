@@ -3,6 +3,7 @@ import { Club, MatchResult } from '../../types';
 import { computeDomesticQualificationZones } from '../../utils/competitionStats';
 import { Star, Globe, Shield } from 'lucide-react';
 import { KnockoutBracket } from './KnockoutBracket';
+import { ClubLogo } from '../ClubLogo';
 
 interface StandingsTableProps {
   clubs: Club[];
@@ -119,7 +120,7 @@ const DomesticStandings: React.FC<{ clubs: Club[]; competition: string }> = ({ c
 
                       <td className="py-3.5 px-4">
                         <div className="flex items-center gap-3">
-                          <img src={club.logoUrl} alt={club.name} className="w-8 h-8 rounded-lg object-cover border border-slate-200 shrink-0" />
+                          <ClubLogo src={club.logoUrl} alt={club.name} className="w-8 h-8 rounded-lg object-cover border border-slate-200 shrink-0" />
                           <div>
                             <div className="font-bold text-sm text-slate-900 flex items-center gap-2">
                               {club.name}

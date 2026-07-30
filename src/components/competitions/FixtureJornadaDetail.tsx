@@ -7,6 +7,7 @@ import { ImageUploader } from '../ImageUploader';
 import { CompetitionLogo } from './CompetitionLogo';
 import { Modal } from '../Modal';
 import { ClubLogo } from '../ClubLogo';
+import { ImageWithFallback } from '../ImageWithFallback';
 
 interface FixtureJornadaDetailProps {
   clubs: Club[];
@@ -696,7 +697,7 @@ export const FixtureJornadaDetail: React.FC<FixtureJornadaDetailProps> = ({
 
             {selectedMatch.proofImageUrl && (
               <div className="rounded-xl overflow-hidden border border-slate-200 bg-slate-900">
-                <img src={selectedMatch.proofImageUrl} alt="Prueba de Partido FC 27" className="w-full object-cover max-h-72" />
+                <ImageWithFallback src={selectedMatch.proofImageUrl} alt="Prueba de Partido FC 27" className="w-full object-cover max-h-72" />
               </div>
             )}
           </div>
