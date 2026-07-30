@@ -1,0 +1,68 @@
+<h2>¿Qué estilo de cuadro de eliminatorias prefieres?</h2>
+<p class="subtitle">La copa arranca en Cuartos de Final con 8 clubes (seguido de Semifinal y Final). Ambas opciones se autocompletan según la posición en la liga.</p>
+
+<div class="options" data-multiselect="false">
+  <div class="option" data-choice="a" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>Cuadro simétrico (como la imagen de referencia)</h3>
+      <p>Cuartos a la izquierda y a la derecha, convergiendo en una Final central con trofeo. Fondo oscuro tipo Champions League. Más fiel a la imagen, pero más complejo de armar responsivo en mobile.</p>
+      <div class="mockup" style="margin-top:10px">
+        <div class="mockup-body" style="background:linear-gradient(135deg,#0a1a3f,#142a5c);border-radius:10px;padding:16px;color:#fff;font-family:sans-serif">
+          <div style="display:flex;justify-content:space-between;align-items:center;font-size:10px;color:#9db3e8;text-transform:uppercase;margin-bottom:10px">
+            <span>Cuartos</span><span>Semis</span><span style="color:#ffd700">FINAL</span><span>Semis</span><span>Cuartos</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <div style="display:flex;flex-direction:column;gap:6px">
+              <div class="mock-team">🔵 Club A</div><div class="mock-team">🔴 Club B</div>
+              <div class="mock-team">🟢 Club C</div><div class="mock-team">🟡 Club D</div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:18px">
+              <div class="mock-team">🔵 —</div><div class="mock-team">🟢 —</div>
+            </div>
+            <div style="text-align:center">
+              <div style="width:40px;height:40px;margin:0 auto 4px;border-radius:50%;background:#ffd700;display:flex;align-items:center;justify-content:center">🏆</div>
+              <div style="font-size:9px;color:#ffd700">FINAL</div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:18px">
+              <div class="mock-team">🟣 —</div><div class="mock-team">⚪ —</div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:6px">
+              <div class="mock-team">🟣 Club E</div><div class="mock-team">🟤 Club F</div>
+              <div class="mock-team">⚪ Club G</div><div class="mock-team">⚫ Club H</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="b" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>Cuadro en columna única (rondas apiladas)</h3>
+      <p>Cuartos → Semis → Final apiladas de arriba a abajo con líneas conectoras, todo dentro de una sola columna. Mismo espíritu visual (dark theme, logos, líneas), pero mucho más simple de hacer responsivo en celular.</p>
+      <div class="mockup" style="margin-top:10px">
+        <div class="mockup-body" style="background:linear-gradient(135deg,#0a1a3f,#142a5c);border-radius:10px;padding:16px;color:#fff;font-family:sans-serif">
+          <div style="font-size:10px;color:#9db3e8;text-transform:uppercase;margin-bottom:8px">Cuartos de Final</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px">
+            <div class="mock-team">🔵 Club A</div><div class="mock-team">🔴 Club B</div>
+            <div class="mock-team">🟢 Club C</div><div class="mock-team">🟡 Club D</div>
+            <div class="mock-team">🟣 Club E</div><div class="mock-team">🟤 Club F</div>
+            <div class="mock-team">⚪ Club G</div><div class="mock-team">⚫ Club H</div>
+          </div>
+          <div style="font-size:10px;color:#9db3e8;text-transform:uppercase;margin-bottom:8px">Semifinal</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px">
+            <div class="mock-team">🔵 —</div><div class="mock-team">🟣 —</div>
+          </div>
+          <div style="font-size:10px;color:#ffd700;text-transform:uppercase;margin-bottom:6px">🏆 Final</div>
+          <div class="mock-team" style="width:50%">— vs —</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  .mock-team { background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.15); border-radius:6px; padding:4px 8px; font-size:11px; white-space:nowrap; }
+</style>
