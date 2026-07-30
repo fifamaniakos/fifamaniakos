@@ -5,6 +5,7 @@ import { PHASE_LABELS } from '../../utils/competitionStats';
 import { ArrowLeft, ChevronRight, Image as ImageIcon, CheckCircle2, PlusCircle, Upload, X } from 'lucide-react';
 import { ImageUploader } from '../ImageUploader';
 import { CompetitionLogo } from './CompetitionLogo';
+import { Modal } from '../Modal';
 
 interface FixtureJornadaDetailProps {
   clubs: Club[];
@@ -266,27 +267,18 @@ export const FixtureJornadaDetail: React.FC<FixtureJornadaDetailProps> = ({
         })
       )}
 
-      {reportingMatch && (
-        <div className="fixed inset-0 z-50 bg-slate-900/70 backdrop-blur-sm flex items-center justify-center p-3">
-          <div className="bg-white border border-slate-200 max-w-4xl w-full max-h-[97vh] rounded-2xl shadow-2xl text-slate-800 animate-scale-up overflow-y-auto">
-            <div className="px-6 py-4 bg-gradient-to-r from-emerald-800 via-emerald-900 to-slate-900 text-white flex items-center justify-between gap-3 sticky top-0 z-10">
-              <div>
-                <span className="px-2.5 py-1 bg-[#02f59b] text-black text-[11px] font-bold font-tech uppercase rounded tracking-wider inline-block">
-                  Acta Oficial FIFAMANIAKOS
-                </span>
-                <h2 className="font-display font-black text-lg text-white uppercase italic tracking-wide leading-tight">
-                  Reportar Resultado · {matchRoundLabel(reportingMatch)}
-                </h2>
-              </div>
-              <button
-                onClick={() => setReportingMatch(null)}
-                className="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white transition flex items-center justify-center shrink-0"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-
-            <form onSubmit={handleConfirmReport} className="p-6 space-y-4">
+      {/* Modal Reportar Resultado */}
+      <Modal
+        isOpen={Boolean(reportingMatch)}
+        onClose={() => setReportingMatch(null)}
+        title={reportingMatch ? `Reportar Resultado · ${matchRoundLabel(reportingMatch)}` : ''}
+        subtitle="Publica el marcador oficial y eventos del partido"
+        badgeText="ACTA OFICIAL FIFAMANIAKOS"
+        icon={<CheckCircle2 className="w-5 h-5 text-[#02f59b]" />}
+        maxWidth="4xl"
+      >
+        {reportingMatch && (
+            <form onSubmit={handleConfirmReport} className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-5 gap-3 items-center bg-slate-50 p-4 rounded-xl border border-slate-200">
                 <div className="md:col-span-2 flex items-center gap-3">
                   {reportHomeClub && (
@@ -379,15 +371,15 @@ export const FixtureJornadaDetail: React.FC<FixtureJornadaDetailProps> = ({
                       <select
                         onChange={(e) => {
                           if (e.target.value) {
-                            appendPlayerToField(reportHomeScorers, setReportHomeScorers, e.target.value, true);
+                            appendPlayerToField(reportHomeScorers, setReportHomeScorers, e.target.value, false);
                             e.target.value = '';
                           }
                         }}
-                        className="text-[10px] bg-[#00ba68]/10 text-emerald-800 font-bold border border-emerald-300 rounded px-1.5 py-0.5 focus:outline-none"
+                        className="text-[10px] bg-emerald-100 text-emerald-800 font-bold rounded px-1.5 py-0.5"
                       >
-                        <option value="">+ Elegir ({reportHomeClub?.shortName})</option>
+                        <option value="">+ Seleccionar de Plantilla</option>
                         {reportHomeSquad.map((p, i) => (
-                          <option key={i} value={p.name}>⚽ {p.name} ({p.pos})</option>
+                          <option key={i} value={p.name}>{p.name} ({p.pos})</option>
                         ))}
                       </select>
                     )}
@@ -396,8 +388,8 @@ export const FixtureJornadaDetail: React.FC<FixtureJornadaDetailProps> = ({
                     type="text"
                     value={reportHomeScorers}
                     onChange={(e) => setReportHomeScorers(e.target.value)}
-                    placeholder="Ej: Mbappé (12'), Vinícius (45')"
-                    className="w-full px-3 py-2.5 bg-slate-50 border border-slate-300 rounded-lg text-sm text-slate-900 focus:outline-none focus:border-[#00ba68]"
+                    placeholder="Ej: Mbappé (2), Vinicius"
+                    className="w-full px-3 py-2.5 bg-white border border-slate-300 rounded-lg text-sm text-slate-900 focus:outline-none focus:border-[#00ba68]"
                   />
                 </div>
 
@@ -408,15 +400,15 @@ export const FixtureJornadaDetail: React.FC<FixtureJornadaDetailProps> = ({
                       <select
                         onChange={(e) => {
                           if (e.target.value) {
-                            appendPlayerToField(reportAwayScorers, setReportAwayScorers, e.target.value, true);
+                            appendPlayerToField(reportAwayScorers, setReportAwayScorers, e.target.value, false);
                             e.target.value = '';
                           }
                         }}
-                        className="text-[10px] bg-[#00ba68]/10 text-emerald-800 font-bold border border-emerald-300 rounded px-1.5 py-0.5 focus:outline-none"
+                        className="text-[10px] bg-emerald-100 text-emerald-800 font-bold rounded px-1.5 py-0.5"
                       >
-                        <option value="">+ Elegir ({reportAwayClub?.shortName})</option>
+                        <option value="">+ Seleccionar de Plantilla</option>
                         {reportAwaySquad.map((p, i) => (
-                          <option key={i} value={p.name}>⚽ {p.name} ({p.pos})</option>
+                          <option key={i} value={p.name}>{p.name} ({p.pos})</option>
                         ))}
                       </select>
                     )}
@@ -425,16 +417,18 @@ export const FixtureJornadaDetail: React.FC<FixtureJornadaDetailProps> = ({
                     type="text"
                     value={reportAwayScorers}
                     onChange={(e) => setReportAwayScorers(e.target.value)}
-                    placeholder="Ej: Lewandowski (30'), Lamine (65')"
-                    className="w-full px-3 py-2.5 bg-slate-50 border border-slate-300 rounded-lg text-sm text-slate-900 focus:outline-none focus:border-[#00ba68]"
+                    placeholder="Ej: Lewandowski, Yamal"
+                    className="w-full px-3 py-2.5 bg-white border border-slate-300 rounded-lg text-sm text-slate-900 focus:outline-none focus:border-[#00ba68]"
                   />
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 <div>
                   <div className="flex items-center justify-between mb-0.5">
-                    <label className="block text-[11px] font-bold font-tech uppercase text-slate-700">👟 Asistencias (Local)</label>
+                    <label className="block text-[11px] font-bold font-tech uppercase text-blue-900 flex items-center gap-1">
+                      <span className="w-2 h-2 bg-blue-600 rounded-full inline-block" /> Asistencias (Local)
+                    </label>
                     {reportHomeSquad.length > 0 && (
                       <select
                         onChange={(e) => {
@@ -443,11 +437,11 @@ export const FixtureJornadaDetail: React.FC<FixtureJornadaDetailProps> = ({
                             e.target.value = '';
                           }
                         }}
-                        className="text-[10px] bg-slate-200 text-slate-800 font-bold border border-slate-300 rounded px-1.5 py-0.5 focus:outline-none"
+                        className="text-[10px] bg-blue-100 text-blue-900 font-bold rounded px-1.5 py-0.5"
                       >
-                        <option value="">+ Elegir ({reportHomeClub?.shortName})</option>
+                        <option value="">+ Asistente</option>
                         {reportHomeSquad.map((p, i) => (
-                          <option key={i} value={p.name}>👟 {p.name} ({p.pos})</option>
+                          <option key={i} value={p.name}>{p.name}</option>
                         ))}
                       </select>
                     )}
@@ -456,14 +450,16 @@ export const FixtureJornadaDetail: React.FC<FixtureJornadaDetailProps> = ({
                     type="text"
                     value={reportHomeAssists}
                     onChange={(e) => setReportHomeAssists(e.target.value)}
-                    placeholder="Ej: Bellingham (1), Modric (1)"
-                    className="w-full px-3 py-2.5 bg-slate-50 border border-slate-300 rounded-lg text-sm text-slate-900 focus:outline-none focus:border-[#00ba68]"
+                    placeholder="Ej: Kroos (2)"
+                    className="w-full px-3 py-2.5 bg-white border border-slate-300 rounded-lg text-sm text-slate-900 focus:outline-none focus:border-blue-500"
                   />
                 </div>
 
                 <div>
                   <div className="flex items-center justify-between mb-0.5">
-                    <label className="block text-[11px] font-bold font-tech uppercase text-slate-700">👟 Asistencias (Visitante)</label>
+                    <label className="block text-[11px] font-bold font-tech uppercase text-blue-900 flex items-center gap-1">
+                      <span className="w-2 h-2 bg-blue-600 rounded-full inline-block" /> Asistencias (Visitante)
+                    </label>
                     {reportAwaySquad.length > 0 && (
                       <select
                         onChange={(e) => {
@@ -472,11 +468,11 @@ export const FixtureJornadaDetail: React.FC<FixtureJornadaDetailProps> = ({
                             e.target.value = '';
                           }
                         }}
-                        className="text-[10px] bg-slate-200 text-slate-800 font-bold border border-slate-300 rounded px-1.5 py-0.5 focus:outline-none"
+                        className="text-[10px] bg-blue-100 text-blue-900 font-bold rounded px-1.5 py-0.5"
                       >
-                        <option value="">+ Elegir ({reportAwayClub?.shortName})</option>
+                        <option value="">+ Asistente</option>
                         {reportAwaySquad.map((p, i) => (
-                          <option key={i} value={p.name}>👟 {p.name} ({p.pos})</option>
+                          <option key={i} value={p.name}>{p.name}</option>
                         ))}
                       </select>
                     )}
@@ -485,18 +481,18 @@ export const FixtureJornadaDetail: React.FC<FixtureJornadaDetailProps> = ({
                     type="text"
                     value={reportAwayAssists}
                     onChange={(e) => setReportAwayAssists(e.target.value)}
-                    placeholder="Ej: Pedri (1), Raphinha (1)"
-                    className="w-full px-3 py-2.5 bg-slate-50 border border-slate-300 rounded-lg text-sm text-slate-900 focus:outline-none focus:border-[#00ba68]"
+                    placeholder="Ej: Pedri"
+                    className="w-full px-3 py-2.5 bg-white border border-slate-300 rounded-lg text-sm text-slate-900 focus:outline-none focus:border-blue-500"
                   />
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 p-3 bg-amber-50/60 rounded-xl border border-amber-200">
-                <div className="space-y-2">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div className="space-y-3">
                   <div>
                     <div className="flex items-center justify-between mb-0.5">
                       <label className="block text-[10px] font-bold font-tech uppercase text-amber-900 flex items-center gap-1">
-                        <span className="w-2 h-3 bg-amber-400 rounded-xs inline-block" /> Amarillas (Local)
+                        <span className="w-2 h-3 bg-amber-500 rounded-xs inline-block" /> Amarillas (Local)
                       </label>
                       {reportHomeSquad.length > 0 && (
                         <select
@@ -506,7 +502,7 @@ export const FixtureJornadaDetail: React.FC<FixtureJornadaDetailProps> = ({
                               e.target.value = '';
                             }
                           }}
-                          className="text-[10px] bg-amber-200 text-amber-900 font-bold rounded px-1.5 py-0.5"
+                          className="text-[10px] bg-amber-100 text-amber-900 font-bold rounded px-1.5 py-0.5"
                         >
                           <option value="">+ Amarilla</option>
                           {reportHomeSquad.map((p, i) => (
@@ -537,7 +533,7 @@ export const FixtureJornadaDetail: React.FC<FixtureJornadaDetailProps> = ({
                               e.target.value = '';
                             }
                           }}
-                          className="text-[10px] bg-rose-200 text-rose-900 font-bold rounded px-1.5 py-0.5"
+                          className="text-[10px] bg-rose-100 text-rose-900 font-bold rounded px-1.5 py-0.5"
                         >
                           <option value="">+ Roja</option>
                           {reportHomeSquad.map((p, i) => (
@@ -556,11 +552,11 @@ export const FixtureJornadaDetail: React.FC<FixtureJornadaDetailProps> = ({
                   </div>
                 </div>
 
-                <div className="space-y-2">
+                <div className="space-y-3">
                   <div>
                     <div className="flex items-center justify-between mb-0.5">
                       <label className="block text-[10px] font-bold font-tech uppercase text-amber-900 flex items-center gap-1">
-                        <span className="w-2 h-3 bg-amber-400 rounded-xs inline-block" /> Amarillas (Visitante)
+                        <span className="w-2 h-3 bg-amber-500 rounded-xs inline-block" /> Amarillas (Visitante)
                       </label>
                       {reportAwaySquad.length > 0 && (
                         <select
@@ -570,7 +566,7 @@ export const FixtureJornadaDetail: React.FC<FixtureJornadaDetailProps> = ({
                               e.target.value = '';
                             }
                           }}
-                          className="text-[10px] bg-amber-200 text-amber-900 font-bold rounded px-1.5 py-0.5"
+                          className="text-[10px] bg-amber-100 text-amber-900 font-bold rounded px-1.5 py-0.5"
                         >
                           <option value="">+ Amarilla</option>
                           {reportAwaySquad.map((p, i) => (
@@ -601,7 +597,7 @@ export const FixtureJornadaDetail: React.FC<FixtureJornadaDetailProps> = ({
                               e.target.value = '';
                             }
                           }}
-                          className="text-[10px] bg-rose-200 text-rose-900 font-bold rounded px-1.5 py-0.5"
+                          className="text-[10px] bg-rose-100 text-rose-900 font-bold rounded px-1.5 py-0.5"
                         >
                           <option value="">+ Roja</option>
                           {reportAwaySquad.map((p, i) => (
@@ -669,9 +665,8 @@ export const FixtureJornadaDetail: React.FC<FixtureJornadaDetailProps> = ({
                 </button>
               </div>
             </form>
-          </div>
-        </div>
-      )}
+        )}
+      </Modal>
 
       {selectedMatch && (
         <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">

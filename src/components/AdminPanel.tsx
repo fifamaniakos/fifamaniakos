@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Modal } from './Modal';
 import {
   Club,
   MatchResult,
@@ -48,6 +49,7 @@ interface AdminPanelProps {
   onAddClub: (newClub: Club) => void;
   onUpdateClub: (updatedClub: Club) => void;
   onDeleteClub: (clubId: string) => void;
+  onResetAllClubs?: () => void;
   onAddMatchResult: (newMatch: MatchResult) => void;
   onUpdateMatchResult: (matchId: string, status: 'CONFIRMADO' | 'RECHAZADO' | 'PENDIENTE', homeGoals?: number, awayGoals?: number) => void;
   onDeleteMatchResult: (matchId: string) => void;
@@ -74,6 +76,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
   onAddClub,
   onUpdateClub,
   onDeleteClub,
+  onResetAllClubs,
   onAddMatchResult,
   onUpdateMatchResult,
   onDeleteMatchResult,
@@ -613,7 +616,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
             <div className="flex flex-wrap items-center gap-2">
               <button
                 onClick={handleBulkImportSofifaClubs}
-                className="px-3.5 py-2 bg-slate-900 border border-emerald-500 text-[#02f59b] hover:bg-slate-800 text-xs font-bold font-tech uppercase rounded-xl flex items-center gap-1.5 shadow"
+                className="px-3.5 py-2 bg-slate-900 border border-emerald-500 text-[#02f59b] hover:bg-slate-800 text-xs font-bold font-tech uppercase rounded-xl flex items-center gap-1.5 shadow transition-colors"
                 title="Carga automáticamente los 10 mejores equipos oficiales en la liga"
               >
                 <Sparkles className="w-4 h-4 text-[#02f59b]" /> Cargar Equipos Oficiales
@@ -621,9 +624,25 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
 
               <button
                 onClick={() => setShowAddClubModal(true)}
-                className="fc-button-primary px-4 py-2 text-xs font-extrabold uppercase flex items-center gap-1.5 shadow"
+                className="fc-button-primary px-4 py-2 text-xs font-extrabold uppercase flex items-center gap-1.5 shadow transition-all"
               >
                 <PlusCircle className="w-4 h-4" /> Inscribir Club
+              </button>
+
+              <button
+                onClick={() => {
+                  if (confirm('⚠️ ¿DESEAS VACIAR Y RESETEAR TODAS LAS INSCRIPCIONES?\n\nEsta acción eliminará todos los clubes inscritos para empezar desde cero.')) {
+                    if (onResetAllClubs) {
+                      onResetAllClubs();
+                    } else {
+                      clubs.forEach(c => onDeleteClub(c.id));
+                    }
+                  }
+                }}
+                className="px-3.5 py-2 bg-rose-600/90 hover:bg-rose-600 text-white text-xs font-bold font-tech uppercase rounded-xl flex items-center gap-1.5 shadow transition-colors"
+                title="Elimina todas las inscripciones para empezar de nuevo"
+              >
+                <Trash2 className="w-4 h-4" /> Vaciar / Resetear Inscripciones
               </button>
             </div>
           </div>
@@ -1487,191 +1506,345 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
         </div>
       )}
 
-      {/* Modal: Registrar Partido Directo (Admin) */}
-      {showAddMatchModal && (
-        <div className="fixed inset-0 z-[100] bg-slate-900/80 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
-          <div className="bg-white border border-slate-200 max-w-lg w-full p-6 md:p-8 rounded-2xl shadow-2xl space-y-5 text-slate-800 animate-scale-up my-8">
-            <div className="flex justify-between items-center border-b border-slate-100 pb-3">
-              <div className="flex items-center gap-2.5">
-                <div className="w-10 h-10 rounded-xl bg-emerald-50 text-[#00ba68] flex items-center justify-center border border-emerald-200 shadow-xs">
-                  <Trophy className="w-5 h-5 text-[#00ba68]" />
-                </div>
-                <div>
-                  <span className="px-2 py-0.5 bg-[#02f59b] text-black text-[9px] font-extrabold font-tech uppercase rounded tracking-wider">
-                    PANEL ADMIN
-                  </span>
-                  <h3 className="font-display font-black text-lg md:text-xl text-slate-900 uppercase italic tracking-wide">
-                    Registrar Resultado de Partido
-                  </h3>
-                </div>
-              </div>
-              <button
-                onClick={() => setShowAddMatchModal(false)}
-                className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-900 transition flex items-center justify-center font-bold"
-              >
-                ✕
-              </button>
-            </div>
+      {/* Modal: Inscribir Club (Admin) */}
+      <Modal
+        isOpen={showAddClubModal}
+        onClose={() => setShowAddClubModal(false)}
+        title="Inscribir Nuevo Club"
+        subtitle="Agrega un club manualmente o búscalo por país y liga oficial"
+        badgeText="GESTIÓN DE CLUBES"
+        icon={<Building2 className="w-5 h-5 text-[#02f59b]" />}
+        maxWidth="xl"
+      >
+        <form onSubmit={handleCreateClubSubmit} className="space-y-4">
+          <div className="bg-slate-900 p-4 rounded-xl border border-emerald-500/40 text-white space-y-3">
+            <h4 className="text-xs font-bold font-tech uppercase text-[#02f59b] flex items-center gap-1.5">
+              <Sparkles className="w-4 h-4 text-emerald-400" /> Búsqueda por País y Liga
+            </h4>
 
-            <form onSubmit={handleCreateMatchSubmit} className="space-y-4">
+            <div className="grid grid-cols-2 gap-2">
               <div>
-                <label className="block text-xs font-extrabold text-slate-700 uppercase font-tech mb-1">
-                  Número de Jornada
+                <label className="block text-[10px] text-slate-300 font-tech uppercase mb-1">
+                  1. País
                 </label>
-                <input
-                  type="number"
-                  value={addMatchday}
-                  onChange={(e) => setAddMatchday(Number(e.target.value))}
-                  min={1}
-                  max={38}
-                  className="w-full p-3 bg-slate-50 border border-slate-300 rounded-xl text-sm font-bold text-slate-900 focus:outline-none focus:border-[#00ba68]"
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-extrabold text-slate-700 uppercase font-tech mb-1">
-                    Equipo Local
-                  </label>
-                  <select
-                    value={addMatchHomeId}
-                    onChange={(e) => setAddMatchHomeId(e.target.value)}
-                    className="w-full p-3 bg-slate-50 border border-slate-300 rounded-xl text-xs font-bold text-slate-900 focus:outline-none focus:border-[#00ba68]"
-                  >
-                    {clubs.map(c => (
-                      <option key={c.id} value={c.id}>{c.name}</option>
-                    ))}
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-xs font-extrabold text-slate-700 uppercase font-tech mb-1">
-                    Equipo Visitante
-                  </label>
-                  <select
-                    value={addMatchAwayId}
-                    onChange={(e) => setAddMatchAwayId(e.target.value)}
-                    className="w-full p-3 bg-slate-50 border border-slate-300 rounded-xl text-xs font-bold text-slate-900 focus:outline-none focus:border-[#00ba68]"
-                  >
-                    {clubs.map(c => (
-                      <option key={c.id} value={c.id}>{c.name}</option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-extrabold text-slate-700 uppercase font-tech mb-1">
-                    Goles Local
-                  </label>
-                  <input
-                    type="number"
-                    value={addHomeGoals}
-                    onChange={(e) => setAddHomeGoals(Number(e.target.value))}
-                    min={0}
-                    className="w-full p-3 bg-slate-50 border border-slate-300 rounded-xl text-center font-display font-black text-2xl text-emerald-700 focus:outline-none focus:border-[#00ba68]"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-extrabold text-slate-700 uppercase font-tech mb-1">
-                    Goles Visitante
-                  </label>
-                  <input
-                    type="number"
-                    value={addAwayGoals}
-                    onChange={(e) => setAddAwayGoals(Number(e.target.value))}
-                    min={0}
-                    className="w-full p-3 bg-slate-50 border border-slate-300 rounded-xl text-center font-display font-black text-2xl text-slate-900 focus:outline-none focus:border-[#00ba68]"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-extrabold text-slate-700 uppercase font-tech mb-1">
-                    Goleadores Local (Opcional)
-                  </label>
-                  <input
-                    type="text"
-                    value={addHomeScorers}
-                    onChange={(e) => setAddHomeScorers(e.target.value)}
-                    placeholder="Ej: Mbappé (2), Vinicius"
-                    className="w-full p-3 bg-slate-50 border border-slate-300 rounded-xl text-xs font-bold text-slate-900 focus:outline-none focus:border-[#00ba68]"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-extrabold text-slate-700 uppercase font-tech mb-1">
-                    Goleadores Visitante (Opcional)
-                  </label>
-                  <input
-                    type="text"
-                    value={addAwayScorers}
-                    onChange={(e) => setAddAwayScorers(e.target.value)}
-                    placeholder="Ej: Lewandowski, Yamal"
-                    className="w-full p-3 bg-slate-50 border border-slate-300 rounded-xl text-xs font-bold text-slate-900 focus:outline-none focus:border-[#00ba68]"
-                  />
-                </div>
-              </div>
-
-              <div className="flex justify-end gap-3 pt-3 border-t border-slate-100">
-                <button
-                  type="button"
-                  onClick={() => setShowAddMatchModal(false)}
-                  className="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-tech font-bold uppercase rounded-xl transition-colors"
+                <select
+                  value={adminSofifaCountry}
+                  onChange={(e) => handleAdminCountryChange(e.target.value)}
+                  className="w-full px-2 py-1.5 bg-slate-800 border border-emerald-700/70 rounded-lg text-xs text-white focus:outline-none"
                 >
-                  Cancelar
-                </button>
-                <button
-                  type="submit"
-                  className="fc-button-primary px-6 py-2.5 text-xs font-extrabold uppercase shadow-lg"
-                >
-                  Guardar Resultado
-                </button>
+                  <option value="">🌍 Todos ({adminCountries.length})</option>
+                  {adminCountries.map(country => (
+                    <option key={country} value={country}>🚩 {country}</option>
+                  ))}
+                </select>
               </div>
-            </form>
-          </div>
-        </div>
-      )}
-      {/* Modal Confirmar Eliminación Admin */}
-      {deleteModal && (
-        <div className="fixed inset-0 z-[110] bg-slate-900/80 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white max-w-md w-full p-6 rounded-2xl border border-rose-300 shadow-2xl space-y-4 animate-scale-up">
-            <div className="flex items-center gap-3 text-rose-600">
-              <div className="p-3 bg-rose-100 rounded-xl">
-                <Trash2 className="w-6 h-6 text-rose-600" />
-              </div>
+
               <div>
-                <h3 className="font-display font-extrabold text-base text-slate-900 uppercase">¿Confirmar Eliminación?</h3>
-                <p className="text-xs text-slate-500 font-tech">Esta acción eliminará el elemento de forma permanente.</p>
+                <label className="block text-[10px] text-slate-300 font-tech uppercase mb-1">
+                  2. Liga
+                </label>
+                <select
+                  value={adminSofifaLeague}
+                  onChange={(e) => handleAdminLeagueChange(e.target.value)}
+                  disabled={!adminSofifaCountry && adminAvailableLeagues.length === 0}
+                  className="w-full px-2 py-1.5 bg-slate-800 border border-emerald-700/70 rounded-lg text-xs text-white focus:outline-none disabled:opacity-50"
+                >
+                  <option value="">🏆 Todas</option>
+                  {adminAvailableLeagues.map(league => (
+                    <option key={league} value={league}>🏆 {league}</option>
+                  ))}
+                </select>
               </div>
             </div>
 
-            <div className="bg-slate-50 p-3 rounded-xl border border-slate-200">
-              <p className="text-xs font-bold text-slate-800 font-tech">"{deleteModal.name}"</p>
-              <p className="text-[10px] text-slate-500 font-mono uppercase mt-1">
+            <div>
+              <label className="block text-[10px] text-slate-300 font-tech uppercase mb-1">
+                3. Equipo Oficial
+              </label>
+              <select
+                value={adminSofifaClubId}
+                onChange={(e) => handleSelectAdminSofifaClub(e.target.value)}
+                className="w-full px-2.5 py-2 bg-slate-800 border border-emerald-600 rounded-lg text-xs font-bold text-white focus:outline-none"
+              >
+                <option value="">-- Autocompletar ({adminFilteredClubs.length} clubes) --</option>
+                {adminFilteredClubs.map(club => (
+                  <option key={club.id} value={club.id}>
+                    ⚽ {club.name} — {club.league} ({club.country})
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-xs font-extrabold text-slate-700 uppercase font-tech mb-1">Nombre del Club</label>
+            <input
+              type="text"
+              value={newClubName}
+              onChange={(e) => setNewClubName(e.target.value)}
+              placeholder="Ej: Paris Saint-Germain Cyber"
+              required
+              className="w-full p-3 bg-slate-50 border border-slate-300 rounded-xl text-xs font-bold text-slate-900 focus:outline-none focus:border-[#00ba68]"
+            />
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-xs font-extrabold text-slate-700 uppercase font-tech mb-1">Abreviatura (3 Letras)</label>
+              <input
+                type="text"
+                value={newClubShort}
+                onChange={(e) => setNewClubShort(e.target.value)}
+                placeholder="Ej: PSG"
+                maxLength={3}
+                className="w-full p-3 bg-slate-50 border border-slate-300 rounded-xl text-xs uppercase font-bold text-slate-900 focus:outline-none focus:border-[#00ba68]"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-extrabold text-slate-700 uppercase font-tech mb-1">Plataforma</label>
+              <select
+                value={newClubPlatform}
+                onChange={(e) => setNewClubPlatform(e.target.value as 'PS5' | 'Xbox Series X' | 'PC')}
+                className="w-full p-3 bg-slate-50 border border-slate-300 rounded-xl text-xs font-bold text-slate-900 focus:outline-none focus:border-[#00ba68]"
+              >
+                <option value="PS5">PS5</option>
+                <option value="Xbox Series X">Xbox Series X</option>
+                <option value="PC">PC</option>
+              </select>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-xs font-extrabold text-slate-700 uppercase font-tech mb-1">Nombre Manager</label>
+              <input
+                type="text"
+                value={newClubManager}
+                onChange={(e) => setNewClubManager(e.target.value)}
+                placeholder="Ej: Lucas_Gamer"
+                required
+                className="w-full p-3 bg-slate-50 border border-slate-300 rounded-xl text-xs text-slate-900 font-bold focus:outline-none focus:border-[#00ba68]"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-extrabold text-slate-700 uppercase font-tech mb-1">Gamertag / ID PSN</label>
+              <input
+                type="text"
+                value={newClubGamertag}
+                onChange={(e) => setNewClubGamertag(e.target.value)}
+                placeholder="Ej: Lucas_Gamer_PSN"
+                className="w-full p-3 bg-slate-50 border border-slate-300 rounded-xl text-xs text-slate-900 font-mono focus:outline-none focus:border-[#00ba68]"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-xs font-extrabold text-slate-700 uppercase font-tech mb-1">Presupuesto Inicial (€)</label>
+              <input
+                type="number"
+                value={newClubBudget}
+                onChange={(e) => setNewClubBudget(Number(e.target.value))}
+                step={1000000}
+                className="w-full p-3 bg-slate-50 border border-slate-300 rounded-xl text-xs font-bold font-mono text-emerald-800 focus:outline-none focus:border-[#00ba68]"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-extrabold text-slate-700 uppercase font-tech mb-1">Estadio Oficial</label>
+              <input
+                type="text"
+                value={newClubStadium}
+                onChange={(e) => setNewClubStadium(e.target.value)}
+                placeholder="Ej: Parc des Princes FC27"
+                className="w-full p-3 bg-slate-50 border border-slate-300 rounded-xl text-xs text-slate-900 focus:outline-none focus:border-[#00ba68]"
+              />
+            </div>
+          </div>
+
+          <div className="flex justify-end gap-3 pt-3 border-t border-slate-100">
+            <button
+              type="button"
+              onClick={() => setShowAddClubModal(false)}
+              className="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-tech font-bold uppercase rounded-xl transition-colors"
+            >
+              Cancelar
+            </button>
+            <button
+              type="submit"
+              className="fc-button-primary px-6 py-2.5 text-xs font-extrabold uppercase shadow-lg"
+            >
+              Guardar e Inscribir
+            </button>
+          </div>
+        </form>
+      </Modal>
+
+      {/* Modal: Registrar Partido Directo (Admin) */}
+      <Modal
+        isOpen={showAddMatchModal}
+        onClose={() => setShowAddMatchModal(false)}
+        title="Registrar Resultado de Partido"
+        subtitle="Registra el marcador oficial y goleadores del partido"
+        badgeText="VALIDACIÓN Y ACTAS"
+        icon={<Trophy className="w-5 h-5 text-[#02f59b]" />}
+        maxWidth="lg"
+      >
+        <form onSubmit={handleCreateMatchSubmit} className="space-y-4">
+          <div>
+            <label className="block text-xs font-extrabold text-slate-700 uppercase font-tech mb-1">
+              Número de Jornada
+            </label>
+            <input
+              type="number"
+              value={addMatchday}
+              onChange={(e) => setAddMatchday(Number(e.target.value))}
+              min={1}
+              max={38}
+              className="w-full p-3 bg-slate-50 border border-slate-300 rounded-xl text-sm font-bold text-slate-900 focus:outline-none focus:border-[#00ba68]"
+            />
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-xs font-extrabold text-slate-700 uppercase font-tech mb-1">
+                Equipo Local
+              </label>
+              <select
+                value={addMatchHomeId}
+                onChange={(e) => setAddMatchHomeId(e.target.value)}
+                className="w-full p-3 bg-slate-50 border border-slate-300 rounded-xl text-xs font-bold text-slate-900 focus:outline-none focus:border-[#00ba68]"
+              >
+                {clubs.map(c => (
+                  <option key={c.id} value={c.id}>{c.name}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="block text-xs font-extrabold text-slate-700 uppercase font-tech mb-1">
+                Equipo Visitante
+              </label>
+              <select
+                value={addMatchAwayId}
+                onChange={(e) => setAddMatchAwayId(e.target.value)}
+                className="w-full p-3 bg-slate-50 border border-slate-300 rounded-xl text-xs font-bold text-slate-900 focus:outline-none focus:border-[#00ba68]"
+              >
+                {clubs.map(c => (
+                  <option key={c.id} value={c.id}>{c.name}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-xs font-extrabold text-slate-700 uppercase font-tech mb-1">
+                Goles Local
+              </label>
+              <input
+                type="number"
+                value={addHomeGoals}
+                onChange={(e) => setAddHomeGoals(Number(e.target.value))}
+                min={0}
+                className="w-full p-3 bg-slate-50 border border-slate-300 rounded-xl text-center font-display font-black text-2xl text-emerald-700 focus:outline-none focus:border-[#00ba68]"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-extrabold text-slate-700 uppercase font-tech mb-1">
+                Goles Visitante
+              </label>
+              <input
+                type="number"
+                value={addAwayGoals}
+                onChange={(e) => setAddAwayGoals(Number(e.target.value))}
+                min={0}
+                className="w-full p-3 bg-slate-50 border border-slate-300 rounded-xl text-center font-display font-black text-2xl text-slate-900 focus:outline-none focus:border-[#00ba68]"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-xs font-extrabold text-slate-700 uppercase font-tech mb-1">
+                Goleadores Local (Opcional)
+              </label>
+              <input
+                type="text"
+                value={addHomeScorers}
+                onChange={(e) => setAddHomeScorers(e.target.value)}
+                placeholder="Ej: Mbappé (2), Vinicius"
+                className="w-full p-3 bg-slate-50 border border-slate-300 rounded-xl text-xs font-bold text-slate-900 focus:outline-none focus:border-[#00ba68]"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-extrabold text-slate-700 uppercase font-tech mb-1">
+                Goleadores Visitante (Opcional)
+              </label>
+              <input
+                type="text"
+                value={addAwayScorers}
+                onChange={(e) => setAddAwayScorers(e.target.value)}
+                placeholder="Ej: Lewandowski, Yamal"
+                className="w-full p-3 bg-slate-50 border border-slate-300 rounded-xl text-xs font-bold text-slate-900 focus:outline-none focus:border-[#00ba68]"
+              />
+            </div>
+          </div>
+
+          <div className="flex justify-end gap-3 pt-3 border-t border-slate-100">
+            <button
+              type="button"
+              onClick={() => setShowAddMatchModal(false)}
+              className="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-tech font-bold uppercase rounded-xl transition-colors"
+            >
+              Cancelar
+            </button>
+            <button
+              type="submit"
+              className="fc-button-primary px-6 py-2.5 text-xs font-extrabold uppercase shadow-lg"
+            >
+              Guardar Resultado
+            </button>
+          </div>
+        </form>
+      </Modal>
+
+      {/* Modal Confirmar Eliminación Admin */}
+      <Modal
+        isOpen={Boolean(deleteModal)}
+        onClose={() => setDeleteModal(null)}
+        title="¿Confirmar Eliminación?"
+        subtitle="Esta acción eliminará el elemento seleccionado de forma permanente"
+        badgeText="ZONA DANGER"
+        icon={<Trash2 className="w-5 h-5 text-rose-500" />}
+        maxWidth="md"
+      >
+        {deleteModal && (
+          <div className="space-y-4">
+            <div className="bg-rose-50 p-4 rounded-xl border border-rose-200">
+              <p className="text-sm font-bold text-rose-900 font-tech">"{deleteModal.name}"</p>
+              <p className="text-[11px] text-rose-700 font-mono uppercase mt-1">
                 Tipo: {deleteModal.type === 'news' ? 'Noticia de Cartel' : deleteModal.type === 'club' ? 'Club Inscrito' : deleteModal.type === 'match' ? 'Acta de Partido' : deleteModal.type === 'topic' ? 'Tema de Foro' : 'Jugador en Mercado'}
               </p>
             </div>
 
-            <div className="flex items-center justify-end gap-2 pt-2">
+            <div className="flex items-center justify-end gap-3 pt-2">
               <button
                 type="button"
                 onClick={() => setDeleteModal(null)}
-                className="px-4 py-2 bg-slate-200 text-slate-700 text-xs font-tech font-bold uppercase rounded-xl hover:bg-slate-300"
+                className="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-tech font-bold uppercase rounded-xl transition-colors"
               >
                 Cancelar
               </button>
               <button
                 type="button"
                 onClick={handleExecuteDelete}
-                className="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white text-xs font-tech font-extrabold uppercase rounded-xl shadow-md transition-colors"
+                className="px-5 py-2.5 bg-rose-600 hover:bg-rose-700 text-white text-xs font-tech font-extrabold uppercase rounded-xl shadow-md transition-colors"
               >
                 Sí, Eliminar Definitivamente
               </button>
             </div>
           </div>
-        </div>
-      )}
+        )}
+      </Modal>
     </div>
   );
 };
