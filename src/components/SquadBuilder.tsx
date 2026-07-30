@@ -333,7 +333,14 @@ export const SquadBuilder: React.FC<SquadBuilderProps> = ({
                     {/* Foto / Cara del Jugador */}
                     <div className="w-10 h-10 rounded-lg bg-black/20 border border-black/30 mx-auto my-1 flex items-center justify-center overflow-hidden shadow-inner relative">
                       {player.photoUrl ? (
-                        <img src={player.photoUrl} alt={player.name} className="w-full h-full object-cover rounded-lg" />
+                        <img
+                          src={player.photoUrl}
+                          alt={player.name}
+                          className="w-full h-full object-cover rounded-lg"
+                          onError={(e) => {
+                            (e.target as HTMLElement).style.display = 'none';
+                          }}
+                        />
                       ) : (
                         <span className="font-display font-black text-xs">{player.position}</span>
                       )}

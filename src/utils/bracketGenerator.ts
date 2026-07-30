@@ -1,23 +1,54 @@
 import { Club, MatchPhase, MatchResult } from '../types';
-import { computeCupStandings } from './competitionStats';
 
 interface BracketConfig {
   size: number;
   rounds: MatchPhase[];
+  positionBand: [number, number];
 }
 
 const BRACKET_CONFIG: Record<string, BracketConfig> = {
-  'UEFA Champions League': { size: 8, rounds: ['CUARTOS', 'SEMIFINAL', 'FINAL'] },
-  'UEFA Europa League': { size: 8, rounds: ['CUARTOS', 'SEMIFINAL', 'FINAL'] },
-  'Copa del Rey': { size: 16, rounds: ['OCTAVOS', 'CUARTOS', 'SEMIFINAL', 'FINAL'] }
+  'UEFA Champions League': { size: 8, rounds: ['CUARTOS', 'SEMIFINAL', 'FINAL'], positionBand: [1, 8] },
+  'UEFA Europa League': { size: 8, rounds: ['CUARTOS', 'SEMIFINAL', 'FINAL'], positionBand: [9, 16] },
+  'UEFA Conference League': { size: 8, rounds: ['CUARTOS', 'SEMIFINAL', 'FINAL'], positionBand: [17, 24] }
 };
-
-const isGroupPhaseMatch = (m: MatchResult) => !m.phase || m.phase === 'GRUPOS';
 
 export function getMatchWinnerClubId(match: MatchResult): string {
   if (match.homeGoals > match.awayGoals) return match.homeClubId;
   if (match.awayGoals > match.homeGoals) return match.awayClubId;
   return match.penaltyWinnerClubId || match.homeClubId;
+}
+
+export function getDomesticStandingOrder(clubs: Club[]): Club[] {
+  return [...clubs]
+    .filter(c => !c.division || c.division === '1ra División' || c.division === 'Primera División')
+    .sort((a, b) => {
+      if (b.points !== a.points) return b.points - a.points;
+      const diffB = b.goalsFor - b.goalsAgainst;
+      const diffA = a.goalsFor - a.goalsAgainst;
+      if (diffB !== diffA) return diffB - diffA;
+      return b.goalsFor - a.goalsFor;
+    });
+}
+
+export function getSeededClubsForCompetition(
+  clubs: Club[],
+  competition: string
+): { seed: number; club: Club; domesticPosition: number }[] {
+  const config = BRACKET_CONFIG[competition];
+  if (!config) return [];
+
+  const domesticOrder = getDomesticStandingOrder(clubs);
+  const [start, end] = config.positionBand;
+
+  return domesticOrder.slice(start - 1, end).map((club, idx) => ({
+    seed: idx + 1,
+    club,
+    domesticPosition: start + idx
+  }));
+}
+
+export function getPositionBand(competition: string): [number, number] | undefined {
+  return BRACKET_CONFIG[competition]?.positionBand;
 }
 
 function buildRoundMatches(
@@ -54,12 +85,9 @@ function buildRoundMatches(
 
 export function generatePendingKnockoutMatches(clubs: Club[], matches: MatchResult[]): MatchResult[] {
   const generated: MatchResult[] = [];
+  const domesticOrder = getDomesticStandingOrder(clubs);
 
   Object.entries(BRACKET_CONFIG).forEach(([competition, config]) => {
-    const groupMatches = matches.filter(m => m.competition === competition && isGroupPhaseMatch(m));
-    if (groupMatches.length === 0) return;
-    if (groupMatches.some(m => m.status !== 'CONFIRMADO')) return;
-
     let previousRoundWinnersOrdered: string[] | null = null;
 
     for (let roundIndex = 0; roundIndex < config.rounds.length; roundIndex++) {
@@ -77,10 +105,11 @@ export function generatePendingKnockoutMatches(clubs: Club[], matches: MatchResu
       }
 
       const seededClubIds = roundIndex === 0
-        ? computeCupStandings(clubs, groupMatches, competition).slice(0, config.size).map(row => row.clubId)
+        ? domesticOrder.slice(config.positionBand[0] - 1, config.positionBand[1]).map(c => c.id)
         : previousRoundWinnersOrdered;
 
-      if (!seededClubIds || seededClubIds.length < 2) return;
+      const minRequired = roundIndex === 0 ? config.size : 2;
+      if (!seededClubIds || seededClubIds.length < minRequired) return;
 
       generated.push(...buildRoundMatches(competition, phase, roundIndex, seededClubIds));
       return;

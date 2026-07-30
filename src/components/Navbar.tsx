@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { MessageSquare, Trophy, Shield, DollarSign, UserPlus, PlusCircle, ShieldCheck, Megaphone, LogOut, Users, Shuffle, ChevronDown, Wallet, Scale, Coins, Gavel, Dice5, Star, Globe, Award } from 'lucide-react';
 import { Club, TickerNewsItem, ForumSectionTag } from '../types';
+import { ClubLogo } from './ClubLogo';
 import { CompetitionLogo } from './competitions/CompetitionLogo';
 
 interface NavbarProps {
@@ -405,10 +406,10 @@ export const Navbar: React.FC<NavbarProps> = ({
                       }`}
                     >
                       <div className="flex items-center gap-2">
-                        <img
+                        <ClubLogo
                           src={club.logoUrl || club.badgeUrl}
                           alt={club.name}
-                          className="w-7 h-7 object-contain rounded-full bg-white p-0.5 border border-slate-200 shrink-0"
+                          className="w-7 h-7 object-cover rounded-full border border-slate-200 shrink-0"
                         />
                         <div className="leading-tight">
                           <div className="flex items-center gap-1">
