@@ -207,6 +207,9 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
   const [editTopicTitle, setEditTopicTitle] = useState('');
   const [editTopicContent, setEditTopicContent] = useState('');
 
+  const [adminMatchStatusFilter, setAdminMatchStatusFilter] = useState<'CONFIRMADO' | 'PENDIENTE' | 'TODOS'>('CONFIRMADO');
+  const [adminMatchLimit, setAdminMatchLimit] = useState<number>(25);
+
   // Delete Modal Confirmation State
   const [deleteModal, setDeleteModal] = useState<{
     type: 'news' | 'club' | 'match' | 'topic' | 'transfer';
@@ -856,178 +859,195 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
             </div>
           )}
 
-          <div className="space-y-3">
-            {matches.length === 0 ? (
-              <p className="text-xs text-slate-500 text-center py-6 font-tech">No hay partidos ni actas registradas aún.</p>
-            ) : (
-              matches.map((match) => {
-                const homeClub = clubs.find((c) => c.id === match.homeClubId);
-                const awayClub = clubs.find((c) => c.id === match.awayClubId);
-                const isEditingMatch = editingMatchId === match.id;
+          {/* Filtro Rápido de Estado para Rendimiento Ultra Rápido */}
+          {(() => {
+            const filteredMatches = matches.filter(match => {
+              if (adminMatchStatusFilter === 'CONFIRMADO') return match.status === 'CONFIRMADO';
+              if (adminMatchStatusFilter === 'PENDIENTE') return match.status === 'PENDIENTE';
+              return true;
+            });
+            const visibleMatches = filteredMatches.slice(0, adminMatchLimit);
 
-                return (
-                  <div
-                    key={match.id}
-                    className="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-3 flex flex-col md:flex-row items-start md:items-center justify-between gap-4"
-                  >
-                    <div className="space-y-2 flex-1">
-                      <div className="flex items-center gap-2 text-[11px] font-tech">
-                        <span className="px-2 py-0.5 bg-slate-200 text-slate-700 font-bold rounded">
-                          Jornada {match.matchday}
-                        </span>
-                        <span className="text-slate-400">• {match.createdAt}</span>
-                        <span
-                          className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${
-                            match.status === 'CONFIRMADO'
-                              ? 'bg-emerald-100 text-emerald-800 border border-emerald-300'
-                              : match.status === 'RECHAZADO'
-                              ? 'bg-rose-100 text-rose-800 border border-rose-300'
-                              : 'bg-amber-100 text-amber-800 border border-amber-300'
-                          }`}
+            return (
+              <div className="space-y-3">
+                <div className="flex flex-wrap items-center justify-between gap-2 bg-slate-100 p-2 rounded-xl border border-slate-200">
+                  <div className="flex items-center gap-1.5 overflow-x-auto">
+                    <button
+                      onClick={() => { setAdminMatchStatusFilter('CONFIRMADO'); setAdminMatchLimit(25); }}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-bold font-tech uppercase transition-all ${
+                        adminMatchStatusFilter === 'CONFIRMADO'
+                          ? 'bg-emerald-600 text-white shadow-sm'
+                          : 'bg-white text-slate-700 hover:bg-slate-200'
+                      }`}
+                    >
+                      ⚽ Solo Actas Cargadas ({matches.filter(m => m.status === 'CONFIRMADO').length})
+                    </button>
+                    <button
+                      onClick={() => { setAdminMatchStatusFilter('PENDIENTE'); setAdminMatchLimit(25); }}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-bold font-tech uppercase transition-all ${
+                        adminMatchStatusFilter === 'PENDIENTE'
+                          ? 'bg-amber-500 text-white shadow-sm'
+                          : 'bg-white text-slate-700 hover:bg-slate-200'
+                      }`}
+                    >
+                      ⏳ Fixture Pendiente ({matches.filter(m => m.status === 'PENDIENTE').length})
+                    </button>
+                    <button
+                      onClick={() => { setAdminMatchStatusFilter('TODOS'); setAdminMatchLimit(25); }}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-bold font-tech uppercase transition-all ${
+                        adminMatchStatusFilter === 'TODOS'
+                          ? 'bg-slate-800 text-white shadow-sm'
+                          : 'bg-white text-slate-700 hover:bg-slate-200'
+                      }`}
+                    >
+                      📋 Todos ({matches.length})
+                    </button>
+                  </div>
+                  <span className="text-[11px] font-tech text-slate-500 px-2 font-bold">
+                    Mostrando {visibleMatches.length} de {filteredMatches.length} partidos
+                  </span>
+                </div>
+
+                {visibleMatches.length === 0 ? (
+                  <div className="text-center py-8 bg-slate-50 rounded-xl border border-slate-200">
+                    <p className="text-xs text-slate-500 font-tech font-bold uppercase">
+                      {adminMatchStatusFilter === 'CONFIRMADO'
+                        ? 'Aún no hay actas de partidos cargadas por los usuarios.'
+                        : 'No hay partidos pendientes en esta vista.'}
+                    </p>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {visibleMatches.map((match) => {
+                      const homeClub = clubs.find((c) => c.id === match.homeClubId);
+                      const awayClub = clubs.find((c) => c.id === match.awayClubId);
+                      const isEditingMatch = editingMatchId === match.id;
+
+                      return (
+                        <div
+                          key={match.id}
+                          className="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-3 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 hover:border-slate-300 transition-colors"
                         >
-                          {match.status}
-                        </span>
-                      </div>
-
-                      {/* Scoreline */}
-                      <div className="flex items-center gap-4 text-slate-900 font-display font-black text-lg">
-                        <span>{homeClub?.name || 'Local'}</span>
-                        {isEditingMatch ? (
-                          <div className="flex items-center gap-1">
-                            <input
-                              type="number"
-                              value={editHomeGoals}
-                              onChange={(e) => setEditHomeGoals(Number(e.target.value))}
-                              className="w-12 bg-white border border-slate-300 rounded text-center text-sm p-1 font-bold"
-                            />
-                            <span>-</span>
-                            <input
-                              type="number"
-                              value={editAwayGoals}
-                              onChange={(e) => setEditAwayGoals(Number(e.target.value))}
-                              className="w-12 bg-white border border-slate-300 rounded text-center text-sm p-1 font-bold"
-                            />
-                          </div>
-                        ) : (
-                          <span className="px-3 py-1 bg-white border border-slate-300 text-emerald-800 rounded-lg italic">
-                            {match.homeGoals} - {match.awayGoals}
-                          </span>
-                        )}
-                        <span>{awayClub?.name || 'Visitante'}</span>
-                      </div>
-
-                      <div className="text-xs text-slate-600 font-tech space-y-1">
-                        {isEditingMatch ? (
-                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-2">
-                            <div>
-                              <label className="text-[10px] text-slate-500 font-bold block">Goleadores Local</label>
-                              <input
-                                type="text"
-                                value={editHomeScorers}
-                                onChange={(e) => setEditHomeScorers(e.target.value)}
-                                className="w-full bg-white border border-slate-300 rounded px-2 py-1 text-xs font-sans"
-                                placeholder="Ej: Messi (2), Lautaro (1)"
-                              />
+                          <div className="space-y-2 flex-1">
+                            <div className="flex items-center gap-2 text-[11px] font-tech">
+                              <span className="px-2 py-0.5 bg-slate-200 text-slate-700 font-bold rounded">
+                                Jornada {match.matchday}
+                              </span>
+                              <span className="text-slate-400">• {match.createdAt}</span>
+                              <span
+                                className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${
+                                  match.status === 'CONFIRMADO'
+                                    ? 'bg-emerald-100 text-emerald-800 border border-emerald-300'
+                                    : match.status === 'RECHAZADO'
+                                    ? 'bg-rose-100 text-rose-800 border border-rose-300'
+                                    : 'bg-amber-100 text-amber-800 border border-amber-300'
+                                }`}
+                              >
+                                {match.status}
+                              </span>
                             </div>
-                            <div>
-                              <label className="text-[10px] text-slate-500 font-bold block">Goleadores Visitante</label>
-                              <input
-                                type="text"
-                                value={editAwayScorers}
-                                onChange={(e) => setEditAwayScorers(e.target.value)}
-                                className="w-full bg-white border border-slate-300 rounded px-2 py-1 text-xs font-sans"
-                                placeholder="Ej: Vinicius (1)"
-                              />
+
+                            {/* Scoreline */}
+                            <div className="flex items-center gap-4 text-slate-900 font-display font-black text-lg">
+                              <span>{homeClub?.name || 'Local'}</span>
+                              {isEditingMatch ? (
+                                <div className="flex items-center gap-1">
+                                  <input
+                                    type="number"
+                                    value={editHomeGoals}
+                                    onChange={(e) => setEditHomeGoals(Number(e.target.value))}
+                                    className="w-12 p-1 bg-white border border-slate-300 rounded text-center text-sm font-bold text-emerald-700"
+                                  />
+                                  <span>-</span>
+                                  <input
+                                    type="number"
+                                    value={editAwayGoals}
+                                    onChange={(e) => setEditAwayGoals(Number(e.target.value))}
+                                    className="w-12 p-1 bg-white border border-slate-300 rounded text-center text-sm font-bold text-slate-900"
+                                  />
+                                </div>
+                              ) : (
+                                <span className="text-[#00ba68]">
+                                  {match.homeGoals} - {match.awayGoals}
+                                </span>
+                              )}
+                              <span>{awayClub?.name || 'Visitante'}</span>
                             </div>
                           </div>
-                        ) : (
-                          <>
-                            <p><strong>Goles Local:</strong> {match.homeScorers || 'Sin especificar'}</p>
-                            <p><strong>Goles Visitante:</strong> {match.awayScorers || 'Sin especificar'}</p>
-                          </>
-                        )}
-                      </div>
-                    </div>
 
-                    {/* Screenshot proof preview if available */}
-                    {match.proofImageUrl && (
-                      <div className="shrink-0">
-                        <a
-                          href={match.proofImageUrl}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="block text-center group"
+                          <div className="flex items-center gap-2 shrink-0">
+                            {isEditingMatch ? (
+                              <>
+                                <button
+                                  onClick={() => saveMatchEdit(match.id)}
+                                  className="px-3 py-1.5 bg-emerald-600 text-white rounded text-xs font-bold uppercase flex items-center gap-1 shadow-sm"
+                                >
+                                  <Save className="w-3.5 h-3.5" /> Guardar
+                                </button>
+                                <button
+                                  onClick={() => setEditingMatchId(null)}
+                                  className="px-3 py-1.5 bg-slate-200 text-slate-700 rounded text-xs font-bold uppercase"
+                                >
+                                  Cancelar
+                                </button>
+                              </>
+                            ) : (
+                              <>
+                                {match.status !== 'CONFIRMADO' && (
+                                  <button
+                                    onClick={() => onUpdateMatchResult(match.id, 'CONFIRMADO')}
+                                    className="px-3 py-1.5 bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-tech font-bold uppercase rounded-lg flex items-center gap-1 transition-colors shadow-sm"
+                                  >
+                                    <CheckCircle2 className="w-3.5 h-3.5" /> Validar
+                                  </button>
+                                )}
+
+                                {match.status !== 'RECHAZADO' && (
+                                  <button
+                                    onClick={() => onUpdateMatchResult(match.id, 'RECHAZADO')}
+                                    className="px-3 py-1.5 bg-amber-600 hover:bg-amber-700 text-white text-xs font-tech font-bold uppercase rounded-lg flex items-center gap-1 transition-colors shadow-sm"
+                                  >
+                                    <XCircle className="w-3.5 h-3.5" /> Rechazar
+                                  </button>
+                                )}
+
+                                <button
+                                  onClick={() => startEditMatch(match)}
+                                  className="px-2.5 py-1.5 bg-slate-200 hover:bg-slate-300 text-slate-800 text-xs font-tech font-bold rounded-lg flex items-center gap-1"
+                                  title="Editar Marcador"
+                                >
+                                  <Edit3 className="w-3.5 h-3.5" />
+                                </button>
+
+                                <button
+                                  onClick={() => setDeleteModal({ type: 'match', id: match.id, name: `Jornada ${match.matchday}: ${homeClub?.name || 'Local'} vs ${awayClub?.name || 'Visitante'}` })}
+                                  className="p-1.5 text-slate-400 hover:text-rose-600 transition-colors"
+                                  title="Eliminar Acta"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </button>
+                              </>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+
+                    {filteredMatches.length > adminMatchLimit && (
+                      <div className="text-center pt-2">
+                        <button
+                          onClick={() => setAdminMatchLimit(prev => prev + 25)}
+                          className="px-5 py-2.5 bg-slate-800 hover:bg-slate-900 text-white text-xs font-tech font-bold uppercase rounded-xl shadow transition-colors"
                         >
-                          <img
-                            src={match.proofImageUrl}
-                            alt="Prueba del Acta"
-                            className="w-24 h-16 object-cover rounded-lg border border-slate-300 group-hover:border-emerald-500 transition-colors"
-                          />
-                          <span className="text-[9px] text-emerald-700 font-bold block mt-1">Ver Captura</span>
-                        </a>
+                          + Cargar Más Actas ({filteredMatches.length - adminMatchLimit} restantes)
+                        </button>
                       </div>
                     )}
-
-                    {/* Actions */}
-                    <div className="flex items-center gap-2 flex-wrap">
-                      {isEditingMatch ? (
-                        <>
-                          <button
-                            onClick={() => saveMatchEdit(match.id)}
-                            className="px-3 py-1.5 bg-emerald-700 text-white rounded text-xs font-bold uppercase flex items-center gap-1"
-                          >
-                            <Save className="w-3.5 h-3.5" /> Guardar
-                          </button>
-                          <button
-                            onClick={() => setEditingMatchId(null)}
-                            className="px-3 py-1.5 bg-slate-200 text-slate-700 rounded text-xs font-bold uppercase"
-                          >
-                            Cancelar
-                          </button>
-                        </>
-                      ) : (
-                        <>
-                          {match.status !== 'CONFIRMADO' && (
-                            <button
-                              onClick={() => onUpdateMatchResult(match.id, 'CONFIRMADO')}
-                              className="px-3 py-1.5 bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-tech font-bold uppercase rounded-lg flex items-center gap-1 transition-colors shadow-sm"
-                            >
-                              <CheckCircle2 className="w-3.5 h-3.5" /> Validar
-                            </button>
-                          )}
-
-                          {match.status !== 'RECHAZADO' && (
-                            <button
-                              onClick={() => onUpdateMatchResult(match.id, 'RECHAZADO')}
-                              className="px-3 py-1.5 bg-amber-600 hover:bg-amber-700 text-white text-xs font-tech font-bold uppercase rounded-lg flex items-center gap-1 transition-colors shadow-sm"
-                            >
-                              <XCircle className="w-3.5 h-3.5" /> Rechazar
-                            </button>
-                          )}
-
-                          <button
-                            onClick={() => startEditMatch(match)}
-                            className="px-2.5 py-1.5 bg-slate-200 hover:bg-slate-300 text-slate-800 text-xs font-tech font-bold rounded-lg flex items-center gap-1"
-                            title="Editar Marcador"
-                          >
-                            <Edit3 className="w-3.5 h-3.5" />
-                          </button>
-
-                          <button
-                            onClick={() => setDeleteModal({ type: 'match', id: match.id, name: `Jornada ${match.matchday}: ${homeClub?.name || 'Local'} vs ${awayClub?.name || 'Visitante'}` })}
-                            className="p-1.5 text-slate-400 hover:text-rose-600 transition-colors"
-                            title="Eliminar Acta"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        </>
-                      )}
-                    </div>
                   </div>
-                );
-              })
-            )}
-          </div>
+                )}
+              </div>
+            );
+          })()}
         </div>
       )}
 
@@ -1469,35 +1489,54 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
 
       {/* Modal: Registrar Partido Directo (Admin) */}
       {showAddMatchModal && (
-        <div className="fixed inset-0 z-[100] bg-slate-900/70 backdrop-blur-md flex items-center justify-center p-4">
-          <div className="fc-card max-w-lg w-full p-6 rounded-2xl border-emerald-300 shadow-2xl space-y-4 animate-scale-up">
-            <div className="flex justify-between items-center border-b border-slate-200 pb-3">
-              <h3 className="font-display font-black text-lg text-slate-900 uppercase italic flex items-center gap-2">
-                <Trophy className="w-5 h-5 text-[#00ba68]" /> Registrar Resultado de Partido Directo
-              </h3>
-              <button onClick={() => setShowAddMatchModal(false)} className="text-slate-400 hover:text-slate-700 font-bold">✕</button>
+        <div className="fixed inset-0 z-[100] bg-slate-900/80 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
+          <div className="bg-white border border-slate-200 max-w-lg w-full p-6 md:p-8 rounded-2xl shadow-2xl space-y-5 text-slate-800 animate-scale-up my-8">
+            <div className="flex justify-between items-center border-b border-slate-100 pb-3">
+              <div className="flex items-center gap-2.5">
+                <div className="w-10 h-10 rounded-xl bg-emerald-50 text-[#00ba68] flex items-center justify-center border border-emerald-200 shadow-xs">
+                  <Trophy className="w-5 h-5 text-[#00ba68]" />
+                </div>
+                <div>
+                  <span className="px-2 py-0.5 bg-[#02f59b] text-black text-[9px] font-extrabold font-tech uppercase rounded tracking-wider">
+                    PANEL ADMIN
+                  </span>
+                  <h3 className="font-display font-black text-lg md:text-xl text-slate-900 uppercase italic tracking-wide">
+                    Registrar Resultado de Partido
+                  </h3>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowAddMatchModal(false)}
+                className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-900 transition flex items-center justify-center font-bold"
+              >
+                ✕
+              </button>
             </div>
 
-            <form onSubmit={handleCreateMatchSubmit} className="space-y-3">
+            <form onSubmit={handleCreateMatchSubmit} className="space-y-4">
               <div>
-                <label className="block text-[10px] font-bold text-slate-700 uppercase font-tech">Número de Jornada</label>
+                <label className="block text-xs font-extrabold text-slate-700 uppercase font-tech mb-1">
+                  Número de Jornada
+                </label>
                 <input
                   type="number"
                   value={addMatchday}
                   onChange={(e) => setAddMatchday(Number(e.target.value))}
                   min={1}
                   max={38}
-                  className="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-lg text-xs font-bold text-slate-900"
+                  className="w-full p-3 bg-slate-50 border border-slate-300 rounded-xl text-sm font-bold text-slate-900 focus:outline-none focus:border-[#00ba68]"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-[10px] font-bold text-slate-700 uppercase font-tech">Equipo Local</label>
+                  <label className="block text-xs font-extrabold text-slate-700 uppercase font-tech mb-1">
+                    Equipo Local
+                  </label>
                   <select
                     value={addMatchHomeId}
                     onChange={(e) => setAddMatchHomeId(e.target.value)}
-                    className="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-lg text-xs font-bold text-slate-900"
+                    className="w-full p-3 bg-slate-50 border border-slate-300 rounded-xl text-xs font-bold text-slate-900 focus:outline-none focus:border-[#00ba68]"
                   >
                     {clubs.map(c => (
                       <option key={c.id} value={c.id}>{c.name}</option>
@@ -1505,11 +1544,13 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                   </select>
                 </div>
                 <div>
-                  <label className="block text-[10px] font-bold text-slate-700 uppercase font-tech">Equipo Visitante</label>
+                  <label className="block text-xs font-extrabold text-slate-700 uppercase font-tech mb-1">
+                    Equipo Visitante
+                  </label>
                   <select
                     value={addMatchAwayId}
                     onChange={(e) => setAddMatchAwayId(e.target.value)}
-                    className="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-lg text-xs font-bold text-slate-900"
+                    className="w-full p-3 bg-slate-50 border border-slate-300 rounded-xl text-xs font-bold text-slate-900 focus:outline-none focus:border-[#00ba68]"
                   >
                     {clubs.map(c => (
                       <option key={c.id} value={c.id}>{c.name}</option>
@@ -1520,61 +1561,69 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-[10px] font-bold text-slate-700 uppercase font-tech">Goles Local</label>
+                  <label className="block text-xs font-extrabold text-slate-700 uppercase font-tech mb-1">
+                    Goles Local
+                  </label>
                   <input
                     type="number"
                     value={addHomeGoals}
                     onChange={(e) => setAddHomeGoals(Number(e.target.value))}
                     min={0}
-                    className="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-lg text-xs font-bold text-slate-900"
+                    className="w-full p-3 bg-slate-50 border border-slate-300 rounded-xl text-center font-display font-black text-2xl text-emerald-700 focus:outline-none focus:border-[#00ba68]"
                   />
                 </div>
                 <div>
-                  <label className="block text-[10px] font-bold text-slate-700 uppercase font-tech">Goles Visitante</label>
+                  <label className="block text-xs font-extrabold text-slate-700 uppercase font-tech mb-1">
+                    Goles Visitante
+                  </label>
                   <input
                     type="number"
                     value={addAwayGoals}
                     onChange={(e) => setAddAwayGoals(Number(e.target.value))}
                     min={0}
-                    className="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-lg text-xs font-bold text-slate-900"
+                    className="w-full p-3 bg-slate-50 border border-slate-300 rounded-xl text-center font-display font-black text-2xl text-slate-900 focus:outline-none focus:border-[#00ba68]"
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-[10px] font-bold text-slate-700 uppercase font-tech">Goleadores Local</label>
+                  <label className="block text-xs font-extrabold text-slate-700 uppercase font-tech mb-1">
+                    Goleadores Local (Opcional)
+                  </label>
                   <input
                     type="text"
                     value={addHomeScorers}
                     onChange={(e) => setAddHomeScorers(e.target.value)}
                     placeholder="Ej: Mbappé (2), Vinicius"
-                    className="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-lg text-xs text-slate-900"
+                    className="w-full p-3 bg-slate-50 border border-slate-300 rounded-xl text-xs font-bold text-slate-900 focus:outline-none focus:border-[#00ba68]"
                   />
                 </div>
                 <div>
-                  <label className="block text-[10px] font-bold text-slate-700 uppercase font-tech">Goleadores Visitante</label>
+                  <label className="block text-xs font-extrabold text-slate-700 uppercase font-tech mb-1">
+                    Goleadores Visitante (Opcional)
+                  </label>
                   <input
                     type="text"
                     value={addAwayScorers}
                     onChange={(e) => setAddAwayScorers(e.target.value)}
                     placeholder="Ej: Lewandowski, Yamal"
-                    className="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-lg text-xs text-slate-900"
+                    className="w-full p-3 bg-slate-50 border border-slate-300 rounded-xl text-xs font-bold text-slate-900 focus:outline-none focus:border-[#00ba68]"
                   />
                 </div>
               </div>
 
-              <div className="flex justify-end gap-2 pt-3">
+              <div className="flex justify-end gap-3 pt-3 border-t border-slate-100">
                 <button
                   type="button"
                   onClick={() => setShowAddMatchModal(false)}
-                  className="px-4 py-2 bg-slate-200 text-slate-700 text-xs font-tech font-bold uppercase rounded-lg"
+                  className="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-tech font-bold uppercase rounded-xl transition-colors"
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
-                  className="fc-button-primary px-5 py-2 text-xs font-extrabold uppercase shadow"
+                  className="fc-button-primary px-6 py-2.5 text-xs font-extrabold uppercase shadow-lg"
                 >
                   Guardar Resultado
                 </button>
