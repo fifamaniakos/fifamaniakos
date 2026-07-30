@@ -1,9 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
-import { MessageSquare, Trophy, Shield, DollarSign, UserPlus, FileSpreadsheet, PlusCircle, ShieldCheck, Megaphone, LogOut, Users, Shuffle, ChevronDown, Wallet, Scale, Coins, Gavel, Dice5 } from 'lucide-react';
+import { MessageSquare, Trophy, Shield, DollarSign, UserPlus, PlusCircle, ShieldCheck, Megaphone, LogOut, Users, Shuffle, ChevronDown, Wallet, Scale, Coins, Gavel, Dice5, Star, Globe, Award } from 'lucide-react';
 import { Club, TickerNewsItem, ForumSectionTag } from '../types';
-
-
+import { CompetitionLogo } from './competitions/CompetitionLogo';
 
 interface NavbarProps {
   activeTab: string;
@@ -18,6 +17,7 @@ interface NavbarProps {
   tickerNews: TickerNewsItem[];
   onAddNewsItem?: (text: string) => void;
   onOpenForumSection: (sectionTag: ForumSectionTag) => void;
+  onSelectCompetition?: (comp: string) => void;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
@@ -32,7 +32,8 @@ export const Navbar: React.FC<NavbarProps> = ({
   onLogoutAdmin,
   tickerNews,
   onAddNewsItem,
-  onOpenForumSection
+  onOpenForumSection,
+  onSelectCompetition
 }) => {
   const [quickNewsInput, setQuickNewsInput] = useState('');
   const [showQuickNewsModal, setShowQuickNewsModal] = useState(false);
@@ -239,13 +240,63 @@ export const Navbar: React.FC<NavbarProps> = ({
                 className="fixed w-64 bg-white border border-slate-200 rounded-lg shadow-xl z-50 py-1.5 normal-case tracking-normal font-display text-xs md:text-sm max-h-[70vh] overflow-y-auto"
               >
                 <button
-                  onClick={() => { setActiveTab('clasificacion'); setShowCompeticionesMenu(false); }}
-                  className={`w-full text-left px-3.5 py-2.5 text-xs font-bold flex items-center gap-2.5 transition-colors ${
-                    activeTab === 'clasificacion' ? 'bg-emerald-50 text-[#00ba68]' : 'text-slate-700 hover:bg-slate-50'
-                  }`}
+                  onClick={() => {
+                    if (onSelectCompetition) onSelectCompetition('1ra División');
+                    setActiveTab('clasificacion');
+                    setShowCompeticionesMenu(false);
+                  }}
+                  className="w-full text-left px-3.5 py-2 text-xs font-bold flex items-center gap-2.5 transition-colors text-slate-700 hover:bg-slate-50"
                 >
                   <Trophy className="w-4 h-4 shrink-0 text-emerald-600" />
-                  <span>Tabla de Posiciones</span>
+                  <span>Liga 1ra División</span>
+                </button>
+
+                <button
+                  onClick={() => {
+                    if (onSelectCompetition) onSelectCompetition('2da División');
+                    setActiveTab('clasificacion');
+                    setShowCompeticionesMenu(false);
+                  }}
+                  className="w-full text-left px-3.5 py-2 text-xs font-bold flex items-center gap-2.5 transition-colors text-slate-700 hover:bg-slate-50"
+                >
+                  <Trophy className="w-4 h-4 shrink-0 text-blue-600" />
+                  <span>Liga 2da División</span>
+                </button>
+
+                <button
+                  onClick={() => {
+                    if (onSelectCompetition) onSelectCompetition('UEFA Champions League');
+                    setActiveTab('clasificacion');
+                    setShowCompeticionesMenu(false);
+                  }}
+                  className="w-full text-left px-3.5 py-2 text-xs font-bold flex items-center gap-2.5 transition-colors text-slate-700 hover:bg-slate-50"
+                >
+                  <Star className="w-4 h-4 shrink-0 text-amber-500" />
+                  <span>UEFA Champions League</span>
+                </button>
+
+                <button
+                  onClick={() => {
+                    if (onSelectCompetition) onSelectCompetition('UEFA Europa League');
+                    setActiveTab('clasificacion');
+                    setShowCompeticionesMenu(false);
+                  }}
+                  className="w-full text-left px-3.5 py-2 text-xs font-bold flex items-center gap-2.5 transition-colors text-slate-700 hover:bg-slate-50"
+                >
+                  <Globe className="w-4 h-4 shrink-0 text-cyan-500" />
+                  <span>UEFA Europa League</span>
+                </button>
+
+                <button
+                  onClick={() => {
+                    if (onSelectCompetition) onSelectCompetition('Copa del Rey');
+                    setActiveTab('clasificacion');
+                    setShowCompeticionesMenu(false);
+                  }}
+                  className="w-full text-left px-3.5 py-2 text-xs font-bold flex items-center gap-2.5 transition-colors text-slate-700 hover:bg-slate-50"
+                >
+                  <Award className="w-4 h-4 shrink-0 text-purple-500" />
+                  <span>Copa del Rey</span>
                 </button>
 
                 <div className="border-t border-slate-100 my-1" />
@@ -307,18 +358,6 @@ export const Navbar: React.FC<NavbarProps> = ({
             </>,
             document.body
           )}
-
-          <button
-            onClick={() => setActiveTab('reportar')}
-            className={`h-10 px-4 min-w-[130px] rounded-lg transition-all flex items-center justify-center gap-1.5 font-bold whitespace-nowrap shrink-0 ${
-              activeTab === 'reportar'
-                ? 'bg-[#00ba68] text-[#ffffff] shadow-md'
-                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
-            }`}
-          >
-            <FileSpreadsheet className="w-4 h-4 shrink-0" />
-            Resultados
-          </button>
 
           {/* Pestaña 'Mi Club' con Portal Desplegable de Equipos */}
           <div className="relative shrink-0">

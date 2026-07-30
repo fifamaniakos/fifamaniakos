@@ -1,4 +1,5 @@
 import { Club, Player, ForumTopic, MatchResult, TransferItem, FinancialTransaction, TickerNewsItem, CompetitionSection, BudgetPackage } from '../types';
+import { generateAllCompetitionsFixtures } from '../utils/fixtureGenerator';
 
 export const FC27_STANDARD_LOGO = 'https://cdn.sofifa.net/teams/241/60.png';
 
@@ -1089,7 +1090,7 @@ export const INITIAL_CLUBS: Club[] = [
 ];
 export const INITIAL_PLAYERS: Player[] = [];
 export const INITIAL_TOPICS: ForumTopic[] = [];
-export const INITIAL_MATCHES: MatchResult[] = [];
+export const INITIAL_MATCHES: MatchResult[] = generateAllCompetitionsFixtures(INITIAL_CLUBS);
 export const INITIAL_TRANSFERS: TransferItem[] = [];
 export const INITIAL_TRANSACTIONS: FinancialTransaction[] = [];
 

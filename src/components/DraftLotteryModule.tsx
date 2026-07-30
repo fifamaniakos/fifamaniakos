@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Club, Player } from '../types';
 import { DRAFT_BOMBO_TEAMS } from '../data/initialData';
 import { SOFIFA_PLAYERS, SoFifaPlayerPreset } from '../data/sofifaData';
-import { Shuffle, Sparkles, Trophy, Globe, CheckCircle, RefreshCw, Dices, Award, Users, Play, Shield, UserCheck, Filter, Star } from 'lucide-react';
+import { Shuffle, Sparkles, Trophy, Globe, CheckCircle, RefreshCw, Dices, Award, Users, Play, Shield, UserCheck, Filter, Star, ChevronDown } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
 interface DraftLotteryModuleProps {

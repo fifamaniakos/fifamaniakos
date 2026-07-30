@@ -75,6 +75,10 @@ export const ForumModule: React.FC<ForumModuleProps> = ({
 
   const handleCreateTopic = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!isAdmin) {
+      alert('Solo el Administrador de la liga está autorizado para crear nuevos temas en el foro.');
+      return;
+    }
     if (!newTitle.trim() || !newContent.trim()) return;
 
     if (ADMIN_ONLY_CATEGORIES.includes(newCategory) && !isAdmin) {
@@ -430,12 +434,14 @@ export const ForumModule: React.FC<ForumModuleProps> = ({
                 El punto de encuentro oficial de los managers de FC 27. Publica tus análisis, coordina partidos, negocia traspasos y comparte capturas de tus victorias.
               </p>
 
-              <button
-                onClick={() => setShowCreateModal(true)}
-                className="fc-button-primary px-5 py-2.5 text-xs font-bold uppercase flex items-center gap-2 mt-2 shadow-lg"
-              >
-                <Plus className="w-4 h-4" /> Crear Nuevo Tema
-              </button>
+              {isAdmin && (
+                <button
+                  onClick={() => setShowCreateModal(true)}
+                  className="fc-button-primary px-5 py-2.5 text-xs font-bold uppercase flex items-center gap-2 mt-2 shadow-lg"
+                >
+                  <Plus className="w-4 h-4" /> Crear Nuevo Tema
+                </button>
+              )}
             </div>
           </div>
 
@@ -585,7 +591,7 @@ export const ForumModule: React.FC<ForumModuleProps> = ({
       )}
 
       {/* Modal: Crear Nuevo Tema */}
-      {showCreateModal && (
+      {showCreateModal && isAdmin && (
         <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
           <div className="relative bg-white border border-slate-200 max-w-xl w-full p-6 md:p-8 rounded-2xl shadow-2xl space-y-6 text-slate-800 my-8 animate-scale-up">
             {/* Header */}

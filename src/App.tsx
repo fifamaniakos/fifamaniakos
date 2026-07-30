@@ -8,8 +8,7 @@ import { Navbar } from './components/Navbar';
 import { ForumModule } from './components/ForumModule';
 import { InscripcionesModule } from './components/InscripcionesModule';
 import { SquadBuilder } from './components/SquadBuilder';
-import { MatchReporter } from './components/MatchReporter';
-import { LeagueTable } from './components/LeagueTable';
+import { CompetitionsHub } from './components/competitions/CompetitionsHub';
 import { TransferMarket } from './components/TransferMarket';
 import { RegistrationModal } from './components/RegistrationModal';
 import { AdminPanel } from './components/AdminPanel';
@@ -18,6 +17,8 @@ import { SofifaPlayersExplorer } from './components/SofifaPlayersExplorer';
 import { DraftLotteryModule } from './components/DraftLotteryModule';
 import { CompetitionSectionView } from './components/CompetitionSectionView';
 import { MonetizationModule } from './components/MonetizationModule';
+import { generateAllCompetitionsFixtures, generateFixtureForClubs } from './utils/fixtureGenerator';
+import { generatePendingKnockoutMatches } from './utils/bracketGenerator';
 
 
 
@@ -187,6 +188,8 @@ export default function App() {
     ));
   };
 
+  const [selectedCompetition, setSelectedCompetition] = useState<string>('1ra División');
+
   const [budgetPackages, setBudgetPackages] = useState<BudgetPackage[]>(() => {
     const saved = localStorage.getItem('fc27_budget_packages');
     return saved ? JSON.parse(saved) : INITIAL_BUDGET_PACKAGES;
@@ -218,7 +221,11 @@ export default function App() {
 
   const [matches, setMatches] = useState<MatchResult[]>(() => {
     const saved = localStorage.getItem('fc27_matches');
-    return saved ? JSON.parse(saved) : INITIAL_MATCHES;
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      if (parsed.length > 5) return parsed;
+    }
+    return INITIAL_MATCHES;
   });
 
   const [transfers, setTransfers] = useState<TransferItem[]>(() => {
@@ -559,10 +566,36 @@ export default function App() {
     });
   };
 
+  const handleGenerateFixtures = (competitionName?: string) => {
+    let newMatches: MatchResult[] = [];
+    if (competitionName && competitionName !== 'TODAS') {
+      const compClubs = clubs.filter(c => 
+        competitionName === '2da División'
+          ? (c.division === '2da División' || c.division === 'Segunda División')
+          : (!c.division || c.division === '1ra División' || c.division === 'Primera División')
+      );
+      const generated = generateFixtureForClubs(compClubs.length >= 2 ? compClubs : clubs, competitionName);
+      newMatches = [...matches.filter(m => m.competition !== competitionName), ...generated];
+    } else {
+      newMatches = generateAllCompetitionsFixtures(clubs);
+    }
+    setMatches(newMatches);
+  };
+
   // Automatically recalculate standings whenever matches change (add, edit, status change, delete)
   useEffect(() => {
     setClubs(prevClubs => recalculateStandings(prevClubs, matches));
   }, [matches]);
+
+  useEffect(() => {
+    setMatches(prev => {
+      const newBracketMatches = generatePendingKnockoutMatches(clubs, prev).filter(
+        nm => !prev.some(m => m.id === nm.id)
+      );
+      if (newBracketMatches.length === 0) return prev;
+      return [...newBracketMatches, ...prev];
+    });
+  }, [matches, clubs]);
 
   // Handler: Post Match Result (updates standings & rewards money)
   const handleAddMatchResult = (newMatch: MatchResult) => {
@@ -868,6 +901,7 @@ export default function App() {
         tickerNews={tickerNews}
         onAddNewsItem={handleAddTickerNews}
         onOpenForumSection={handleOpenForumSection}
+        onSelectCompetition={setSelectedCompetition}
       />
 
       {/* Main Workspace Container - Full Width */}
@@ -989,24 +1023,15 @@ export default function App() {
         )}
 
         {activeTab === 'clasificacion' && (
-          <LeagueTable
+          <CompetitionsHub
             clubs={clubs}
             matches={matches}
             players={players}
-          />
-        )}
-
-        {activeTab === 'reportar' && (
-          <MatchReporter
-            clubs={clubs}
-            matches={matches}
-            players={players}
+            selectedCompetition={selectedCompetition}
+            onSelectCompetition={setSelectedCompetition}
             onAddMatchResult={handleAddMatchResult}
-            currentClub={currentClub}
-            onNavigateToTab={setActiveTab}
           />
         )}
-
 
         {activeTab === 'plantilla' && (
           <SquadBuilder
@@ -1062,6 +1087,7 @@ export default function App() {
               onCreateOfficialAnnouncement={handleCreateOfficialAnnouncement}
               onDeleteTransfer={handleDeleteTransfer}
               onUpdateTransferClause={handleUpdateTransferClause}
+              onGenerateFixtures={handleGenerateFixtures}
               onLogoutAdmin={handleLogoutAdmin}
             />
           ) : (

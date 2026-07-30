@@ -115,10 +115,8 @@ export const TransferMarket: React.FC<TransferMarketProps> = ({
       isStarter: false
     };
 
-    onAddPlayer(newPlayer);
-
-    if (onDeductBudget) {
-      onDeductBudget(buyerClub.id, sofifaSignPrice, `Fichaje de ${selectedSofifaPreset.name}`);
+    if (onSignSofifaPlayer) {
+      onSignSofifaPlayer(selectedSofifaPreset, buyerClub, sofifaSignPrice);
     }
 
     confetti({

@@ -57,6 +57,7 @@ interface AdminPanelProps {
   onCreateOfficialAnnouncement: (title: string, content: string) => void;
   onDeleteTransfer?: (transferId: string) => void;
   onUpdateTransferClause?: (transferId: string, newAskingPrice: number) => void;
+  onGenerateFixtures?: (competitionName?: string) => void;
   onLogoutAdmin: () => void;
 }
 
@@ -82,6 +83,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
   onCreateOfficialAnnouncement,
   onDeleteTransfer,
   onUpdateTransferClause,
+  onGenerateFixtures,
   onLogoutAdmin
 }) => {
   const [adminTab, setAdminTab] = useState<'cartel' | 'clubes' | 'partidos' | 'foro' | 'fichajes' | 'anuncios'>('cartel');
@@ -824,6 +826,35 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
               <PlusCircle className="w-4 h-4" /> + Registrar Partido Directo
             </button>
           </div>
+
+          {/* Generador de Fixtures por Competencia */}
+          {onGenerateFixtures && (
+            <div className="bg-slate-900 text-white p-4 rounded-xl border border-emerald-500/40 shadow-lg space-y-3">
+              <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-3">
+                <div>
+                  <h3 className="font-display font-black text-sm uppercase text-[#02f59b] flex items-center gap-2">
+                    <Sparkles className="w-4 h-4 text-emerald-400" /> CREAR Y GENERAR FIXTURE AUTOMÁTICO DE COMPETICIONES
+                  </h3>
+                  <p className="text-[11px] text-slate-300 font-tech">
+                    Genera el calendario completo de jornadas (Ida y Vuelta) para 1ra División, 2da División, UEFA Champions League, Europa League y Copa del Rey.
+                  </p>
+                </div>
+
+                <div className="flex flex-wrap items-center gap-2">
+                  <button
+                    onClick={() => {
+                      if (confirm('¿Deseas generar automáticamente el fixture completo para todas las competiciones del sistema?')) {
+                        onGenerateFixtures('TODAS');
+                      }
+                    }}
+                    className="fc-button-primary px-4 py-2 text-xs uppercase font-extrabold flex items-center gap-1.5 shadow-md"
+                  >
+                    <Trophy className="w-4 h-4" /> Generar Fixtures Completo
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
 
           <div className="space-y-3">
             {matches.length === 0 ? (

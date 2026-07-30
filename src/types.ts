@@ -108,10 +108,13 @@ export interface PlayerMatchEvent {
   count: number;
 }
 
+export type MatchPhase = 'GRUPOS' | 'OCTAVOS' | 'CUARTOS' | 'SEMIFINAL' | 'FINAL';
+
 export interface MatchResult {
   id: string;
   matchday: number;
   competition?: '1ra División' | '2da División' | 'UEFA Champions League' | 'UEFA Europa League' | 'UEFA Conference League' | 'Supercopa de Europa' | string;
+  phase?: MatchPhase;
   homeClubId: string;
   awayClubId: string;
   homeGoals: number;
@@ -126,6 +129,7 @@ export interface MatchResult {
   awayRedCards?: string;
   playerEvents?: PlayerMatchEvent[];
   proofImageUrl?: string;
+  penaltyWinnerClubId?: string;
   status: 'PENDIENTE' | 'CONFIRMADO' | 'RECHAZADO';
   createdAt: string;
   notes?: string;
