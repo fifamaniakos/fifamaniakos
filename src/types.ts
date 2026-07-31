@@ -38,7 +38,8 @@ export interface Player {
   rating: number; // 40-99 OVR
   stats: PlayerStats;
   cardType: 'Gold' | 'Special' | 'Icon' | 'Silver';
-  value: number; // Value in Euros (€)
+  value: number; // Value in Euros (€) - Market value from SOFIFA/database
+  releaseClause?: number; // Release clause set by manager (€)
   photoUrl: string;
   isStarter: boolean;
   nationality?: string;

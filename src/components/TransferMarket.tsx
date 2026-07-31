@@ -110,7 +110,8 @@ export const TransferMarket: React.FC<TransferMarketProps> = ({
       position: selectedSofifaPreset.position,
       rating: selectedSofifaPreset.rating,
       cardType: selectedSofifaPreset.cardType || 'Gold',
-      value: 0,
+      value: sofifaSignPrice,
+      releaseClause: 0,
       photoUrl: selectedSofifaPreset.photoUrl,
       stats: selectedSofifaPreset.stats,
       isStarter: false
@@ -479,13 +480,20 @@ export const TransferMarket: React.FC<TransferMarketProps> = ({
                                     </span>
                                   )}
                                 </div>
-                                <div className="flex items-center gap-2 mt-0.5">
-                                  {transferItem ? (
-                                    <span className="text-[10px] text-amber-800 font-extrabold font-mono">
+                                <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 mt-0.5 text-[10px]">
+                                  <span className="text-slate-500 font-mono">
+                                    Valor: €{(player.value / 1000000).toFixed(1)}M
+                                  </span>
+                                  {player.releaseClause && player.releaseClause > 0 ? (
+                                    <span className="text-[#00ba68] font-extrabold font-mono">
+                                      Cláusula: €{(player.releaseClause / 1000000).toFixed(1)}M
+                                    </span>
+                                  ) : transferItem ? (
+                                    <span className="text-amber-800 font-extrabold font-mono">
                                       Cláusula: €{(transferItem.askingPrice / 1000000).toFixed(1)}M
                                     </span>
                                   ) : (
-                                    <span className="text-[10px] text-slate-400 font-mono font-semibold">
+                                    <span className="text-slate-400 font-mono font-semibold">
                                       Sin Cláusula
                                     </span>
                                   )}

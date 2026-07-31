@@ -799,7 +799,7 @@ export default function App() {
   const handleUpdatePlayerClause = (playerId: string, newClause: number) => {
     setPlayers(prev => prev.map(p => {
       if (p.id === playerId) {
-        return { ...p, value: newClause };
+        return { ...p, releaseClause: newClause };
       }
       return p;
     }));
@@ -825,7 +825,8 @@ export default function App() {
       position: playerPreset.position,
       rating: playerPreset.rating,
       cardType: playerPreset.cardType || 'Gold',
-      value: 0,
+      value: price,
+      releaseClause: 0,
       photoUrl: playerPreset.photoUrl,
       stats: playerPreset.stats,
       isStarter: false
@@ -875,7 +876,8 @@ export default function App() {
       position: sp.position,
       rating: sp.rating,
       cardType: sp.cardType || 'Gold',
-      value: 0,
+      value: sp.value,
+      releaseClause: 0,
       photoUrl: sp.photoUrl,
       stats: sp.stats,
       isStarter: idx < 11

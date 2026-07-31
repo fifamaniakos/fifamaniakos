@@ -68,12 +68,12 @@ export const SofifaPlayersExplorer: React.FC<SofifaPlayersExplorerProps> = ({
   };
 
   // Build a lookup map from signed players (live state) by lowercase name
-  // so we can show the manager-set clause instead of the static SOFIFA value
+  // so we can show the manager-set clause (releaseClause)
   const signedPlayerClauseMap = useMemo(() => {
     const map = new Map<string, number>();
     signedPlayers.forEach(p => {
-      if (p.name && p.value && p.value > 0) {
-        map.set(p.name.toLowerCase(), p.value);
+      if (p.name && p.releaseClause && p.releaseClause > 0) {
+        map.set(p.name.toLowerCase(), p.releaseClause);
       }
     });
     return map;
@@ -237,6 +237,7 @@ export const SofifaPlayersExplorer: React.FC<SofifaPlayersExplorerProps> = ({
                 <th className="py-3 px-4 font-bold">Club Oficial</th>
                 <th className="py-3 px-4 font-bold">Liga / País</th>
                 <th className="py-3 px-4 font-bold text-center">Stats (PAC | SHO | PAS | DRI | DEF | PHY)</th>
+                <th className="py-3 px-4 font-bold text-right">Valor Mercado</th>
                 <th className="py-3 px-4 font-bold text-right">Cláusula</th>
                 {onSignPlayer && <th className="py-3 px-4 font-bold text-center">Acción</th>}
               </tr>
@@ -321,7 +322,14 @@ export const SofifaPlayersExplorer: React.FC<SofifaPlayersExplorerProps> = ({
                       </div>
                     </td>
 
-                    {/* Cláusula / Precio Asignado por Manager */}
+                    {/* Valor de Mercado (SOFIFA) */}
+                    <td className="py-3 px-4 whitespace-nowrap text-right">
+                      <span className="font-mono text-xs text-slate-500 font-semibold">
+                        {formatMoney(player.value)}
+                      </span>
+                    </td>
+
+                    {/* Cláusula de Rescisión (Establecida por Manager) */}
                     <td className="py-3 px-4 whitespace-nowrap text-right">
                       {(() => {
                         const managerClause = signedPlayerClauseMap.get(player.name.toLowerCase());
