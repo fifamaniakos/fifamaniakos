@@ -963,6 +963,7 @@ export default function App() {
             onEditTopic={handleEditTopic}
             onEditReply={handleEditReply}
             onDeleteReply={handleDeleteReply}
+            onOpenForumSection={handleOpenForumSection}
           />
         )}
 
