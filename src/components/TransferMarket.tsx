@@ -432,7 +432,20 @@ export const TransferMarket: React.FC<TransferMarketProps> = ({
                       </div>
                     </div>
 
-                    <div className="text-right flex items-center gap-2">
+                    <div className="text-right flex items-center gap-2 flex-wrap justify-end">
+                      {onPopulateClubWithSofifa && (
+                        <button
+                          onClick={() => {
+                            if (confirm(`¿Sincronizar plantilla oficial de EA FC para ${club.name}? Se asignarán los jugadores reales del club.`)) {
+                              onPopulateClubWithSofifa(club);
+                            }
+                          }}
+                          className="px-2.5 py-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300 rounded-lg text-[11px] font-bold uppercase flex items-center gap-1 transition shadow-2xs"
+                          title="Cargar o actualizar la plantilla oficial real de este club"
+                        >
+                          <Sparkles className="w-3.5 h-3.5 text-emerald-600" /> Sincronizar Plantilla Oficial
+                        </button>
+                      )}
                       <span className="text-xs font-mono font-bold text-slate-700 bg-slate-100 px-3 py-1 rounded-full border border-slate-200">
                         {clubRoster.length} Jugadores
                       </span>

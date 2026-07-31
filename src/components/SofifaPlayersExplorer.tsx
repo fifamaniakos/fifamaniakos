@@ -67,13 +67,17 @@ export const SofifaPlayersExplorer: React.FC<SofifaPlayersExplorerProps> = ({
     return new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(amount);
   };
 
-  // Build a lookup map from signed players (live state) by lowercase name
+  const normalizeName = (s: string) =>
+    s ? s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim() : '';
+
+  // Build a lookup map from signed players (live state) by normalized name
   // so we can show the manager-set clause (releaseClause)
   const signedPlayerClauseMap = useMemo(() => {
     const map = new Map<string, number>();
     signedPlayers.forEach(p => {
-      if (p.name && p.releaseClause && p.releaseClause > 0) {
-        map.set(p.name.toLowerCase(), p.releaseClause);
+      const norm = normalizeName(p.name);
+      if (norm && p.releaseClause && p.releaseClause > 0) {
+        map.set(norm, p.releaseClause);
       }
     });
     return map;
@@ -332,7 +336,7 @@ export const SofifaPlayersExplorer: React.FC<SofifaPlayersExplorerProps> = ({
                     {/* Cláusula de Rescisión (Establecida por Manager) */}
                     <td className="py-3 px-4 whitespace-nowrap text-right">
                       {(() => {
-                        const managerClause = signedPlayerClauseMap.get(player.name.toLowerCase());
+                        const managerClause = signedPlayerClauseMap.get(normalizeName(player.name));
                         return managerClause ? (
                           <span className="font-mono font-bold text-xs text-[#00ba68]">
                             {formatMoney(managerClause)}

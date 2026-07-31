@@ -21,6 +21,7 @@ import { generateAllCompetitionsFixtures, generateFixtureForClubs } from './util
 import { generatePendingKnockoutMatches } from './utils/bracketGenerator';
 import { useSupabaseTable } from './hooks/useSupabaseTable';
 import { useAuth } from './contexts/AuthContext';
+import { GET_OFFICIAL_SQUAD_BY_CLUB_NAME } from './data/officialCurrentSquads';
 
 
 
@@ -857,31 +858,63 @@ export default function App() {
     ]);
   };
 
-  // Handler: Populate an empty club with SOFIFA players
+  // Handler: Populate an empty or reset club with official squad players
   const handlePopulateClubWithSofifa = (targetClub: Club) => {
-    // Find players whose clubName matches targetClub.name or pick unassigned ones
-    let matched = SOFIFA_PLAYERS.filter(sp =>
-      sp.clubName && sp.clubName.toLowerCase().includes(targetClub.name.toLowerCase())
-    );
+    const officialSquad = GET_OFFICIAL_SQUAD_BY_CLUB_NAME(targetClub.name);
+    let createdPlayers: Player[] = [];
 
-    if (matched.length === 0) {
-      // Pick 11 random top players from SOFIFA list
-      matched = SOFIFA_PLAYERS.slice(0, 11);
+    if (officialSquad && officialSquad.length > 0) {
+      createdPlayers = officialSquad.map((sp, idx) => {
+        const normName = sp.name.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
+        const matchedSofifa = SOFIFA_PLAYERS.find(p => p.name.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim() === normName);
+
+        return {
+          id: `pl-${targetClub.id}-${idx}-${Date.now()}`,
+          clubId: targetClub.id,
+          name: sp.name,
+          position: (sp.position as any) || 'DC',
+          rating: sp.rating || 80,
+          cardType: (sp.rating >= 85 ? 'Gold' : sp.rating >= 75 ? 'Gold' : 'Silver') as any,
+          value: matchedSofifa?.value || sp.rating * 500000,
+          releaseClause: 0,
+          photoUrl: matchedSofifa?.photoUrl || `https://cdn.sofifa.net/players/${sp.id.replace('eafc-p-', '')}/25_120.png`,
+          stats: matchedSofifa?.stats || {
+            pace: Math.min(99, sp.rating),
+            shooting: Math.min(99, sp.rating - 2),
+            passing: Math.min(99, sp.rating - 3),
+            dribbling: Math.min(99, sp.rating - 1),
+            defending: Math.min(99, sp.rating - 5),
+            physical: Math.min(99, sp.rating - 4)
+          },
+          isStarter: idx < 11
+        };
+      });
+    } else {
+      const cleanTarget = targetClub.name.toLowerCase().replace(/\b(sk|fc|cf|rc|sad|sc|cd|ca|real|de|el|la|los|las)\b/gi, '').trim();
+      let matched = SOFIFA_PLAYERS.filter(sp => {
+        if (!sp.clubName) return false;
+        const cleanSp = sp.clubName.toLowerCase().replace(/\b(sk|fc|cf|rc|sad|sc|cd|ca|real|de|el|la|los|las)\b/gi, '').trim();
+        return cleanSp.includes(cleanTarget) || cleanTarget.includes(cleanSp);
+      });
+
+      if (matched.length === 0) {
+        matched = SOFIFA_PLAYERS.slice(0, 11);
+      }
+
+      createdPlayers = matched.map((sp, idx) => ({
+        id: `pl-${targetClub.id}-${idx}-${Date.now()}`,
+        clubId: targetClub.id,
+        name: sp.name,
+        position: sp.position,
+        rating: sp.rating,
+        cardType: sp.cardType || 'Gold',
+        value: sp.value,
+        releaseClause: 0,
+        photoUrl: sp.photoUrl,
+        stats: sp.stats,
+        isStarter: idx < 11
+      }));
     }
-
-    const createdPlayers: Player[] = matched.map((sp, idx) => ({
-      id: `pl-${Date.now()}-${idx}`,
-      clubId: targetClub.id,
-      name: sp.name,
-      position: sp.position,
-      rating: sp.rating,
-      cardType: sp.cardType || 'Gold',
-      value: sp.value,
-      releaseClause: 0,
-      photoUrl: sp.photoUrl,
-      stats: sp.stats,
-      isStarter: idx < 11
-    }));
 
     setPlayers(prev => [...prev.filter(p => p.clubId !== targetClub.id), ...createdPlayers]);
   };
