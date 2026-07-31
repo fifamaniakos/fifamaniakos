@@ -100,13 +100,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const linkClub: AuthContextValue['linkClub'] = async (clubId) => {
-    if (!session) return { error: 'No hay sesión activa.' };
+    // Se relee la sesión directamente (en vez de confiar en el `session` del
+    // contexto) porque justo después de signUp() el estado de React puede no
+    // haberse actualizado todavía con el evento SIGNED_IN.
+    const { data: sessionData } = await supabase.auth.getSession();
+    const currentSession = sessionData.session;
+    if (!currentSession) {
+      return {
+        error:
+          'No hay sesión activa. Si tu proyecto de Supabase exige confirmar el email, ' +
+          'confirmá el mail y volvé a iniciar sesión para vincular tu club.'
+      };
+    }
     const { error } = await supabase
       .from('managers')
       .update({ club_id: clubId })
-      .eq('user_id', session.user.id);
+      .eq('user_id', currentSession.user.id);
     if (error) return { error: error.message };
-    await loadProfile(session.user.id);
+    await loadProfile(currentSession.user.id);
     return { error: null };
   };
 
