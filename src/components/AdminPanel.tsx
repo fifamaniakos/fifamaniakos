@@ -1437,6 +1437,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                     <th className="py-2 pr-3">Plataforma</th>
                     <th className="py-2 pr-3">Club</th>
                     <th className="py-2 pr-3">Rol</th>
+                    <th className="py-2 pr-3">Creado el</th>
                     <th className="py-2 pr-3">Acciones</th>
                   </tr>
                 </thead>
@@ -1450,6 +1451,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                         <td className="py-2 pr-3">{manager.platform}</td>
                         <td className="py-2 pr-3">{linkedClub?.name ?? '—'}</td>
                         <td className="py-2 pr-3 uppercase">{manager.role}</td>
+                        <td className="py-2 pr-3">{new Date(manager.created_at).toLocaleDateString('es-ES')}</td>
                         <td className="py-2 pr-3">
                           {manager.is_owner ? (
                             <span className="px-2 py-1 bg-emerald-100 text-emerald-800 rounded-full font-bold uppercase text-[10px]">
