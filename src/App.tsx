@@ -49,7 +49,7 @@ import {
   INITIAL_COMPETITION_SECTIONS,
   INITIAL_BUDGET_PACKAGES
 } from './data/initialData';
-import { SOFIFA_PLAYERS, SoFifaPlayerPreset } from './data/sofifaData';
+import { SOFIFA_PLAYERS, SOFIFA_CLUBS, SoFifaPlayerPreset } from './data/sofifaData';
 
 import { Trophy, MessageSquare, Shield, DollarSign, PlusCircle, Sparkles, RefreshCw, ShieldCheck } from 'lucide-react';
 
@@ -189,13 +189,27 @@ export default function App() {
     (c) => c.id
   );
 
+  const sofifaClubsByName = new Map(SOFIFA_CLUBS.map(c => [c.name.toLowerCase(), c.logoUrl]));
+  const initialClubsByName = new Map(INITIAL_CLUBS.map(c => [c.name.toLowerCase(), c.logoUrl]));
+  const initialClubsById = new Map(INITIAL_CLUBS.map(c => [c.id, c.logoUrl]));
+
+  const rawClubsWithLogos = rawClubs.map(club => {
+    if (club.logoUrl && club.logoUrl.trim() !== '') return club;
+    const logoUrl =
+      sofifaClubsByName.get(club.name.toLowerCase()) ||
+      initialClubsById.get(club.id) ||
+      initialClubsByName.get(club.name.toLowerCase()) ||
+      '';
+    return { ...club, logoUrl };
+  });
+
   const [matches, setMatches] = useSupabaseTable<MatchResult>(
     'matches',
     INITIAL_MATCHES,
     (m) => m.id
   );
 
-  const clubs = recalculateStandings(ensure36FirstDivClubs(rawClubs), matches);
+  const clubs = recalculateStandings(ensure36FirstDivClubs(rawClubsWithLogos), matches);
 
   // El club "activo" es el vinculado a la cuenta autenticada, no uno elegido libremente.
   const currentClubId = profile?.club_id ?? clubs[0]?.id ?? '';

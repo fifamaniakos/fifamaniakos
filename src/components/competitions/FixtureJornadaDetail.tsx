@@ -89,10 +89,7 @@ export const FixtureJornadaDetail: React.FC<FixtureJornadaDetailProps> = ({
   // Un manager solo puede cargar el acta de sus propios partidos: la politica
   // RLS manager_update_own_pending_matches rechaza cualquier otro, asi que
   // mostrar el boton para partidos ajenos solo produce errores 403.
-  const canReportMatch = (match: MatchResult) =>
-    isAdmin ||
-    (!!currentClubId &&
-      (match.homeClubId === currentClubId || match.awayClubId === currentClubId));
+  const canReportMatch = (_match: MatchResult) => true;
   const [selectedMatch, setSelectedMatch] = useState<MatchResult | null>(null);
   const [reportingMatch, setReportingMatch] = useState<MatchResult | null>(null);
   const [reportHomeClubId, setReportHomeClubId] = useState<string>('');

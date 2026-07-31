@@ -47,6 +47,7 @@ export const ClubLogo: React.FC<ClubLogoProps> = ({
       src={src}
       alt={alt}
       className={className}
+      referrerPolicy="no-referrer"
       onError={() => setHasError(true)}
     />
   );
