@@ -1084,6 +1084,7 @@ export default function App() {
 
           <div className="flex flex-wrap items-center gap-4 text-xs">
             <span>© 2026 FIFAMANIAKOS Community</span>
+            <span className="text-slate-400">• Creada y desarrollada por Dimenza, Juan Pablo</span>
           </div>
         </div>
       </footer>
