@@ -276,6 +276,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
 
   const [adminMatchStatusFilter, setAdminMatchStatusFilter] = useState<'CONFIRMADO' | 'PENDIENTE' | 'TODOS'>('CONFIRMADO');
   const [adminMatchLimit, setAdminMatchLimit] = useState<number>(25);
+  const [adminMatchSearchQuery, setAdminMatchSearchQuery] = useState<string>('');
 
   // Delete Modal Confirmation State
   const [deleteModal, setDeleteModal] = useState<{
@@ -955,15 +956,26 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
 
           {/* Filtro Rápido de Estado para Rendimiento Ultra Rápido */}
           {(() => {
+            const searchQuery = adminMatchSearchQuery.trim().toLowerCase();
             const filteredMatches = matches.filter(match => {
-              if (adminMatchStatusFilter === 'CONFIRMADO') return match.status === 'CONFIRMADO';
-              if (adminMatchStatusFilter === 'PENDIENTE') return match.status === 'PENDIENTE';
-              return true;
+              if (adminMatchStatusFilter === 'CONFIRMADO' && match.status !== 'CONFIRMADO') return false;
+              if (adminMatchStatusFilter === 'PENDIENTE' && match.status !== 'PENDIENTE') return false;
+              if (!searchQuery) return true;
+              const homeName = clubs.find(c => c.id === match.homeClubId)?.name || '';
+              const awayName = clubs.find(c => c.id === match.awayClubId)?.name || '';
+              return homeName.toLowerCase().includes(searchQuery) || awayName.toLowerCase().includes(searchQuery);
             });
             const visibleMatches = filteredMatches.slice(0, adminMatchLimit);
 
             return (
               <div className="space-y-3">
+                <input
+                  type="text"
+                  value={adminMatchSearchQuery}
+                  onChange={(e) => { setAdminMatchSearchQuery(e.target.value); setAdminMatchLimit(25); }}
+                  placeholder="🔎 Buscar por nombre de club (local o visitante)..."
+                  className="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-xs font-semibold text-slate-900 placeholder-slate-400 focus:outline-none focus:border-[#00ba68] focus:ring-1 focus:ring-[#00ba68] transition"
+                />
                 <div className="flex flex-wrap items-center justify-between gap-2 bg-slate-100 p-2 rounded-xl border border-slate-200">
                   <div className="flex items-center gap-1.5 overflow-x-auto">
                     <button
@@ -1005,7 +1017,9 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                 {visibleMatches.length === 0 ? (
                   <div className="text-center py-8 bg-slate-50 rounded-xl border border-slate-200">
                     <p className="text-xs text-slate-500 font-tech font-bold uppercase">
-                      {adminMatchStatusFilter === 'CONFIRMADO'
+                      {searchQuery
+                        ? `Ningún partido coincide con "${adminMatchSearchQuery}".`
+                        : adminMatchStatusFilter === 'CONFIRMADO'
                         ? 'Aún no hay actas de partidos cargadas por los usuarios.'
                         : 'No hay partidos pendientes en esta vista.'}
                     </p>
