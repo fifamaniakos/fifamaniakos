@@ -976,6 +976,8 @@ export default function App() {
             packages={budgetPackages}
             explanation={tiendaExplanation}
             isAdmin={isAdminLoggedIn}
+            currentSeasonNumber={currentSeasonNumber}
+            hasActiveSubscription={hasActiveSubscription}
             onAddPackage={handleAddBudgetPackage}
             onEditPackage={handleEditBudgetPackage}
             onDeletePackage={handleDeleteBudgetPackage}
