@@ -274,7 +274,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
   const [editTopicTitle, setEditTopicTitle] = useState('');
   const [editTopicContent, setEditTopicContent] = useState('');
 
-  const [adminMatchStatusFilter, setAdminMatchStatusFilter] = useState<'CONFIRMADO' | 'PENDIENTE' | 'TODOS'>('CONFIRMADO');
+  const [adminMatchStatusFilter, setAdminMatchStatusFilter] = useState<'CONFIRMADO' | 'PARA_VALIDAR' | 'PENDIENTE' | 'TODOS'>('PARA_VALIDAR');
   const [adminMatchLimit, setAdminMatchLimit] = useState<number>(25);
   const [adminMatchSearchQuery, setAdminMatchSearchQuery] = useState<string>('');
 
@@ -959,13 +959,17 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
             const searchQuery = adminMatchSearchQuery.trim().toLowerCase();
             const filteredMatches = matches.filter(match => {
               if (adminMatchStatusFilter === 'CONFIRMADO' && match.status !== 'CONFIRMADO') return false;
-              if (adminMatchStatusFilter === 'PENDIENTE' && match.status !== 'PENDIENTE') return false;
+              if (adminMatchStatusFilter === 'PARA_VALIDAR' && !(match.status === 'PENDIENTE' && !!match.proofImageUrl)) return false;
+              if (adminMatchStatusFilter === 'PENDIENTE' && !(match.status === 'PENDIENTE' && !match.proofImageUrl)) return false;
               if (!searchQuery) return true;
               const homeName = clubs.find(c => c.id === match.homeClubId)?.name || '';
               const awayName = clubs.find(c => c.id === match.awayClubId)?.name || '';
               return homeName.toLowerCase().includes(searchQuery) || awayName.toLowerCase().includes(searchQuery);
             });
             const visibleMatches = filteredMatches.slice(0, adminMatchLimit);
+
+            const pendingToValidateCount = matches.filter(m => m.status === 'PENDIENTE' && !!m.proofImageUrl).length;
+            const fixtureWithoutActaCount = matches.filter(m => m.status === 'PENDIENTE' && !m.proofImageUrl).length;
 
             return (
               <div className="space-y-3">
@@ -979,6 +983,16 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                 <div className="flex flex-wrap items-center justify-between gap-2 bg-slate-100 p-2 rounded-xl border border-slate-200">
                   <div className="flex items-center gap-1.5 overflow-x-auto">
                     <button
+                      onClick={() => { setAdminMatchStatusFilter('PARA_VALIDAR'); setAdminMatchLimit(25); }}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-bold font-tech uppercase transition-all ${
+                        adminMatchStatusFilter === 'PARA_VALIDAR'
+                          ? 'bg-amber-500 text-white shadow-sm'
+                          : 'bg-white text-slate-700 hover:bg-slate-200'
+                      }`}
+                    >
+                      🔔 Actas a Validar ({pendingToValidateCount})
+                    </button>
+                    <button
                       onClick={() => { setAdminMatchStatusFilter('CONFIRMADO'); setAdminMatchLimit(25); }}
                       className={`px-3 py-1.5 rounded-lg text-xs font-bold font-tech uppercase transition-all ${
                         adminMatchStatusFilter === 'CONFIRMADO'
@@ -986,17 +1000,17 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                           : 'bg-white text-slate-700 hover:bg-slate-200'
                       }`}
                     >
-                      ⚽ Solo Actas Cargadas ({matches.filter(m => m.status === 'CONFIRMADO').length})
+                      ⚽ Confirmadas ({matches.filter(m => m.status === 'CONFIRMADO').length})
                     </button>
                     <button
                       onClick={() => { setAdminMatchStatusFilter('PENDIENTE'); setAdminMatchLimit(25); }}
                       className={`px-3 py-1.5 rounded-lg text-xs font-bold font-tech uppercase transition-all ${
                         adminMatchStatusFilter === 'PENDIENTE'
-                          ? 'bg-amber-500 text-white shadow-sm'
+                          ? 'bg-slate-600 text-white shadow-sm'
                           : 'bg-white text-slate-700 hover:bg-slate-200'
                       }`}
                     >
-                      ⏳ Fixture Pendiente ({matches.filter(m => m.status === 'PENDIENTE').length})
+                      ⏳ Fixture Sin Acta ({fixtureWithoutActaCount})
                     </button>
                     <button
                       onClick={() => { setAdminMatchStatusFilter('TODOS'); setAdminMatchLimit(25); }}
@@ -1019,9 +1033,11 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                     <p className="text-xs text-slate-500 font-tech font-bold uppercase">
                       {searchQuery
                         ? `Ningún partido coincide con "${adminMatchSearchQuery}".`
+                        : adminMatchStatusFilter === 'PARA_VALIDAR'
+                        ? '✅ No hay actas pendientes de validación. Todo está al día.'
                         : adminMatchStatusFilter === 'CONFIRMADO'
-                        ? 'Aún no hay actas de partidos cargadas por los usuarios.'
-                        : 'No hay partidos pendientes en esta vista.'}
+                        ? 'Aún no hay actas de partidos confirmadas.'
+                        : 'No hay partidos en esta vista.'}
                     </p>
                   </div>
                 ) : (
