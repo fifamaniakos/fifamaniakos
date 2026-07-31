@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Modal } from './Modal';
+import { supabase } from '../lib/supabaseClient';
 import { ClubLogo } from './ClubLogo';
 import {
   Club,
@@ -28,7 +29,8 @@ import {
   ToggleLeft,
   ToggleRight,
   Sparkles,
-  Globe
+  Globe,
+  Users
 } from 'lucide-react';
 import { 
   SOFIFA_CLUBS, 
@@ -36,6 +38,17 @@ import {
   GET_SOFIFA_LEAGUES_BY_COUNTRY, 
   GET_SOFIFA_CLUBS_BY_FILTER 
 } from '../data/sofifaData';
+
+interface ManagerRow {
+  user_id: string;
+  email: string;
+  gamertag: string;
+  platform: string;
+  club_id: string | null;
+  role: 'admin' | 'manager';
+  is_owner: boolean;
+  created_at: string;
+}
 
 interface AdminPanelProps {
   clubs: Club[];
@@ -90,7 +103,28 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
   onGenerateFixtures,
   onLogoutAdmin
 }) => {
-  const [adminTab, setAdminTab] = useState<'cartel' | 'clubes' | 'partidos' | 'foro' | 'fichajes' | 'anuncios'>('cartel');
+  const [adminTab, setAdminTab] = useState<'cartel' | 'clubes' | 'partidos' | 'foro' | 'fichajes' | 'anuncios' | 'cuentas'>('cartel');
+
+  const [managers, setManagers] = useState<ManagerRow[]>([]);
+  const [managersLoaded, setManagersLoaded] = useState(false);
+  const [managerActionError, setManagerActionError] = useState<string | null>(null);
+
+  const fetchManagers = async () => {
+    const { data, error } = await supabase
+      .from('managers')
+      .select('user_id, email, gamertag, platform, club_id, role, is_owner, created_at')
+      .order('created_at', { ascending: true });
+    if (!error && data) {
+      setManagers(data as ManagerRow[]);
+    }
+    setManagersLoaded(true);
+  };
+
+  useEffect(() => {
+    if (adminTab === 'cuentas' && !managersLoaded) {
+      fetchManagers();
+    }
+  }, [adminTab, managersLoaded]);
 
   // Ticker News State
   const [newNewsText, setNewNewsText] = useState('');
@@ -477,6 +511,17 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
           }`}
         >
           <Megaphone className="w-4 h-4" /> Anuncio Oficial
+        </button>
+
+        <button
+          onClick={() => setAdminTab('cuentas')}
+          className={`px-4 py-2.5 rounded-t-xl text-xs font-bold uppercase font-tech flex items-center gap-2 transition-all ${
+            adminTab === 'cuentas'
+              ? 'bg-[#00ba68] text-white shadow-md'
+              : 'bg-slate-200 text-slate-700 hover:bg-slate-300'
+          }`}
+        >
+          <Users className="w-4 h-4" /> Cuentas ({managers.length})
         </button>
       </div>
 
