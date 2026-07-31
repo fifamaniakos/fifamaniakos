@@ -3,6 +3,7 @@ import { ForumTopic, ForumCategory, ForumReply, Club } from '../types';
 import { MessageSquare, Plus, Eye, Heart, Pin, Share2, Search, CornerDownRight, Shield, User, Image as ImageIcon, ArrowLeft, Clock, Trash2, X, Edit3, Scale, Coins, Gavel, Dice5 } from 'lucide-react';
 import { ImageWithFallback } from './ImageWithFallback';
 import { ClubLogo } from './ClubLogo';
+import { FC27_ADMIN_AVATAR } from '../data/initialData';
 
 interface ForumModuleProps {
   topics: ForumTopic[];
@@ -94,7 +95,7 @@ export const ForumModule: React.FC<ForumModuleProps> = ({
       category: newCategory,
       authorName: currentClub ? currentClub.manager : 'Manager_Anon',
       authorClub: currentClub ? currentClub.name : 'Libre',
-      authorAvatar: currentClub ? currentClub.logoUrl : 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&auto=format&fit=crop&q=80',
+      authorAvatar: currentClub ? currentClub.logoUrl : FC27_ADMIN_AVATAR,
       content: newContent,
       createdAt: new Date().toLocaleString('es-ES', { dateStyle: 'short', timeStyle: 'short' }),
       views: 1,
@@ -116,7 +117,7 @@ export const ForumModule: React.FC<ForumModuleProps> = ({
       id: `reply-${Date.now()}`,
       authorName: currentClub ? currentClub.manager : 'Manager_Anon',
       authorClub: currentClub ? currentClub.name : 'Libre',
-      authorAvatar: currentClub ? currentClub.logoUrl : 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&auto=format&fit=crop&q=80',
+      authorAvatar: currentClub ? currentClub.logoUrl : FC27_ADMIN_AVATAR,
       content: replyContent,
       createdAt: new Date().toLocaleString('es-ES', { dateStyle: 'short', timeStyle: 'short' }),
       likes: 0
@@ -265,7 +266,9 @@ export const ForumModule: React.FC<ForumModuleProps> = ({
                       {activeTopic.authorClub}
                     </span>
                   </div>
-                  <span className="text-[11px] text-slate-500 font-tech">Manager de la Liga FC 27</span>
+                  <span className="text-[11px] text-slate-500 font-tech">
+                    {activeTopic.authorClub === 'Comisario de Liga' || activeTopic.authorName.toLowerCase().includes('admin') ? 'Comisario de la Liga FC 27' : 'Manager de la Liga FC 27'}
+                  </span>
                 </div>
               </div>
             </div>

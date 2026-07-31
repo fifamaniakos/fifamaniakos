@@ -2,6 +2,7 @@ import { Club, Player, ForumTopic, MatchResult, TransferItem, FinancialTransacti
 import { generateAllCompetitionsFixtures } from '../utils/fixtureGenerator';
 
 export const FC27_STANDARD_LOGO = 'https://cdn.sofifa.net/teams/241/60.png';
+export const FC27_ADMIN_AVATAR = '/admin_avatar.png';
 
 export const DRAFT_BOMBO_TEAMS = [
   {

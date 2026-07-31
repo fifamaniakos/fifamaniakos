@@ -48,7 +48,8 @@ import {
   INITIAL_TRANSACTIONS,
   INITIAL_TICKER_NEWS,
   INITIAL_COMPETITION_SECTIONS,
-  INITIAL_BUDGET_PACKAGES
+  INITIAL_BUDGET_PACKAGES,
+  FC27_ADMIN_AVATAR
 } from './data/initialData';
 import { SOFIFA_PLAYERS, SOFIFA_CLUBS, SoFifaPlayerPreset } from './data/sofifaData';
 
@@ -502,7 +503,7 @@ export default function App() {
       category: 'Anuncios',
       authorName: 'Admin_FIFAMANIAKOS',
       authorClub: 'Comisario de Liga',
-      authorAvatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80',
+      authorAvatar: FC27_ADMIN_AVATAR,
       content,
       createdAt: new Date().toLocaleString('es-ES', { dateStyle: 'short', timeStyle: 'short' }),
       views: 1,
