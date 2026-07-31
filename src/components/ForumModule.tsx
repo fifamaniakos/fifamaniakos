@@ -498,64 +498,56 @@ export const ForumModule: React.FC<ForumModuleProps> = ({
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
             <button
               onClick={() => setSelectedCategory(selectedCategory === 'Normas competiciones' ? 'Todos' : 'Normas competiciones')}
-              className={`p-3.5 rounded-xl border flex items-center gap-2.5 text-left transition-all ${
+              className={`p-3.5 rounded-xl border flex items-center gap-2.5 text-left transition-all fc-card-hover ${
                 selectedCategory === 'Normas competiciones'
-                  ? 'bg-[#27272a] border-zinc-700 text-white shadow-md ring-2 ring-zinc-700'
+                  ? 'bg-blue-50/70 border-blue-500 text-blue-950 font-bold shadow-md ring-2 ring-blue-500/20'
                   : 'bg-white border-slate-200 text-slate-800 hover:bg-slate-50'
               }`}
             >
-              <div className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 ${
-                selectedCategory === 'Normas competiciones' ? 'bg-blue-900/60 border border-blue-500' : 'bg-blue-100 border border-blue-300'
-              }`}>
-                <Scale className={`w-4.5 h-4.5 ${selectedCategory === 'Normas competiciones' ? 'text-blue-300' : 'text-blue-600'}`} />
+              <div className="w-9 h-9 rounded-lg bg-blue-100 border border-blue-300 flex items-center justify-center shrink-0">
+                <Scale className="w-4.5 h-4.5 text-blue-600" />
               </div>
               <span className="text-xs font-tech font-bold">Normas competiciones</span>
             </button>
 
             <button
               onClick={() => setSelectedCategory(selectedCategory === 'Ganancias competiciones' ? 'Todos' : 'Ganancias competiciones')}
-              className={`p-3.5 rounded-xl border flex items-center gap-2.5 text-left transition-all ${
+              className={`p-3.5 rounded-xl border flex items-center gap-2.5 text-left transition-all fc-card-hover ${
                 selectedCategory === 'Ganancias competiciones'
-                  ? 'bg-[#27272a] border-zinc-700 text-white shadow-md ring-2 ring-zinc-700'
+                  ? 'bg-amber-50/70 border-amber-500 text-amber-950 font-bold shadow-md ring-2 ring-amber-500/20'
                   : 'bg-white border-slate-200 text-slate-800 hover:bg-slate-50'
               }`}
             >
-              <div className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 ${
-                selectedCategory === 'Ganancias competiciones' ? 'bg-amber-900/60 border border-amber-500' : 'bg-amber-100 border border-amber-300'
-              }`}>
-                <Coins className={`w-4.5 h-4.5 ${selectedCategory === 'Ganancias competiciones' ? 'text-amber-300' : 'text-amber-600'}`} />
+              <div className="w-9 h-9 rounded-lg bg-amber-100 border border-amber-300 flex items-center justify-center shrink-0">
+                <Coins className="w-4.5 h-4.5 text-amber-600" />
               </div>
               <span className="text-xs font-tech font-bold">Ganancias competiciones</span>
             </button>
 
             <button
               onClick={() => setSelectedCategory(selectedCategory === 'Sanciones' ? 'Todos' : 'Sanciones')}
-              className={`p-3.5 rounded-xl border flex items-center gap-2.5 text-left transition-all ${
+              className={`p-3.5 rounded-xl border flex items-center gap-2.5 text-left transition-all fc-card-hover ${
                 selectedCategory === 'Sanciones'
-                  ? 'bg-[#27272a] border-zinc-700 text-white shadow-md ring-2 ring-zinc-700'
+                  ? 'bg-rose-50/70 border-rose-500 text-rose-950 font-bold shadow-md ring-2 ring-rose-500/20'
                   : 'bg-white border-slate-200 text-slate-800 hover:bg-slate-50'
               }`}
             >
-              <div className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 ${
-                selectedCategory === 'Sanciones' ? 'bg-rose-900/60 border border-rose-500' : 'bg-rose-100 border border-rose-300'
-              }`}>
-                <Gavel className={`w-4.5 h-4.5 ${selectedCategory === 'Sanciones' ? 'text-rose-300' : 'text-rose-600'}`} />
+              <div className="w-9 h-9 rounded-lg bg-rose-100 border border-rose-300 flex items-center justify-center shrink-0">
+                <Gavel className="w-4.5 h-4.5 text-rose-600" />
               </div>
               <span className="text-xs font-tech font-bold">Sanciones</span>
             </button>
 
             <button
               onClick={() => setSelectedCategory(selectedCategory === 'Apuestas deportivas' ? 'Todos' : 'Apuestas deportivas')}
-              className={`p-3.5 rounded-xl border flex items-center gap-2.5 text-left transition-all ${
+              className={`p-3.5 rounded-xl border flex items-center gap-2.5 text-left transition-all fc-card-hover ${
                 selectedCategory === 'Apuestas deportivas'
-                  ? 'bg-[#27272a] border-zinc-700 text-white shadow-md ring-2 ring-zinc-700'
+                  ? 'bg-purple-50/70 border-purple-500 text-purple-950 font-bold shadow-md ring-2 ring-purple-500/20'
                   : 'bg-white border-slate-200 text-slate-800 hover:bg-slate-50'
               }`}
             >
-              <div className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 ${
-                selectedCategory === 'Apuestas deportivas' ? 'bg-purple-900/60 border border-purple-500' : 'bg-purple-100 border border-purple-300'
-              }`}>
-                <Dice5 className={`w-4.5 h-4.5 ${selectedCategory === 'Apuestas deportivas' ? 'text-purple-300' : 'text-purple-600'}`} />
+              <div className="w-9 h-9 rounded-lg bg-purple-100 border border-purple-300 flex items-center justify-center shrink-0">
+                <Dice5 className="w-4.5 h-4.5 text-purple-600" />
               </div>
               <span className="text-xs font-tech font-bold">Apuestas deportivas</span>
             </button>
@@ -571,7 +563,7 @@ export const ForumModule: React.FC<ForumModuleProps> = ({
                   onClick={() => setSelectedCategory(cat)}
                   className={`px-3 py-1.5 rounded-lg text-xs font-tech font-bold uppercase transition-all whitespace-nowrap flex items-center gap-1.5 ${
                     selectedCategory === cat
-                      ? 'bg-[#27272a] text-white shadow-md border border-zinc-700'
+                      ? 'bg-[#00ba68] text-white shadow-md shadow-emerald-500/20 border border-emerald-400 font-extrabold'
                       : 'bg-slate-100 text-slate-600 hover:text-slate-900 hover:bg-slate-200'
                   }`}
                 >
