@@ -35,10 +35,6 @@ interface ForumModuleProps {
 const CATEGORIES: (ForumCategory | 'Todos')[] = [
   'Todos',
   'Anuncios',
-  'Normas competiciones',
-  'Ganancias competiciones',
-  'Sanciones',
-  'Apuestas deportivas',
   'Quejas y sugerencias'
 ];
 
