@@ -496,7 +496,7 @@ export const ForumModule: React.FC<ForumModuleProps> = ({
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
             <button
               onClick={() => onOpenForumSection ? onOpenForumSection('normas') : setSelectedCategory('Normas competiciones')}
-              className="p-3.5 rounded-xl border border-slate-200 bg-white text-slate-800 hover:bg-slate-50 flex items-center gap-2.5 text-left transition-all fc-card-hover shadow-sm"
+              className="p-3.5 rounded-xl border border-slate-200 bg-white text-slate-800 hover:bg-slate-50 flex items-center gap-2.5 text-left transition-all fc-shimmer-card shadow-sm"
             >
               <div className="w-9 h-9 rounded-lg bg-blue-100 border border-blue-300 flex items-center justify-center shrink-0">
                 <Scale className="w-4.5 h-4.5 text-blue-600" />
@@ -506,7 +506,7 @@ export const ForumModule: React.FC<ForumModuleProps> = ({
 
             <button
               onClick={() => onOpenForumSection ? onOpenForumSection('ganancias') : setSelectedCategory('Ganancias competiciones')}
-              className="p-3.5 rounded-xl border border-slate-200 bg-white text-slate-800 hover:bg-slate-50 flex items-center gap-2.5 text-left transition-all fc-card-hover shadow-sm"
+              className="p-3.5 rounded-xl border border-slate-200 bg-white text-slate-800 hover:bg-slate-50 flex items-center gap-2.5 text-left transition-all fc-shimmer-card shadow-sm"
             >
               <div className="w-9 h-9 rounded-lg bg-amber-100 border border-amber-300 flex items-center justify-center shrink-0">
                 <Coins className="w-4.5 h-4.5 text-amber-600" />
@@ -516,7 +516,7 @@ export const ForumModule: React.FC<ForumModuleProps> = ({
 
             <button
               onClick={() => onOpenForumSection ? onOpenForumSection('sanciones') : setSelectedCategory('Sanciones')}
-              className="p-3.5 rounded-xl border border-slate-200 bg-white text-slate-800 hover:bg-slate-50 flex items-center gap-2.5 text-left transition-all fc-card-hover shadow-sm"
+              className="p-3.5 rounded-xl border border-slate-200 bg-white text-slate-800 hover:bg-slate-50 flex items-center gap-2.5 text-left transition-all fc-shimmer-card shadow-sm"
             >
               <div className="w-9 h-9 rounded-lg bg-rose-100 border border-rose-300 flex items-center justify-center shrink-0">
                 <Gavel className="w-4.5 h-4.5 text-rose-600" />
@@ -526,7 +526,7 @@ export const ForumModule: React.FC<ForumModuleProps> = ({
 
             <button
               onClick={() => onOpenForumSection ? onOpenForumSection('apuestas') : setSelectedCategory('Apuestas deportivas')}
-              className="p-3.5 rounded-xl border border-slate-200 bg-white text-slate-800 hover:bg-slate-50 flex items-center gap-2.5 text-left transition-all fc-card-hover shadow-sm"
+              className="p-3.5 rounded-xl border border-slate-200 bg-white text-slate-800 hover:bg-slate-50 flex items-center gap-2.5 text-left transition-all fc-shimmer-card shadow-sm"
             >
               <div className="w-9 h-9 rounded-lg bg-purple-100 border border-purple-300 flex items-center justify-center shrink-0">
                 <Dice5 className="w-4.5 h-4.5 text-purple-600" />
