@@ -71,13 +71,15 @@ export const SofifaPlayersExplorer: React.FC<SofifaPlayersExplorerProps> = ({
     s ? s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim() : '';
 
   // Build a lookup map from signed players (live state) by normalized name
-  // so we can show the manager-set clause (releaseClause)
+  // Checks both releaseClause and value so clauses set in any session version are detected
   const signedPlayerClauseMap = useMemo(() => {
     const map = new Map<string, number>();
     signedPlayers.forEach(p => {
       const norm = normalizeName(p.name);
-      if (norm && p.releaseClause && p.releaseClause > 0) {
-        map.set(norm, p.releaseClause);
+      if (!norm) return;
+      const clause = (p.releaseClause && p.releaseClause > 0) ? p.releaseClause : (p.value && p.value > 0 ? p.value : 0);
+      if (clause > 0) {
+        map.set(norm, clause);
       }
     });
     return map;
