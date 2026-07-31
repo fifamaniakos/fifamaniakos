@@ -4,6 +4,7 @@ import { MessageSquare, Trophy, Shield, DollarSign, UserPlus, PlusCircle, Shield
 import { Club, TickerNewsItem, ForumSectionTag } from '../types';
 import { ClubLogo } from './ClubLogo';
 import { CompetitionLogo } from './competitions/CompetitionLogo';
+import { MarkdownToolbar } from './MarkdownToolbar';
 
 interface NavbarProps {
   activeTab: string;
@@ -42,6 +43,7 @@ export const Navbar: React.FC<NavbarProps> = ({
 }) => {
   const [quickNewsInput, setQuickNewsInput] = useState('');
   const [showQuickNewsModal, setShowQuickNewsModal] = useState(false);
+  const quickNewsRef = useRef<HTMLTextAreaElement>(null);
   const [showCompeticionesMenu, setShowCompeticionesMenu] = useState(false);
   const [competicionesMenuPos, setCompeticionesMenuPos] = useState({ top: 0, left: 0 });
   const competicionesButtonRef = useRef<HTMLButtonElement>(null);
@@ -497,16 +499,22 @@ export const Navbar: React.FC<NavbarProps> = ({
             <form onSubmit={handleQuickAddNewsSubmit} className="space-y-4">
               <div>
                 <label className="block text-xs font-bold text-slate-700 uppercase font-tech mb-1">
-                  Texto de la Noticia o Anuncio
+                  Texto de la Noticia o Anuncio (Formato con Negrita, Títulos y Emojis)
                 </label>
+                <MarkdownToolbar
+                  value={quickNewsInput}
+                  onChange={setQuickNewsInput}
+                  textareaRef={quickNewsRef}
+                />
                 <textarea
+                  ref={quickNewsRef}
                   value={quickNewsInput}
                   onChange={(e) => setQuickNewsInput(e.target.value)}
-                  placeholder="Ej: 🔥 ¡Inscripciones abiertas para la Copa del Rey FIFAMANIAKOS!"
+                  placeholder="Ej: 🔥 ¡**Inscripciones abiertas** para la Copa del Rey FIFAMANIAKOS!"
                   rows={3}
                   required
                   autoFocus
-                  className="w-full p-3 bg-slate-50 border border-slate-300 rounded-xl text-xs text-slate-900 focus:outline-none focus:border-[#00ba68]"
+                  className="w-full p-3 bg-slate-50 border border-slate-300 border-t-0 rounded-b-xl text-xs text-slate-900 focus:outline-none focus:border-[#00ba68]"
                 />
               </div>
 

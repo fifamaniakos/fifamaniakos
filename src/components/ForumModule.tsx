@@ -1,9 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { ForumTopic, ForumCategory, ForumReply, Club } from '../types';
 import { MessageSquare, Plus, Eye, Heart, Pin, Share2, Search, CornerDownRight, Shield, User, Image as ImageIcon, ArrowLeft, Clock, Trash2, X, Edit3, Scale, Coins, Gavel, Dice5, Crown } from 'lucide-react';
 import { ImageWithFallback } from './ImageWithFallback';
 import { ClubLogo } from './ClubLogo';
 import { FC27_ADMIN_AVATAR } from '../data/initialData';
+import { MarkdownRenderer } from './MarkdownRenderer';
+import { MarkdownToolbar } from './MarkdownToolbar';
 
 const FounderBadge: React.FC<{ className?: string }> = ({ className }) => (
   <span
@@ -77,6 +79,12 @@ export const ForumModule: React.FC<ForumModuleProps> = ({
 
   // Reply Form State
   const [replyContent, setReplyContent] = useState('');
+
+  // Textarea Refs for Markdown Toolbar integration
+  const newContentRef = useRef<HTMLTextAreaElement>(null);
+  const editContentRef = useRef<HTMLTextAreaElement>(null);
+  const replyContentRef = useRef<HTMLTextAreaElement>(null);
+  const editReplyContentRef = useRef<HTMLTextAreaElement>(null);
 
   // Filter topics
   const filteredTopics = topics.filter(t => {
@@ -288,8 +296,8 @@ export const ForumModule: React.FC<ForumModuleProps> = ({
             </div>
 
             {/* Main Topic Body Content */}
-            <div className="text-slate-800 text-sm leading-relaxed whitespace-pre-line font-sans">
-              {activeTopic.content}
+            <div className="text-slate-800 text-sm leading-relaxed font-sans bg-slate-50/50 p-4 rounded-xl border border-slate-200/80">
+              <MarkdownRenderer content={activeTopic.content} />
             </div>
 
             {/* Si el tema trata sobre Inscripciones, renderizar la lista completa de Equipos Inscritos */}
@@ -403,7 +411,9 @@ export const ForumModule: React.FC<ForumModuleProps> = ({
                     )}
                   </div>
                 </div>
-                <p className="text-xs text-slate-700 leading-relaxed whitespace-pre-line">{reply.content}</p>
+                <div className="text-xs text-slate-700 leading-relaxed font-sans">
+                  <MarkdownRenderer content={reply.content} />
+                </div>
                 {reply.imageUrl && (
                   <div className="rounded-lg overflow-hidden border border-slate-200 max-h-80 bg-slate-900 mt-2">
                     <ImageWithFallback src={reply.imageUrl} alt="Adjunto de respuesta" className="w-full h-full object-cover" />
@@ -418,14 +428,25 @@ export const ForumModule: React.FC<ForumModuleProps> = ({
                 <CornerDownRight className="w-4 h-4 text-[#00ba68]" /> Responder como {currentClub ? currentClub.manager : 'Manager'}
               </h4>
 
-              <textarea
-                value={replyContent}
-                onChange={(e) => setReplyContent(e.target.value)}
-                placeholder="Escribe tu respuesta al tema, análisis o propuesta de partido..."
-                rows={3}
-                required
-                className="w-full p-3 bg-slate-50 border border-slate-300 rounded-lg text-xs text-slate-900 focus:outline-none focus:border-[#00ba68]"
-              />
+              <div>
+                <label className="block text-xs font-bold uppercase text-slate-700 font-tech mb-1">
+                  TU RESPUESTA (FORMATO CON NEGRIFA, TÍTULOS Y LISTAS)
+                </label>
+                <MarkdownToolbar
+                  value={replyContent}
+                  onChange={setReplyContent}
+                  textareaRef={replyContentRef}
+                />
+                <textarea
+                  ref={replyContentRef}
+                  value={replyContent}
+                  onChange={(e) => setReplyContent(e.target.value)}
+                  placeholder="Escribe tu respuesta... Podés usar las herramientas arriba para negrita (**), títulos (##), listas (-), etc."
+                  rows={3}
+                  required
+                  className="w-full p-3 bg-slate-50 border border-slate-300 border-t-0 rounded-b-lg text-xs text-slate-900 focus:outline-none focus:border-[#00ba68]"
+                />
+              </div>
 
               <div className="flex justify-end">
                 <button
@@ -672,13 +693,19 @@ export const ForumModule: React.FC<ForumModuleProps> = ({
                 <label className="block text-xs font-bold uppercase text-slate-700 font-tech mb-1.5">
                   CONTENIDO DEL MENSAJE *
                 </label>
+                <MarkdownToolbar
+                  value={newContent}
+                  onChange={setNewContent}
+                  textareaRef={newContentRef}
+                />
                 <textarea
+                  ref={newContentRef}
                   value={newContent}
                   onChange={(e) => setNewContent(e.target.value)}
-                  rows={5}
-                  placeholder="Escribe el mensaje completo de tu publicación..."
+                  placeholder="Escribe el mensaje del tema aquí... Podés formatear con **negrita**, *cursiva*, ## Títulos y listas."
+                  rows={7}
                   required
-                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-lg text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-[#00ba68] focus:ring-1 focus:ring-[#00ba68] transition"
+                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 border-t-0 rounded-b-lg text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-[#00ba68] transition"
                 />
               </div>
 
@@ -804,12 +831,18 @@ export const ForumModule: React.FC<ForumModuleProps> = ({
                 <label className="block text-xs font-bold uppercase text-slate-700 font-tech mb-1.5">
                   CONTENIDO DEL MENSAJE *
                 </label>
+                <MarkdownToolbar
+                  value={editContent}
+                  onChange={setEditContent}
+                  textareaRef={editContentRef}
+                />
                 <textarea
+                  ref={editContentRef}
                   value={editContent}
                   onChange={(e) => setEditContent(e.target.value)}
-                  rows={6}
+                  rows={7}
                   required
-                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-lg text-xs text-slate-900 focus:outline-none focus:bg-white focus:border-[#00ba68] focus:ring-1 focus:ring-[#00ba68] transition"
+                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 border-t-0 rounded-b-lg text-xs text-slate-900 focus:outline-none focus:bg-white focus:border-[#00ba68] transition"
                 />
               </div>
 
@@ -924,12 +957,18 @@ export const ForumModule: React.FC<ForumModuleProps> = ({
                 <label className="block text-xs font-bold uppercase text-slate-700 font-tech mb-1.5">
                   CONTENIDO DE LA RESPUESTA *
                 </label>
+                <MarkdownToolbar
+                  value={editReplyContent}
+                  onChange={setEditReplyContent}
+                  textareaRef={editReplyContentRef}
+                />
                 <textarea
+                  ref={editReplyContentRef}
                   value={editReplyContent}
                   onChange={(e) => setEditReplyContent(e.target.value)}
                   rows={5}
                   required
-                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-lg text-xs text-slate-900 focus:outline-none focus:bg-white focus:border-[#00ba68] focus:ring-1 focus:ring-[#00ba68] transition"
+                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 border-t-0 rounded-b-lg text-xs text-slate-900 focus:outline-none focus:bg-white focus:border-[#00ba68] transition"
                 />
               </div>
 
