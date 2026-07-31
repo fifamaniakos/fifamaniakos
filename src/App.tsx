@@ -63,6 +63,7 @@ export default function App() {
   // Admin Auth State: viene del rol real en la tabla `managers`, no de localStorage.
   const { profile } = useAuth();
   const isAdminLoggedIn = profile?.role === 'admin';
+  const isFounder = profile?.is_owner === true;
 
 
 
@@ -509,7 +510,8 @@ export default function App() {
       views: 1,
       likes: 5,
       isPinned: true,
-      replies: []
+      replies: [],
+      isFounderAuthor: isFounder
     };
     setTopics(prev => [newTopic, ...prev]);
   };
@@ -955,6 +957,7 @@ export default function App() {
             currentClub={currentClub}
             registeredClubs={clubs}
             isAdmin={isAdminLoggedIn}
+            isFounder={isFounder}
             onTogglePinTopic={handleTogglePinTopic}
             onDeleteTopic={handleDeleteTopic}
             onEditTopic={handleEditTopic}

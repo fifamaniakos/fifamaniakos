@@ -69,6 +69,7 @@ export interface ForumReply {
   imageUrl?: string;
   createdAt: string;
   likes: number;
+  isFounderAuthor?: boolean;
 }
 
 export interface ForumTopic {
@@ -85,6 +86,7 @@ export interface ForumTopic {
   likes: number;
   replies: ForumReply[];
   isPinned?: boolean;
+  isFounderAuthor?: boolean;
 }
 
 export interface CompetitionSection {

@@ -1,9 +1,18 @@
 import React, { useState } from 'react';
 import { ForumTopic, ForumCategory, ForumReply, Club } from '../types';
-import { MessageSquare, Plus, Eye, Heart, Pin, Share2, Search, CornerDownRight, Shield, User, Image as ImageIcon, ArrowLeft, Clock, Trash2, X, Edit3, Scale, Coins, Gavel, Dice5 } from 'lucide-react';
+import { MessageSquare, Plus, Eye, Heart, Pin, Share2, Search, CornerDownRight, Shield, User, Image as ImageIcon, ArrowLeft, Clock, Trash2, X, Edit3, Scale, Coins, Gavel, Dice5, Crown } from 'lucide-react';
 import { ImageWithFallback } from './ImageWithFallback';
 import { ClubLogo } from './ClubLogo';
 import { FC27_ADMIN_AVATAR } from '../data/initialData';
+
+const FounderBadge: React.FC<{ className?: string }> = ({ className }) => (
+  <span
+    title="Fundador de la liga"
+    className={`inline-flex items-center gap-1 px-2 py-0.5 bg-gradient-to-r from-amber-400 to-yellow-500 text-slate-950 text-[9px] font-black font-mono uppercase rounded-full border border-amber-500 shadow-sm ${className || ''}`}
+  >
+    <Crown className="w-3 h-3" /> Fundador
+  </span>
+);
 
 interface ForumModuleProps {
   topics: ForumTopic[];
@@ -13,6 +22,7 @@ interface ForumModuleProps {
   currentClub: Club | null;
   registeredClubs?: Club[];
   isAdmin?: boolean;
+  isFounder?: boolean;
   onTogglePinTopic?: (topicId: string) => void;
   onDeleteTopic?: (topicId: string) => void;
   onEditTopic?: (topicId: string, title: string, content: string) => void;
@@ -34,6 +44,7 @@ export const ForumModule: React.FC<ForumModuleProps> = ({
   currentClub,
   registeredClubs = [],
   isAdmin,
+  isFounder = false,
   onTogglePinTopic,
   onDeleteTopic,
   onEditTopic,
@@ -100,7 +111,8 @@ export const ForumModule: React.FC<ForumModuleProps> = ({
       createdAt: new Date().toLocaleString('es-ES', { dateStyle: 'short', timeStyle: 'short' }),
       views: 1,
       likes: 0,
-      replies: []
+      replies: [],
+      isFounderAuthor: isFounder
     };
 
     onCreateTopic(topic);
@@ -120,7 +132,8 @@ export const ForumModule: React.FC<ForumModuleProps> = ({
       authorAvatar: currentClub ? currentClub.logoUrl : FC27_ADMIN_AVATAR,
       content: replyContent,
       createdAt: new Date().toLocaleString('es-ES', { dateStyle: 'short', timeStyle: 'short' }),
-      likes: 0
+      likes: 0,
+      isFounderAuthor: isFounder
     };
 
     onAddReply(activeTopic.id, reply);
@@ -265,6 +278,7 @@ export const ForumModule: React.FC<ForumModuleProps> = ({
                     <span className="text-[10px] bg-slate-200 text-slate-800 font-mono px-2 py-0.5 rounded">
                       {activeTopic.authorClub}
                     </span>
+                    {activeTopic.isFounderAuthor && <FounderBadge />}
                   </div>
                   <span className="text-[11px] text-slate-500 font-tech">
                     {activeTopic.authorClub === 'Comisario de Liga' || activeTopic.authorName.toLowerCase().includes('admin') ? 'Comisario de la Liga FC 27' : 'Manager de la Liga FC 27'}
@@ -354,9 +368,10 @@ export const ForumModule: React.FC<ForumModuleProps> = ({
                 <div className="flex items-center justify-between border-b border-slate-100 pb-2">
                   <div className="flex items-center gap-2.5">
                     <ImageWithFallback src={reply.authorAvatar} alt={reply.authorName} className="w-8 h-8 rounded-full object-cover border border-slate-300" />
-                    <div>
+                    <div className="flex items-center gap-2">
                       <span className="font-bold text-xs text-slate-900">{reply.authorName}</span>
-                      <span className="text-[10px] text-emerald-700 font-mono ml-2">({reply.authorClub})</span>
+                      <span className="text-[10px] text-emerald-700 font-mono">({reply.authorClub})</span>
+                      {reply.isFounderAuthor && <FounderBadge />}
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
@@ -520,8 +535,9 @@ export const ForumModule: React.FC<ForumModuleProps> = ({
                       {topic.title}
                     </h3>
 
-                    <div className="flex items-center gap-3 text-[11px] text-slate-500 font-tech">
+                    <div className="flex items-center gap-3 text-[11px] text-slate-500 font-tech flex-wrap">
                       <span>Por <strong className="text-slate-800">{topic.authorName}</strong> ({topic.authorClub})</span>
+                      {topic.isFounderAuthor && <FounderBadge />}
                       <span>•</span>
                       <span>{topic.createdAt}</span>
                     </div>

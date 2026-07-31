@@ -9,6 +9,7 @@ export interface ManagerProfile {
   platform: 'PS5' | 'Xbox Series X' | 'PC';
   club_id: string | null;
   role: 'admin' | 'manager';
+  is_owner: boolean;
   subscription_status: string | null;
 }
 
