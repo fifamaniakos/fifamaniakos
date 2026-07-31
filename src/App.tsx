@@ -82,11 +82,20 @@ export default function App() {
     const missingCount = 36 - firstDivClubs.length;
 
     for (let i = 1; i <= missingCount; i++) {
+      // Un slot puede seguir teniendo el id `club-1ra-slot-N` aunque ya se le
+      // haya asignado un club real (draft o edicion admin), que cambia el
+      // nombre a algo que ya no matchea "Equipo N". Sin chequear tambien el
+      // id, este slot se contaba como libre y se regeneraba un duplicado con
+      // el mismo id, mostrando "Equipo N" vacante de nuevo pese a la asignacion.
       const existingNumSet = new Set(
         paddedFirstDiv
-          .map(c => {
-            const match = c.name.match(/^Equipo\s+(\d+)$/i);
-            return match ? parseInt(match[1], 10) : null;
+          .flatMap(c => {
+            const nameMatch = c.name.match(/^Equipo\s+(\d+)$/i);
+            const idMatch = c.id.match(/^club-1ra-slot-(\d+)$/);
+            return [
+              nameMatch ? parseInt(nameMatch[1], 10) : null,
+              idMatch ? parseInt(idMatch[1], 10) : null
+            ];
           })
           .filter((n): n is number => n !== null)
       );
