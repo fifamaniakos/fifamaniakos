@@ -14,6 +14,7 @@ interface SquadBuilderProps {
   onRemovePlayer: (playerId: string) => void;
   onToggleStarter: (playerId: string) => void;
   onUpdatePlayerClause?: (playerId: string, newClause: number) => void;
+  onListPlayerForSale?: (player: Player, askingPrice: number) => void;
 }
 
 const FORMATIONS = [
@@ -31,7 +32,8 @@ export const SquadBuilder: React.FC<SquadBuilderProps> = ({
   onAddPlayer,
   onRemovePlayer,
   onToggleStarter,
-  onUpdatePlayerClause
+  onUpdatePlayerClause,
+  onListPlayerForSale
 }) => {
   const [formation, setFormation] = useState('4-3-3');
   const [showAddPlayerModal, setShowAddPlayerModal] = useState(false);
@@ -438,9 +440,6 @@ export const SquadBuilder: React.FC<SquadBuilderProps> = ({
                         )}
                       </div>
                       <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 mt-0.5 text-[10px] font-tech">
-                        <span className="text-slate-500">
-                          Valor: <strong className="text-slate-700 font-mono">€{(player.value / 1000000).toFixed(1)}M</strong>
-                        </span>
                         {player.releaseClause && player.releaseClause > 0 ? (
                           <span className="text-[#00ba68] font-bold">
                             Cláusula: <strong className="font-mono">€{(player.releaseClause / 1000000).toFixed(1)}M</strong>
@@ -459,7 +458,7 @@ export const SquadBuilder: React.FC<SquadBuilderProps> = ({
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-1.5 shrink-0">
+                  <div className="flex items-center gap-1.5 shrink-0 flex-wrap">
                     {onUpdatePlayerClause && (
                       <button
                         onClick={() => {
@@ -470,6 +469,23 @@ export const SquadBuilder: React.FC<SquadBuilderProps> = ({
                         title="Modificar cláusula de rescisión de este jugador"
                       >
                         <Edit3 className="w-3 h-3 text-emerald-600" /> Cláusula
+                      </button>
+                    )}
+
+                    {onListPlayerForSale && !transferItem && (
+                      <button
+                        onClick={() => {
+                          const initialPrice = player.releaseClause && player.releaseClause > 0 ? player.releaseClause : 25000000;
+                          const priceStr = prompt(`Ingrese el precio de venta (€ Euros) para ${player.name}:`, initialPrice.toString());
+                          if (priceStr && Number(priceStr) > 0) {
+                            onListPlayerForSale(player, Number(priceStr));
+                            alert(`¡${player.name} ha sido puesto a la venta en el Mercado de Fichajes por €${(Number(priceStr) / 1000000).toFixed(1)}M!`);
+                          }
+                        }}
+                        className="px-2 py-1 rounded text-[10px] font-extrabold font-tech uppercase bg-amber-50 text-amber-900 hover:bg-amber-100 border border-amber-300 flex items-center gap-1 transition-colors"
+                        title="Poner jugador a la venta en el Mercado de Fichajes"
+                      >
+                        <Tag className="w-3 h-3 text-amber-600" /> Vender
                       </button>
                     )}
 

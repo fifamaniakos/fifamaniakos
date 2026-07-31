@@ -1140,6 +1140,7 @@ export default function App() {
             onRemovePlayer={handleRemovePlayer}
             onToggleStarter={handleToggleStarter}
             onUpdatePlayerClause={handleUpdatePlayerClause}
+            onListPlayerForSale={handleListPlayerForSale}
           />
         )}
 
