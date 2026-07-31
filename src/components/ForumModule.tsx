@@ -35,6 +35,10 @@ interface ForumModuleProps {
 const CATEGORIES: (ForumCategory | 'Todos')[] = [
   'Todos',
   'Anuncios',
+  'Normas competiciones',
+  'Ganancias competiciones',
+  'Sanciones',
+  'Apuestas deportivas',
   'Quejas y sugerencias'
 ];
 
@@ -69,6 +73,10 @@ export const ForumModule: React.FC<ForumModuleProps> = ({
 
   const availableCategories: ForumCategory[] = [
     'Anuncios',
+    'Normas competiciones',
+    'Ganancias competiciones',
+    'Sanciones',
+    'Apuestas deportivas',
     'Quejas y sugerencias'
   ].filter(cat => isAdmin || !ADMIN_ONLY_CATEGORIES.includes(cat as ForumCategory)) as ForumCategory[];
 
@@ -486,6 +494,73 @@ export const ForumModule: React.FC<ForumModuleProps> = ({
             </div>
           </div>
 
+          {/* Secciones Oficiales / Reglamento */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <button
+              onClick={() => setSelectedCategory(selectedCategory === 'Normas competiciones' ? 'Todos' : 'Normas competiciones')}
+              className={`p-3.5 rounded-xl border flex items-center gap-2.5 text-left transition-all ${
+                selectedCategory === 'Normas competiciones'
+                  ? 'bg-[#27272a] border-zinc-700 text-white shadow-md ring-2 ring-zinc-700'
+                  : 'bg-white border-slate-200 text-slate-800 hover:bg-slate-50'
+              }`}
+            >
+              <div className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 ${
+                selectedCategory === 'Normas competiciones' ? 'bg-blue-900/60 border border-blue-500' : 'bg-blue-100 border border-blue-300'
+              }`}>
+                <Scale className={`w-4.5 h-4.5 ${selectedCategory === 'Normas competiciones' ? 'text-blue-300' : 'text-blue-600'}`} />
+              </div>
+              <span className="text-xs font-tech font-bold">Normas competiciones</span>
+            </button>
+
+            <button
+              onClick={() => setSelectedCategory(selectedCategory === 'Ganancias competiciones' ? 'Todos' : 'Ganancias competiciones')}
+              className={`p-3.5 rounded-xl border flex items-center gap-2.5 text-left transition-all ${
+                selectedCategory === 'Ganancias competiciones'
+                  ? 'bg-[#27272a] border-zinc-700 text-white shadow-md ring-2 ring-zinc-700'
+                  : 'bg-white border-slate-200 text-slate-800 hover:bg-slate-50'
+              }`}
+            >
+              <div className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 ${
+                selectedCategory === 'Ganancias competiciones' ? 'bg-amber-900/60 border border-amber-500' : 'bg-amber-100 border border-amber-300'
+              }`}>
+                <Coins className={`w-4.5 h-4.5 ${selectedCategory === 'Ganancias competiciones' ? 'text-amber-300' : 'text-amber-600'}`} />
+              </div>
+              <span className="text-xs font-tech font-bold">Ganancias competiciones</span>
+            </button>
+
+            <button
+              onClick={() => setSelectedCategory(selectedCategory === 'Sanciones' ? 'Todos' : 'Sanciones')}
+              className={`p-3.5 rounded-xl border flex items-center gap-2.5 text-left transition-all ${
+                selectedCategory === 'Sanciones'
+                  ? 'bg-[#27272a] border-zinc-700 text-white shadow-md ring-2 ring-zinc-700'
+                  : 'bg-white border-slate-200 text-slate-800 hover:bg-slate-50'
+              }`}
+            >
+              <div className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 ${
+                selectedCategory === 'Sanciones' ? 'bg-rose-900/60 border border-rose-500' : 'bg-rose-100 border border-rose-300'
+              }`}>
+                <Gavel className={`w-4.5 h-4.5 ${selectedCategory === 'Sanciones' ? 'text-rose-300' : 'text-rose-600'}`} />
+              </div>
+              <span className="text-xs font-tech font-bold">Sanciones</span>
+            </button>
+
+            <button
+              onClick={() => setSelectedCategory(selectedCategory === 'Apuestas deportivas' ? 'Todos' : 'Apuestas deportivas')}
+              className={`p-3.5 rounded-xl border flex items-center gap-2.5 text-left transition-all ${
+                selectedCategory === 'Apuestas deportivas'
+                  ? 'bg-[#27272a] border-zinc-700 text-white shadow-md ring-2 ring-zinc-700'
+                  : 'bg-white border-slate-200 text-slate-800 hover:bg-slate-50'
+              }`}
+            >
+              <div className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 ${
+                selectedCategory === 'Apuestas deportivas' ? 'bg-purple-900/60 border border-purple-500' : 'bg-purple-100 border border-purple-300'
+              }`}>
+                <Dice5 className={`w-4.5 h-4.5 ${selectedCategory === 'Apuestas deportivas' ? 'text-purple-300' : 'text-purple-600'}`} />
+              </div>
+              <span className="text-xs font-tech font-bold">Apuestas deportivas</span>
+            </button>
+          </div>
+
           {/* Controls: Category Filter + Search */}
           <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4 bg-white p-3.5 rounded-2xl border border-slate-200 shadow-sm">
             {/* Category Filter Pills */}
@@ -496,7 +571,7 @@ export const ForumModule: React.FC<ForumModuleProps> = ({
                   onClick={() => setSelectedCategory(cat)}
                   className={`px-3 py-1.5 rounded-lg text-xs font-tech font-bold uppercase transition-all whitespace-nowrap flex items-center gap-1.5 ${
                     selectedCategory === cat
-                      ? 'bg-[#00ba68] text-white shadow-sm'
+                      ? 'bg-[#27272a] text-white shadow-md border border-zinc-700'
                       : 'bg-slate-100 text-slate-600 hover:text-slate-900 hover:bg-slate-200'
                   }`}
                 >
@@ -539,9 +614,11 @@ export const ForumModule: React.FC<ForumModuleProps> = ({
                       )}
                       <span className={`px-2 py-0.5 rounded text-[10px] font-bold font-tech uppercase ${
                         topic.category === 'Anuncios' ? 'bg-amber-100 text-amber-800 border border-amber-300' :
-                        topic.category === 'Resultados' ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' :
-                        topic.category === 'Fichajes' ? 'bg-purple-100 text-purple-800 border border-purple-300' :
-                        'bg-blue-100 text-blue-800 border border-blue-300'
+                        topic.category === 'Normas competiciones' ? 'bg-blue-100 text-blue-800 border border-blue-300' :
+                        topic.category === 'Ganancias competiciones' ? 'bg-amber-100 text-amber-800 border border-amber-300' :
+                        topic.category === 'Sanciones' ? 'bg-rose-100 text-rose-800 border border-rose-300' :
+                        topic.category === 'Apuestas deportivas' ? 'bg-purple-100 text-purple-800 border border-purple-300' :
+                        'bg-slate-100 text-slate-800 border border-slate-300'
                       }`}>
                         {topic.category}
                       </span>

@@ -325,40 +325,6 @@ export const Navbar: React.FC<NavbarProps> = ({
                 <div className="border-t border-slate-100 my-1" />
 
                 <button
-                  onClick={() => { onOpenForumSection('normas'); setShowCompeticionesMenu(false); }}
-                  className="w-full text-left px-3.5 py-2 text-xs font-bold flex items-center gap-2.5 transition-colors text-slate-700 hover:bg-slate-50"
-                >
-                  <Scale className="w-4 h-4 shrink-0 text-blue-500" />
-                  <span>Normas competiciones</span>
-                </button>
-
-                <button
-                  onClick={() => { onOpenForumSection('ganancias'); setShowCompeticionesMenu(false); }}
-                  className="w-full text-left px-3.5 py-2 text-xs font-bold flex items-center gap-2.5 transition-colors text-slate-700 hover:bg-slate-50"
-                >
-                  <Coins className="w-4 h-4 shrink-0 text-amber-500" />
-                  <span>Ganancias competiciones</span>
-                </button>
-
-                <button
-                  onClick={() => { onOpenForumSection('sanciones'); setShowCompeticionesMenu(false); }}
-                  className="w-full text-left px-3.5 py-2 text-xs font-bold flex items-center gap-2.5 transition-colors text-slate-700 hover:bg-slate-50"
-                >
-                  <Gavel className="w-4 h-4 shrink-0 text-rose-500" />
-                  <span>Sanciones</span>
-                </button>
-
-                <button
-                  onClick={() => { onOpenForumSection('apuestas'); setShowCompeticionesMenu(false); }}
-                  className="w-full text-left px-3.5 py-2 text-xs font-bold flex items-center gap-2.5 transition-colors text-slate-700 hover:bg-slate-50"
-                >
-                  <Dice5 className="w-4 h-4 shrink-0 text-purple-500" />
-                  <span>Apuestas deportivas</span>
-                </button>
-
-                <div className="border-t border-slate-100 my-1" />
-
-                <button
                   onClick={() => { setActiveTab('fichajes'); setShowCompeticionesMenu(false); }}
                   className={`w-full text-left px-3.5 py-2.5 text-xs font-bold flex items-center gap-2.5 transition-colors ${
                     activeTab === 'fichajes' ? 'bg-emerald-50 text-[#00ba68]' : 'text-slate-700 hover:bg-slate-50'

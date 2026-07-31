@@ -52,6 +52,10 @@ export interface Player {
 
 export type ForumCategory =
   | 'Anuncios'
+  | 'Normas competiciones'
+  | 'Ganancias competiciones'
+  | 'Sanciones'
+  | 'Apuestas deportivas'
   | 'Quejas y sugerencias';
 
 export type ForumSectionTag =

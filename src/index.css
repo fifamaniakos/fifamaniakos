@@ -54,9 +54,9 @@
 }
 
 .fc-card-hover:hover {
-  border-color: #00ba68;
+  border-color: #27272a;
   transform: translateY(-2px);
-  box-shadow: 0 10px 25px -4px rgba(0, 186, 104, 0.15);
+  box-shadow: 0 10px 25px -4px rgba(39, 39, 42, 0.25);
 }
 
 .fc-button-primary {
