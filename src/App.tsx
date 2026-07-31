@@ -121,13 +121,81 @@ export default function App() {
     return [...paddedFirstDiv, ...otherDivClubs];
   };
 
+  // Helper to recalculate standings for all clubs based on confirmed matches.
+  // Puramente derivado a partir de `matches` (la fuente de verdad) — nunca se
+  // persiste de vuelta en `clubs`, porque un manager solo tiene permiso RLS
+  // para actualizar su propio club, no la fila de sus rivales.
+  const recalculateStandings = (clubsList: Club[], matchesList: MatchResult[]): Club[] => {
+    const confirmedMatches = matchesList.filter(m => m.status === 'CONFIRMADO');
+
+    return clubsList.map(club => {
+      const clubMatches = confirmedMatches.filter(
+        m => m.homeClubId === club.id || m.awayClubId === club.id
+      );
+
+      let played = 0;
+      let won = 0;
+      let drawn = 0;
+      let lost = 0;
+      let goalsFor = 0;
+      let goalsAgainst = 0;
+      let points = 0;
+      const form: ('W' | 'D' | 'L')[] = [];
+
+      // Reverse so newest matches come first for form calculation
+      const sortedMatches = [...clubMatches].reverse();
+
+      sortedMatches.forEach(m => {
+        played += 1;
+        const isHome = m.homeClubId === club.id;
+        const myGoals = isHome ? m.homeGoals : m.awayGoals;
+        const oppGoals = isHome ? m.awayGoals : m.homeGoals;
+
+        goalsFor += myGoals;
+        goalsAgainst += oppGoals;
+
+        if (myGoals > oppGoals) {
+          won += 1;
+          points += 3;
+          if (form.length < 5) form.push('W');
+        } else if (myGoals === oppGoals) {
+          drawn += 1;
+          points += 1;
+          if (form.length < 5) form.push('D');
+        } else {
+          lost += 1;
+          if (form.length < 5) form.push('L');
+        }
+      });
+
+      return {
+        ...club,
+        played,
+        won,
+        drawn,
+        lost,
+        goalsFor,
+        goalsAgainst,
+        points,
+        form
+      };
+    });
+  };
+
   // Estado sincronizado con Supabase (Postgres + Realtime) en vez de localStorage.
   const [rawClubs, setClubs, clubsLoaded] = useSupabaseTable<Club>(
     'clubs',
     INITIAL_CLUBS,
     (c) => c.id
   );
-  const clubs = ensure36FirstDivClubs(rawClubs);
+
+  const [matches, setMatches] = useSupabaseTable<MatchResult>(
+    'matches',
+    INITIAL_MATCHES,
+    (m) => m.id
+  );
+
+  const clubs = recalculateStandings(ensure36FirstDivClubs(rawClubs), matches);
 
   // El club "activo" es el vinculado a la cuenta autenticada, no uno elegido libremente.
   const currentClubId = profile?.club_id ?? clubs[0]?.id ?? '';
@@ -203,12 +271,6 @@ export default function App() {
   useEffect(() => {
     localStorage.setItem('fc27_tienda_explanation', tiendaExplanation);
   }, [tiendaExplanation]);
-
-  const [matches, setMatches] = useSupabaseTable<MatchResult>(
-    'matches',
-    INITIAL_MATCHES,
-    (m) => m.id
-  );
 
   const [transfers, setTransfers] = useSupabaseTable<TransferItem>(
     'transfers',
@@ -453,64 +515,6 @@ export default function App() {
     }));
   };
 
-  // Helper to recalculate standings for all clubs based on confirmed matches
-  const recalculateStandings = (clubsList: Club[], matchesList: MatchResult[]): Club[] => {
-    const confirmedMatches = matchesList.filter(m => m.status === 'CONFIRMADO');
-
-    return clubsList.map(club => {
-      const clubMatches = confirmedMatches.filter(
-        m => m.homeClubId === club.id || m.awayClubId === club.id
-      );
-
-      let played = 0;
-      let won = 0;
-      let drawn = 0;
-      let lost = 0;
-      let goalsFor = 0;
-      let goalsAgainst = 0;
-      let points = 0;
-      const form: ('W' | 'D' | 'L')[] = [];
-
-      // Reverse so newest matches come first for form calculation
-      const sortedMatches = [...clubMatches].reverse();
-
-      sortedMatches.forEach(m => {
-        played += 1;
-        const isHome = m.homeClubId === club.id;
-        const myGoals = isHome ? m.homeGoals : m.awayGoals;
-        const oppGoals = isHome ? m.awayGoals : m.homeGoals;
-
-        goalsFor += myGoals;
-        goalsAgainst += oppGoals;
-
-        if (myGoals > oppGoals) {
-          won += 1;
-          points += 3;
-          if (form.length < 5) form.push('W');
-        } else if (myGoals === oppGoals) {
-          drawn += 1;
-          points += 1;
-          if (form.length < 5) form.push('D');
-        } else {
-          lost += 1;
-          if (form.length < 5) form.push('L');
-        }
-      });
-
-      return {
-        ...club,
-        played,
-        won,
-        drawn,
-        lost,
-        goalsFor,
-        goalsAgainst,
-        points,
-        form
-      };
-    });
-  };
-
   const handleGenerateFixtures = (competitionName?: string) => {
     let newMatches: MatchResult[] = [];
     if (competitionName && competitionName !== 'TODAS') {
@@ -527,12 +531,11 @@ export default function App() {
     setMatches(newMatches);
   };
 
-  // Automatically recalculate standings whenever matches change (add, edit, status change, delete)
+  // Generar partidos de eliminatorias es una operacion de nivel admin (crea
+  // partidos entre clubes que no son necesariamente el propio) — si corriera
+  // para cualquier manager logueado, la escritura chocaria con RLS.
   useEffect(() => {
-    setClubs(prevClubs => recalculateStandings(prevClubs, matches));
-  }, [matches]);
-
-  useEffect(() => {
+    if (!isAdminLoggedIn) return;
     setMatches(prev => {
       const newBracketMatches = generatePendingKnockoutMatches(clubs, prev).filter(
         nm => !prev.some(m => m.id === nm.id)
@@ -540,7 +543,7 @@ export default function App() {
       if (newBracketMatches.length === 0) return prev;
       return [...newBracketMatches, ...prev];
     });
-  }, [matches, clubs]);
+  }, [matches, clubs, isAdminLoggedIn]);
 
   // Handler: Post Match Result (updates standings & rewards money)
   const handleAddMatchResult = (newMatch: MatchResult) => {
@@ -980,6 +983,7 @@ export default function App() {
             matches={matches}
             players={players}
             selectedCompetition={selectedCompetition}
+            isAdmin={isAdminLoggedIn}
             onSelectCompetition={setSelectedCompetition}
             onAddMatchResult={handleAddMatchResult}
           />
