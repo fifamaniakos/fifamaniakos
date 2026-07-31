@@ -114,7 +114,9 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
       .from('managers')
       .select('user_id, email, gamertag, platform, club_id, role, is_owner, created_at')
       .order('created_at', { ascending: true });
-    if (!error && data) {
+    if (error) {
+      setManagerActionError(error.message);
+    } else if (data) {
       setManagers(data as ManagerRow[]);
     }
     setManagersLoaded(true);
