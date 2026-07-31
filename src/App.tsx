@@ -35,7 +35,8 @@ import {
   TransferItem,
   FinancialTransaction,
   ForumReply,
-  TickerNewsItem
+  TickerNewsItem,
+  LeagueSettings
 } from './types';
 
 import {
@@ -318,6 +319,25 @@ export default function App() {
     INITIAL_TICKER_NEWS,
     (n) => n.id
   );
+
+  // Temporada 1 es gratis para todos; desde la Temporada 2 se cobra
+  // suscripcion (ver MonetizationModule/AdminPanel). El numero de temporada
+  // vive en la tabla `seasons` (unica fila, key 'current') para que sea el
+  // mismo para todos los usuarios, no local a cada navegador.
+  const [leagueSettings, setLeagueSettings] = useSupabaseTable<LeagueSettings>(
+    'seasons',
+    [{ id: 'current', currentSeasonNumber: 1 }],
+    (s) => s.id
+  );
+  const currentSeasonNumber = leagueSettings.find(s => s.id === 'current')?.currentSeasonNumber ?? 1;
+  const setCurrentSeasonNumber = (n: number) => setLeagueSettings([{ id: 'current', currentSeasonNumber: n }]);
+
+  const subscriptionRequiredThisSeason = currentSeasonNumber >= 2;
+  const hasActiveSubscription = profile?.subscription_status === 'active';
+  const canUseGatedFeature = isAdminLoggedIn || !subscriptionRequiredThisSeason || hasActiveSubscription;
+  const SUBSCRIPTION_REQUIRED_MESSAGE =
+    'A partir de la Temporada 2, esta función requiere una suscripción activa (USD 8/mes). ' +
+    'Contactá al administrador de la liga para activarla.';
 
   const currentClub = clubs.find(c => c.id === currentClubId) || clubs[0] || null;
 
@@ -646,6 +666,10 @@ export default function App() {
 
   // Handler: Buy player on Transfer Market
   const handleBuyPlayer = (transfer: TransferItem, buyerClub: Club) => {
+    if (!canUseGatedFeature) {
+      alert(SUBSCRIPTION_REQUIRED_MESSAGE);
+      return;
+    }
     // 1. Mark transfer as VENDIDO
     setTransfers(prev => prev.map(t => {
       if (t.id === transfer.id) {
@@ -787,6 +811,10 @@ export default function App() {
 
   // Handler: Sign player from Free Agent Database
   const handleSignSofifaPlayer = (playerPreset: SoFifaPlayerPreset, buyerClub: Club, price: number) => {
+    if (!canUseGatedFeature) {
+      alert(SUBSCRIPTION_REQUIRED_MESSAGE);
+      return;
+    }
     const newPlayer: Player = {
       id: `pl-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
       clubId: buyerClub.id,
@@ -960,6 +988,10 @@ export default function App() {
             currentClub={currentClub}
             onSignPlayer={(preset) => {
               if (currentClub) {
+                if (!canUseGatedFeature) {
+                  alert(SUBSCRIPTION_REQUIRED_MESSAGE);
+                  return;
+                }
                 handleSignSofifaPlayer(preset, currentClub, preset.value);
                 alert(`¡Has fichado a ${preset.name} para ${currentClub.name}!`);
               } else {
@@ -1049,6 +1081,8 @@ export default function App() {
             selectedCompetition={selectedCompetition}
             isAdmin={isAdminLoggedIn}
             currentClubId={profile?.club_id ?? undefined}
+            canReportResults={canUseGatedFeature}
+            subscriptionRequiredMessage={SUBSCRIPTION_REQUIRED_MESSAGE}
             onSelectCompetition={setSelectedCompetition}
             onAddMatchResult={handleAddMatchResult}
           />
@@ -1110,6 +1144,8 @@ export default function App() {
               onUpdateTransferClause={handleUpdateTransferClause}
               onGenerateFixtures={handleGenerateFixtures}
               onLogoutAdmin={handleLogoutAdmin}
+              currentSeasonNumber={currentSeasonNumber}
+              onSetCurrentSeasonNumber={setCurrentSeasonNumber}
             />
           ) : (
             <div className="fc-card p-8 md:p-12 rounded-2xl border-emerald-300 bg-slate-900 text-white text-center space-y-6 max-w-2xl mx-auto shadow-2xl animate-scale-up">

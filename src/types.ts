@@ -100,6 +100,11 @@ export interface BudgetPackage {
   priceUsd: number;
 }
 
+export interface LeagueSettings {
+  id: string;
+  currentSeasonNumber: number;
+}
+
 export interface PlayerMatchEvent {
   playerId?: string;
   playerName: string;

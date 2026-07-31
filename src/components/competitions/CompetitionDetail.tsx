@@ -14,6 +14,8 @@ interface CompetitionDetailProps {
   players: Player[];
   isAdmin?: boolean;
   currentClubId?: string;
+  canReportResults?: boolean;
+  subscriptionRequiredMessage?: string;
   onAddMatchResult?: (match: MatchResult) => void;
 }
 
@@ -39,6 +41,8 @@ export const CompetitionDetail: React.FC<CompetitionDetailProps> = ({
   players,
   isAdmin = false,
   currentClubId,
+  canReportResults = true,
+  subscriptionRequiredMessage,
   onAddMatchResult
 }) => {
   const [activeTab, setActiveTab] = useState<CompetitionTab>('tabla');
@@ -125,6 +129,8 @@ export const CompetitionDetail: React.FC<CompetitionDetailProps> = ({
             competition={competition}
             isAdmin={isAdmin}
             currentClubId={currentClubId}
+            canReportResults={canReportResults}
+            subscriptionRequiredMessage={subscriptionRequiredMessage}
             onAddMatchResult={onAddMatchResult}
             onBack={() => setSelectedRoundKey(null)}
           />

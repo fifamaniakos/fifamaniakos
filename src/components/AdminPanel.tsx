@@ -47,6 +47,7 @@ interface ManagerRow {
   club_id: string | null;
   role: 'admin' | 'manager';
   is_owner: boolean;
+  subscription_status: string | null;
   created_at: string;
 }
 
@@ -56,6 +57,8 @@ interface AdminPanelProps {
   topics: ForumTopic[];
   transfers: TransferItem[];
   tickerNews: TickerNewsItem[];
+  currentSeasonNumber: number;
+  onSetCurrentSeasonNumber: (n: number) => void;
   onAddTickerNews: (text: string) => void;
   onToggleTickerNews: (id: string) => void;
   onDeleteTickerNews: (id: string) => void;
@@ -101,7 +104,9 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
   onDeleteTransfer,
   onUpdateTransferClause,
   onGenerateFixtures,
-  onLogoutAdmin
+  onLogoutAdmin,
+  currentSeasonNumber,
+  onSetCurrentSeasonNumber
 }) => {
   const [adminTab, setAdminTab] = useState<'cartel' | 'clubes' | 'partidos' | 'foro' | 'fichajes' | 'anuncios' | 'cuentas'>('cartel');
 
@@ -116,9 +121,25 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
       .order('created_at', { ascending: true });
     if (error) {
       setManagerActionError(error.message);
-    } else if (data) {
-      setManagers(data as ManagerRow[]);
+      setManagersLoaded(true);
+      return;
     }
+
+    // La suscripcion se rastrea por (gamertag, platform) en su propia tabla,
+    // no en la fila del manager -- ver 008_gamertag_subscriptions.sql (asi
+    // una cuenta nueva con otro email no resetea el estado de pago).
+    const { data: subs } = await supabase
+      .from('gamertag_subscriptions')
+      .select('gamertag, platform, status');
+    const subKey = (gamertag: string, platform: string) => `${gamertag}::${platform}`;
+    const subsByKey = new Map((subs ?? []).map(s => [subKey(s.gamertag, s.platform), s.status as string]));
+
+    setManagers(
+      (data ?? []).map(m => ({
+        ...m,
+        subscription_status: subsByKey.get(subKey(m.gamertag, m.platform)) ?? null
+      })) as ManagerRow[]
+    );
     setManagersLoaded(true);
   };
 
@@ -140,6 +161,25 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
       return;
     }
     setManagers(prev => prev.map(m => m.user_id === manager.user_id ? { ...m, role: newRole } : m));
+  };
+
+  const handleToggleSubscription = async (manager: ManagerRow) => {
+    const newStatus = manager.subscription_status === 'active' ? 'inactive' : 'active';
+    setManagerActionError(null);
+    // Se guarda por (gamertag, platform), no por user_id: asi el estado de
+    // pago sigue al DT real aunque cree una cuenta nueva con otro email.
+    const { error } = await supabase
+      .from('gamertag_subscriptions')
+      .upsert({ gamertag: manager.gamertag, platform: manager.platform, status: newStatus });
+    if (error) {
+      setManagerActionError(error.message);
+      return;
+    }
+    setManagers(prev => prev.map(m =>
+      m.gamertag === manager.gamertag && m.platform === manager.platform
+        ? { ...m, subscription_status: newStatus }
+        : m
+    ));
   };
 
   const handleDeleteManager = async (manager: ManagerRow) => {
@@ -1451,6 +1491,33 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
             </p>
           </div>
 
+          <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-xl space-y-2">
+            <h3 className="font-display font-bold text-sm text-emerald-900 uppercase italic">
+              Temporada Actual y Suscripciones
+            </h3>
+            <p className="text-[11px] text-emerald-800 font-tech leading-relaxed">
+              La Temporada 1 es gratuita para todos. Desde la Temporada 2, reportar
+              resultados y fichar jugadores requiere una suscripción activa (USD 8/mes).
+              Activá o desactivá la suscripción de cada DT abajo — todavía no hay cobro
+              automático, así que este estado se maneja a mano hasta integrar una pasarela de pago.
+            </p>
+            <div className="flex items-center gap-2 pt-1">
+              <label className="text-xs font-bold uppercase text-emerald-900">Temporada:</label>
+              <input
+                type="number"
+                min={1}
+                value={currentSeasonNumber}
+                onChange={(e) => onSetCurrentSeasonNumber(Math.max(1, parseInt(e.target.value, 10) || 1))}
+                className="w-16 px-2 py-1 bg-white border border-emerald-300 rounded text-xs font-bold text-center"
+              />
+              {currentSeasonNumber >= 2 && (
+                <span className="px-2 py-0.5 bg-amber-100 text-amber-800 border border-amber-300 rounded-full text-[10px] font-bold uppercase">
+                  Suscripción requerida
+                </span>
+              )}
+            </div>
+          </div>
+
           {managerActionError && (
             <div className="p-3 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-700 font-tech">
               {managerActionError}
@@ -1471,6 +1538,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                     <th className="py-2 pr-3">Plataforma</th>
                     <th className="py-2 pr-3">Club</th>
                     <th className="py-2 pr-3">Rol</th>
+                    <th className="py-2 pr-3">Suscripción</th>
                     <th className="py-2 pr-3">Creado el</th>
                     <th className="py-2 pr-3">Acciones</th>
                   </tr>
@@ -1498,6 +1566,22 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                           )}
                         </td>
                         <td className="py-2 pr-3 uppercase">{manager.role}</td>
+                        <td className="py-2 pr-3">
+                          {manager.is_owner ? (
+                            <span className="text-slate-400">—</span>
+                          ) : (
+                            <button
+                              onClick={() => handleToggleSubscription(manager)}
+                              className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase border ${
+                                manager.subscription_status === 'active'
+                                  ? 'bg-emerald-100 text-emerald-800 border-emerald-300 hover:bg-emerald-200'
+                                  : 'bg-rose-50 text-rose-700 border-rose-200 hover:bg-rose-100'
+                              }`}
+                            >
+                              {manager.subscription_status === 'active' ? 'Activa' : 'Inactiva'}
+                            </button>
+                          )}
+                        </td>
                         <td className="py-2 pr-3">{new Date(manager.created_at).toLocaleDateString('es-ES')}</td>
                         <td className="py-2 pr-3">
                           {manager.is_owner ? (

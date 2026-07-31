@@ -17,6 +17,8 @@ interface FixtureJornadaDetailProps {
   competition: string;
   isAdmin?: boolean;
   currentClubId?: string;
+  canReportResults?: boolean;
+  subscriptionRequiredMessage?: string;
   onAddMatchResult?: (match: MatchResult) => void;
   onBack: () => void;
 }
@@ -83,16 +85,25 @@ export const FixtureJornadaDetail: React.FC<FixtureJornadaDetailProps> = ({
   competition,
   isAdmin = false,
   currentClubId,
+  canReportResults = true,
+  subscriptionRequiredMessage,
   onAddMatchResult,
   onBack
 }) => {
   // Un manager solo puede cargar el acta de sus propios partidos: la politica
   // RLS manager_update_own_pending_matches rechaza cualquier otro, asi que
   // mostrar el boton para partidos ajenos solo produce errores 403.
+  const isOwnMatch = (match: MatchResult) =>
+    !!currentClubId &&
+    (match.homeClubId === currentClubId || match.awayClubId === currentClubId);
+
+  // Desde la Temporada 2, reportar resultados requiere suscripcion activa
+  // (canReportResults llega calculado desde App.tsx). Un admin nunca esta
+  // bloqueado por esto.
   const canReportMatch = (match: MatchResult) =>
-    isAdmin ||
-    (!!currentClubId &&
-      (match.homeClubId === currentClubId || match.awayClubId === currentClubId));
+    isAdmin || (isOwnMatch(match) && canReportResults);
+  const isBlockedBySubscription = (match: MatchResult) =>
+    !isAdmin && isOwnMatch(match) && !canReportResults;
   const [selectedMatch, setSelectedMatch] = useState<MatchResult | null>(null);
   const [reportingMatch, setReportingMatch] = useState<MatchResult | null>(null);
   const [reportHomeClubId, setReportHomeClubId] = useState<string>('');
@@ -273,6 +284,15 @@ export const FixtureJornadaDetail: React.FC<FixtureJornadaDetailProps> = ({
                   >
                     <PlusCircle className="w-4 h-4" /> Reportar Resultado
                   </button>
+                )}
+
+                {isBlockedBySubscription(match) && (
+                  <span
+                    title={subscriptionRequiredMessage}
+                    className="px-3 py-1.5 bg-amber-50 text-amber-800 border border-amber-300 font-tech font-extrabold text-[10px] uppercase rounded-lg shadow-xs flex items-center gap-1.5 shrink-0"
+                  >
+                    Suscripción requerida
+                  </span>
                 )}
 
                 {match.proofImageUrl && (

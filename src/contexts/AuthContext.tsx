@@ -40,7 +40,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       .select('*')
       .eq('user_id', userId)
       .maybeSingle();
-    setProfile(data as ManagerProfile | null);
+
+    if (!data) {
+      setProfile(null);
+      return;
+    }
+
+    // La suscripcion se rastrea por (gamertag, platform), no por esta fila
+    // de manager -- ver 008_gamertag_subscriptions.sql. Asi, crear una
+    // cuenta nueva con otro email no resetea el estado de pago mientras se
+    // siga usando el mismo gamertag.
+    const { data: sub } = await supabase
+      .from('gamertag_subscriptions')
+      .select('status')
+      .eq('gamertag', data.gamertag)
+      .eq('platform', data.platform)
+      .maybeSingle();
+
+    setProfile({ ...(data as ManagerProfile), subscription_status: sub?.status ?? null });
   };
 
   useEffect(() => {
