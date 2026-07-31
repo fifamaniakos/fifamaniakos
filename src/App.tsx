@@ -361,7 +361,13 @@ export default function App() {
   };
 
   const handleUpdateClub = (updatedClub: Club) => {
-    setClubs(prev => prev.map(c => c.id === updatedClub.id ? updatedClub : c));
+    // Igual que en el draft: si updatedClub es un slot virtual todavia no
+    // persistido en Supabase, .map() no lo encuentra en prev y el update no
+    // hace nada. Se agrega si falta.
+    setClubs(prev => prev.some(c => c.id === updatedClub.id)
+      ? prev.map(c => c.id === updatedClub.id ? updatedClub : c)
+      : [...prev, updatedClub]
+    );
   };
 
   const handleDeleteClub = (clubId: string) => {
@@ -959,19 +965,27 @@ export default function App() {
             registeredClubs={clubs}
             isAdmin={isAdminLoggedIn}
             onAssignDraftClub={(clubId, preset) => {
-              setClubs(prev => prev.map(c => {
-                if (c.id === clubId) {
-                  return {
-                    ...c,
-                    name: preset.name,
-                    shortName: preset.shortName,
-                    logoUrl: preset.logoUrl,
-                    stadium: preset.stadium,
-                    budget: preset.defaultBudget
-                  };
-                }
-                return c;
-              }));
+              // clubId puede ser un slot virtual (club-1ra-slot-N) que
+              // ensure36FirstDivClubs agrega solo para mostrar, y que todavia
+              // no existe como fila real en Supabase. Si se lo busca con
+              // .map() sobre la lista real (rawClubs), no aparece y el update
+              // no hace nada, sin error. Por eso se busca la base en `clubs`
+              // (la lista ya completada) y se agrega si prev no la tiene.
+              setClubs(prev => {
+                const base = clubs.find(c => c.id === clubId);
+                if (!base) return prev;
+                const updated = {
+                  ...base,
+                  name: preset.name,
+                  shortName: preset.shortName,
+                  logoUrl: preset.logoUrl,
+                  stadium: preset.stadium,
+                  budget: preset.defaultBudget
+                };
+                return prev.some(c => c.id === clubId)
+                  ? prev.map(c => c.id === clubId ? updated : c)
+                  : [...prev, updated];
+              });
             }}
             onAssignDraftPlayer={(clubId, playerPreset) => {
               const newPlayer: Player = {
