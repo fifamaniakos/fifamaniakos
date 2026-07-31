@@ -63,32 +63,25 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   const signUp: AuthContextValue['signUp'] = async ({ email, password, gamertag, platform }) => {
-    const { data: existing } = await supabase
-      .from('managers')
-      .select('user_id')
-      .eq('gamertag', gamertag)
-      .eq('platform', platform)
-      .maybeSingle();
+    const { data: taken } = await supabase.rpc('gamertag_taken', {
+      p_gamertag: gamertag,
+      p_platform: platform,
+    });
 
-    if (existing) {
+    if (taken) {
       return { error: 'Ese Gamertag ya tiene una cuenta registrada. Iniciá sesión en vez de registrarte de nuevo.' };
     }
 
-    const { data, error } = await supabase.auth.signUp({ email, password });
+    // La fila en `managers` la crea un trigger en la base (ver
+    // 004_signup_trigger.sql) a partir de este metadata, con privilegios
+    // elevados que no dependen de que ya haya una sesión activa.
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: { data: { gamertag, platform } },
+    });
     if (error || !data.user) {
       return { error: error?.message ?? 'No se pudo crear la cuenta.' };
-    }
-
-    const { error: insertError } = await supabase.from('managers').insert({
-      user_id: data.user.id,
-      email,
-      gamertag,
-      platform,
-      role: 'manager',
-    });
-
-    if (insertError) {
-      return { error: insertError.message };
     }
 
     return { error: null };
