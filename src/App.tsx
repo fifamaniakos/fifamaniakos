@@ -19,6 +19,8 @@ import { CompetitionSectionView } from './components/CompetitionSectionView';
 import { MonetizationModule } from './components/MonetizationModule';
 import { generateAllCompetitionsFixtures, generateFixtureForClubs } from './utils/fixtureGenerator';
 import { generatePendingKnockoutMatches } from './utils/bracketGenerator';
+import { useSupabaseTable } from './hooks/useSupabaseTable';
+import { useAuth } from './contexts/AuthContext';
 
 
 
@@ -56,25 +58,9 @@ export default function App() {
   const [isRegisterOpen, setIsRegisterOpen] = useState<boolean>(false);
   const [isAdminModalOpen, setIsAdminModalOpen] = useState<boolean>(false);
 
-  // Admin Auth State
-  const [isAdminLoggedIn, setIsAdminLoggedIn] = useState<boolean>(() => {
-    return localStorage.getItem('fm_is_admin') === 'true';
-  });
-
-  // Ensure clean state reset on new version
-  if (!localStorage.getItem('fm_clean_slate_v41')) {
-    localStorage.removeItem('fc27_clubs');
-    localStorage.removeItem('fc27_players');
-    localStorage.removeItem('fc27_topics');
-    localStorage.removeItem('fc27_matches');
-    localStorage.removeItem('fc27_transfers');
-    localStorage.removeItem('fc27_transactions');
-    localStorage.removeItem('fm_ticker_news');
-    localStorage.removeItem('fc27_current_club_id');
-    localStorage.setItem('fm_clean_slate_v41', 'true');
-  }
-
-
+  // Admin Auth State: viene del rol real en la tabla `managers`, no de localStorage.
+  const { profile } = useAuth();
+  const isAdminLoggedIn = profile?.role === 'admin';
 
 
 
@@ -135,44 +121,43 @@ export default function App() {
     return [...paddedFirstDiv, ...otherDivClubs];
   };
 
-  // Load state from localStorage or initial defaults
-  const [clubs, setClubs] = useState<Club[]>(() => {
-    const saved = localStorage.getItem('fc27_clubs');
-    const parsed = saved ? JSON.parse(saved) : INITIAL_CLUBS;
-    return ensure36FirstDivClubs(parsed);
-  });
+  // Estado sincronizado con Supabase (Postgres + Realtime) en vez de localStorage.
+  const [rawClubs, setClubs, clubsLoaded] = useSupabaseTable<Club>(
+    'clubs',
+    INITIAL_CLUBS,
+    (c) => c.id
+  );
+  const clubs = ensure36FirstDivClubs(rawClubs);
 
-  const [currentClubId, setCurrentClubId] = useState<string>(() => {
-    return localStorage.getItem('fc27_current_club_id') || (INITIAL_CLUBS[0]?.id || '');
-  });
+  // El club "activo" es el vinculado a la cuenta autenticada, no uno elegido libremente.
+  const currentClubId = profile?.club_id ?? clubs[0]?.id ?? '';
 
-  const [players, setPlayers] = useState<Player[]>(() => {
-    const saved = localStorage.getItem('fc27_players');
-    return saved ? JSON.parse(saved) : INITIAL_PLAYERS;
-  });
+  const [players, setPlayers] = useSupabaseTable<Player>(
+    'players',
+    INITIAL_PLAYERS,
+    (p) => p.id
+  );
 
-  const [topics, setTopics] = useState<ForumTopic[]>(() => {
-    const saved = localStorage.getItem('fc27_topics');
-    return saved ? JSON.parse(saved) : INITIAL_TOPICS;
-  });
+  const [topics, setTopics] = useSupabaseTable<ForumTopic>(
+    'forum_topics',
+    INITIAL_TOPICS,
+    (t) => t.id
+  );
 
-  const [competitionSections, setCompetitionSections] = useState<CompetitionSection[]>(() => {
-    const saved = localStorage.getItem('fc27_competition_sections');
-    const parsed: CompetitionSection[] = saved ? JSON.parse(saved) : INITIAL_COMPETITION_SECTIONS;
-    
-    // Garantizar que cada sección tenga su contenido inicial por defecto si está vacía
-    return INITIAL_COMPETITION_SECTIONS.map(initSec => {
-      const match = parsed.find(p => p.tag === initSec.tag);
-      if (!match || !match.content.trim()) {
-        return initSec;
-      }
-      return match;
-    });
-  });
+  const [rawCompetitionSections, setRawCompetitionSections] = useSupabaseTable<CompetitionSection>(
+    'competition_sections',
+    INITIAL_COMPETITION_SECTIONS,
+    (s) => s.tag
+  );
 
-  useEffect(() => {
-    localStorage.setItem('fc27_competition_sections', JSON.stringify(competitionSections));
-  }, [competitionSections]);
+  // Garantizar que cada sección tenga su contenido inicial por defecto si está vacía
+  const competitionSections = INITIAL_COMPETITION_SECTIONS.map(initSec => {
+    const match = rawCompetitionSections.find(p => p.tag === initSec.tag);
+    if (!match || !match.content.trim()) {
+      return initSec;
+    }
+    return match;
+  });
 
   const [activeSectionTag, setActiveSectionTag] = useState<ForumSectionTag | null>(null);
 
@@ -182,22 +167,22 @@ export default function App() {
   };
 
   const handleSaveCompetitionSection = (tag: ForumSectionTag, title: string, content: string) => {
-    setCompetitionSections(prev => prev.map(s => s.tag === tag
-      ? { ...s, title, content, updatedAt: new Date().toLocaleString('es-ES', { dateStyle: 'short', timeStyle: 'short' }) }
-      : s
-    ));
+    setRawCompetitionSections(prev => {
+      const base = prev.some(s => s.tag === tag) ? prev : [...prev, ...INITIAL_COMPETITION_SECTIONS.filter(s => s.tag === tag)];
+      return base.map(s => s.tag === tag
+        ? { ...s, title, content, updatedAt: new Date().toLocaleString('es-ES', { dateStyle: 'short', timeStyle: 'short' }) }
+        : s
+      );
+    });
   };
 
   const [selectedCompetition, setSelectedCompetition] = useState<string>('1ra División');
 
-  const [budgetPackages, setBudgetPackages] = useState<BudgetPackage[]>(() => {
-    const saved = localStorage.getItem('fc27_budget_packages');
-    return saved ? JSON.parse(saved) : INITIAL_BUDGET_PACKAGES;
-  });
-
-  useEffect(() => {
-    localStorage.setItem('fc27_budget_packages', JSON.stringify(budgetPackages));
-  }, [budgetPackages]);
+  const [budgetPackages, setBudgetPackages] = useSupabaseTable<BudgetPackage>(
+    'budget_packages',
+    INITIAL_BUDGET_PACKAGES,
+    (p) => p.id
+  );
 
   const handleAddBudgetPackage = (pkg: BudgetPackage) => {
     setBudgetPackages(prev => [...prev, pkg]);
@@ -219,78 +204,42 @@ export default function App() {
     localStorage.setItem('fc27_tienda_explanation', tiendaExplanation);
   }, [tiendaExplanation]);
 
-  const [matches, setMatches] = useState<MatchResult[]>(() => {
-    const saved = localStorage.getItem('fc27_matches');
-    if (saved) {
-      const parsed = JSON.parse(saved);
-      if (parsed.length > 5) return parsed;
-    }
-    return INITIAL_MATCHES;
-  });
+  const [matches, setMatches] = useSupabaseTable<MatchResult>(
+    'matches',
+    INITIAL_MATCHES,
+    (m) => m.id
+  );
 
-  const [transfers, setTransfers] = useState<TransferItem[]>(() => {
-    const saved = localStorage.getItem('fc27_transfers');
-    return saved ? JSON.parse(saved) : INITIAL_TRANSFERS;
-  });
+  const [transfers, setTransfers] = useSupabaseTable<TransferItem>(
+    'transfers',
+    INITIAL_TRANSFERS,
+    (t) => t.id
+  );
 
-  const [transactions, setTransactions] = useState<FinancialTransaction[]>(() => {
-    const saved = localStorage.getItem('fc27_transactions');
-    return saved ? JSON.parse(saved) : INITIAL_TRANSACTIONS;
-  });
+  const [transactions, setTransactions] = useSupabaseTable<FinancialTransaction>(
+    'transactions',
+    INITIAL_TRANSACTIONS,
+    (t) => t.id
+  );
 
-  const [tickerNews, setTickerNews] = useState<TickerNewsItem[]>(() => {
-    const saved = localStorage.getItem('fm_ticker_news');
-    return saved ? JSON.parse(saved) : INITIAL_TICKER_NEWS;
-  });
-
-  // Save changes to localStorage
-  useEffect(() => {
-    localStorage.setItem('fm_is_admin', isAdminLoggedIn ? 'true' : 'false');
-  }, [isAdminLoggedIn]);
-
-  useEffect(() => {
-    localStorage.setItem('fm_ticker_news', JSON.stringify(tickerNews));
-  }, [tickerNews]);
-
-  useEffect(() => {
-    localStorage.setItem('fc27_clubs', JSON.stringify(clubs));
-  }, [clubs]);
-
-  useEffect(() => {
-    localStorage.setItem('fc27_current_club_id', currentClubId);
-  }, [currentClubId]);
-
-  useEffect(() => {
-    localStorage.setItem('fc27_players', JSON.stringify(players));
-  }, [players]);
-
-  useEffect(() => {
-    localStorage.setItem('fc27_topics', JSON.stringify(topics));
-  }, [topics]);
-
-  useEffect(() => {
-    localStorage.setItem('fc27_matches', JSON.stringify(matches));
-  }, [matches]);
-
-  useEffect(() => {
-    localStorage.setItem('fc27_transfers', JSON.stringify(transfers));
-  }, [transfers]);
-
-  useEffect(() => {
-    localStorage.setItem('fc27_transactions', JSON.stringify(transactions));
-  }, [transactions]);
+  const [tickerNews, setTickerNews] = useSupabaseTable<TickerNewsItem>(
+    'ticker_news',
+    INITIAL_TICKER_NEWS,
+    (n) => n.id
+  );
 
   const currentClub = clubs.find(c => c.id === currentClubId) || clubs[0] || null;
 
   // Admin Handlers
+  const { signOut } = useAuth();
+
   const handleAdminLoginSuccess = () => {
-    setIsAdminLoggedIn(true);
     setIsAdminModalOpen(false);
     setActiveTab('admin');
   };
 
   const handleLogoutAdmin = () => {
-    setIsAdminLoggedIn(false);
+    signOut();
     if (activeTab === 'admin') {
       setActiveTab('foro');
     }
@@ -371,10 +320,6 @@ export default function App() {
 
       return prev.filter(c => c.id !== clubId);
     });
-
-    if (currentClubId === clubId && clubs.length > 1) {
-      setCurrentClubId(clubs.find(c => c.id !== clubId)?.id || '');
-    }
   };
 
   const handleUpdateMatchResult = (
@@ -477,7 +422,7 @@ export default function App() {
       return [newClub, ...prev];
     });
 
-    setCurrentClubId(registeredId);
+    return registeredId;
   };
 
   // Handler: Create forum topic
@@ -866,9 +811,8 @@ export default function App() {
   const handleResetDemoData = () => {
     if (confirm('¿Vaciar todos los datos de la Liga FIFAMANIAKOS para empezar desde 0?')) {
       localStorage.clear();
-      setIsAdminLoggedIn(false);
+      signOut();
       setClubs([]);
-      setCurrentClubId('');
       setPlayers([]);
       setTopics([]);
       setMatches([]);
@@ -885,6 +829,14 @@ export default function App() {
     }
   };
 
+  if (!clubsLoaded) {
+    return (
+      <div className="min-h-screen bg-slate-100 flex items-center justify-center">
+        <div className="text-slate-500 font-tech text-sm animate-pulse">Cargando Liga FIFAMANIAKOS...</div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-slate-100 text-slate-900 flex flex-col font-sans selection:bg-[#02f59b] selection:text-black">
       {/* Top Navbar */}
@@ -894,7 +846,7 @@ export default function App() {
         currentClub={currentClub}
         onOpenRegister={() => setIsRegisterOpen(true)}
         clubs={clubs}
-        onSelectClub={setCurrentClubId}
+        onSelectClub={() => { /* el club activo viene de la cuenta autenticada (profile.club_id) */ }}
         isAdmin={isAdminLoggedIn}
         onOpenAdminLogin={() => setIsAdminModalOpen(true)}
         onLogoutAdmin={handleLogoutAdmin}
@@ -1015,7 +967,7 @@ export default function App() {
             clubs={clubs}
             players={players}
             onOpenRegister={() => setIsRegisterOpen(true)}
-            onSelectClub={setCurrentClubId}
+            onSelectClub={() => { /* el club activo viene de la cuenta autenticada (profile.club_id) */ }}
             setActiveTab={setActiveTab}
             isAdmin={isAdminLoggedIn}
             onDeleteClub={handleDeleteClub}

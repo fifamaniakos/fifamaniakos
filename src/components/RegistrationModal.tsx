@@ -8,7 +8,7 @@ import { useAuth } from '../contexts/AuthContext';
 interface RegistrationModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onRegisterClub: (club: Club) => void;
+  onRegisterClub: (club: Club) => string;
 }
 
 export const RegistrationModal: React.FC<RegistrationModalProps> = ({
@@ -66,9 +66,9 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
       form: []
     };
 
-    onRegisterClub(newClub);
+    const registeredId = onRegisterClub(newClub);
 
-    const { error: linkError } = await linkClub(newClub.id);
+    const { error: linkError } = await linkClub(registeredId);
     if (linkError) {
       setError(`Cuenta creada, pero no se pudo vincular el club: ${linkError}`);
       setSubmitting(false);
