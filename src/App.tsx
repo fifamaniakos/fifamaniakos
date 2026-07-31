@@ -183,7 +183,7 @@ export default function App() {
   };
 
   // Estado sincronizado con Supabase (Postgres + Realtime) en vez de localStorage.
-  const [rawClubs, setClubs, clubsLoaded] = useSupabaseTable<Club>(
+  const [rawClubs, setClubs, clubsLoaded, clubsWriteError, clearClubsWriteError] = useSupabaseTable<Club>(
     'clubs',
     INITIAL_CLUBS,
     (c) => c.id
@@ -203,11 +203,17 @@ export default function App() {
     return { ...club, logoUrl };
   });
 
-  const [matches, setMatches] = useSupabaseTable<MatchResult>(
+  const [matches, setMatches, , matchesWriteError, clearMatchesWriteError] = useSupabaseTable<MatchResult>(
     'matches',
     INITIAL_MATCHES,
     (m) => m.id
   );
+
+  const dataWriteError = matchesWriteError ?? clubsWriteError;
+  const clearDataWriteError = () => {
+    clearMatchesWriteError();
+    clearClubsWriteError();
+  };
 
   const clubs = recalculateStandings(ensure36FirstDivClubs(rawClubsWithLogos), matches);
 
@@ -885,6 +891,17 @@ export default function App() {
 
       {/* Main Workspace Container - Full Width */}
       <main className="flex-1 w-full px-4 sm:px-6 md:px-8 lg:px-10 py-6 space-y-6">
+        {dataWriteError && (
+          <div className="flex items-start justify-between gap-4 p-4 bg-rose-50 border border-rose-300 rounded-xl text-xs text-rose-800 font-tech">
+            <span>{dataWriteError}</span>
+            <button
+              onClick={clearDataWriteError}
+              className="shrink-0 px-2 py-0.5 bg-rose-100 hover:bg-rose-200 border border-rose-300 rounded font-bold uppercase text-[10px]"
+            >
+              Cerrar
+            </button>
+          </div>
+        )}
         {activeTab === 'foro' && (
           <ForumModule
             topics={topics}

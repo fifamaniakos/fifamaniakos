@@ -133,6 +133,11 @@ export interface MatchResult {
   status: 'PENDIENTE' | 'CONFIRMADO' | 'RECHAZADO';
   createdAt: string;
   notes?: string;
+  // Marca que alguien cargó un acta para este partido. Distingue un partido
+  // del fixture que nadie tocó todavía de uno con resultado cargado esperando
+  // validación del admin. No se puede deducir de proofImageUrl porque la
+  // captura es opcional al reportar.
+  reportedAt?: string;
 }
 
 export interface TransferItem {

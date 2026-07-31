@@ -10,6 +10,17 @@ export function useSupabaseTable<T>(
 ) {
   const [data, setDataState] = useState<T[]>(initialData);
   const [loaded, setLoaded] = useState(false);
+  const [writeError, setWriteError] = useState<string | null>(null);
+
+  // Al fallar una escritura se recarga desde el servidor en vez de intentar
+  // revertir a mano: la base es la fuente de verdad y Realtime pudo haber
+  // aplicado otros cambios entre medio.
+  const refetch = useCallback(async () => {
+    const { data: rows, error } = await supabase.from(table).select('key, data');
+    if (!error && rows) {
+      setDataState(rows.map((r) => r.data as T));
+    }
+  }, [table]);
 
   useEffect(() => {
     let active = true;
@@ -21,6 +32,7 @@ export function useSupabaseTable<T>(
         if (!active) return;
         if (error) {
           console.error(`[useSupabaseTable] fetch ${table} failed:`, error.message);
+          setWriteError(`No se pudieron cargar los datos de ${table}: ${error.message}`);
           setLoaded(true);
           return;
         }
@@ -77,7 +89,17 @@ export function useSupabaseTable<T>(
             .from(table)
             .upsert(toUpsert.map((item) => ({ key: getKey(item), data: item })))
             .then(({ error }) => {
-              if (error) console.error(`[useSupabaseTable] upsert ${table} failed:`, error.message);
+              if (error) {
+                console.error(`[useSupabaseTable] upsert ${table} failed:`, error.message);
+                // Sin esto el cambio quedaba visible localmente aunque el
+                // servidor lo hubiera rechazado (ej: RLS), haciendo que un
+                // fallo de permisos pareciera "no pasa nada".
+                setWriteError(
+                  `No se pudo guardar en ${table}: ${error.message}. ` +
+                  `Puede que no tengas permiso para modificar estos datos.`
+                );
+                refetch();
+              }
             });
         }
         if (toDeleteKeys.length > 0) {
@@ -86,15 +108,24 @@ export function useSupabaseTable<T>(
             .delete()
             .in('key', toDeleteKeys)
             .then(({ error }) => {
-              if (error) console.error(`[useSupabaseTable] delete ${table} failed:`, error.message);
+              if (error) {
+                console.error(`[useSupabaseTable] delete ${table} failed:`, error.message);
+                setWriteError(
+                  `No se pudo eliminar en ${table}: ${error.message}. ` +
+                  `Puede que no tengas permiso para modificar estos datos.`
+                );
+                refetch();
+              }
             });
         }
 
         return next;
       });
     },
-    [table]
+    [table, refetch]
   );
 
-  return [data, setData, loaded] as const;
+  const clearWriteError = useCallback(() => setWriteError(null), []);
+
+  return [data, setData, loaded, writeError, clearWriteError] as const;
 }

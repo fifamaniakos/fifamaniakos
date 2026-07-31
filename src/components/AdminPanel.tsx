@@ -957,10 +957,14 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
           {/* Filtro Rápido de Estado para Rendimiento Ultra Rápido */}
           {(() => {
             const searchQuery = adminMatchSearchQuery.trim().toLowerCase();
+            // Un acta fue cargada si tiene reportedAt. Se acepta proofImageUrl
+            // como señal de respaldo para los reportes previos a que existiera
+            // ese campo.
+            const hasActa = (m: MatchResult) => !!m.reportedAt || !!m.proofImageUrl;
             const filteredMatches = matches.filter(match => {
               if (adminMatchStatusFilter === 'CONFIRMADO' && match.status !== 'CONFIRMADO') return false;
-              if (adminMatchStatusFilter === 'PARA_VALIDAR' && !(match.status === 'PENDIENTE' && !!match.proofImageUrl)) return false;
-              if (adminMatchStatusFilter === 'PENDIENTE' && !(match.status === 'PENDIENTE' && !match.proofImageUrl)) return false;
+              if (adminMatchStatusFilter === 'PARA_VALIDAR' && !(match.status === 'PENDIENTE' && hasActa(match))) return false;
+              if (adminMatchStatusFilter === 'PENDIENTE' && !(match.status === 'PENDIENTE' && !hasActa(match))) return false;
               if (!searchQuery) return true;
               const homeName = clubs.find(c => c.id === match.homeClubId)?.name || '';
               const awayName = clubs.find(c => c.id === match.awayClubId)?.name || '';
@@ -968,8 +972,8 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
             });
             const visibleMatches = filteredMatches.slice(0, adminMatchLimit);
 
-            const pendingToValidateCount = matches.filter(m => m.status === 'PENDIENTE' && !!m.proofImageUrl).length;
-            const fixtureWithoutActaCount = matches.filter(m => m.status === 'PENDIENTE' && !m.proofImageUrl).length;
+            const pendingToValidateCount = matches.filter(m => m.status === 'PENDIENTE' && hasActa(m)).length;
+            const fixtureWithoutActaCount = matches.filter(m => m.status === 'PENDIENTE' && !hasActa(m)).length;
 
             return (
               <div className="space-y-3">
@@ -1479,7 +1483,20 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                         <td className="py-2 pr-3 font-semibold text-slate-800">{manager.email}</td>
                         <td className="py-2 pr-3">{manager.gamertag}</td>
                         <td className="py-2 pr-3">{manager.platform}</td>
-                        <td className="py-2 pr-3">{linkedClub?.name ?? '—'}</td>
+                        <td className="py-2 pr-3">
+                          {linkedClub ? (
+                            <span className="flex items-center gap-2">
+                              <ClubLogo
+                                src={linkedClub.logoUrl}
+                                alt={linkedClub.name}
+                                className="w-6 h-6 rounded object-cover border border-slate-200 shrink-0"
+                              />
+                              <span>{linkedClub.name}</span>
+                            </span>
+                          ) : (
+                            '—'
+                          )}
+                        </td>
                         <td className="py-2 pr-3 uppercase">{manager.role}</td>
                         <td className="py-2 pr-3">{new Date(manager.created_at).toLocaleDateString('es-ES')}</td>
                         <td className="py-2 pr-3">
