@@ -6,11 +6,13 @@ import { Club, Player } from '../types';
 interface SofifaPlayersExplorerProps {
   currentClub?: Club | null;
   onSignPlayer?: (playerPreset: SoFifaPlayerPreset) => void;
+  signedPlayers?: Player[];
 }
 
 export const SofifaPlayersExplorer: React.FC<SofifaPlayersExplorerProps> = ({
   currentClub,
-  onSignPlayer
+  onSignPlayer,
+  signedPlayers = []
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedPosition, setSelectedPosition] = useState<string>('');
@@ -64,6 +66,18 @@ export const SofifaPlayersExplorer: React.FC<SofifaPlayersExplorerProps> = ({
   const formatMoney = (amount: number) => {
     return new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(amount);
   };
+
+  // Build a lookup map from signed players (live state) by lowercase name
+  // so we can show the manager-set clause instead of the static SOFIFA value
+  const signedPlayerClauseMap = useMemo(() => {
+    const map = new Map<string, number>();
+    signedPlayers.forEach(p => {
+      if (p.name && p.value && p.value > 0) {
+        map.set(p.name.toLowerCase(), p.value);
+      }
+    });
+    return map;
+  }, [signedPlayers]);
 
   return (
     <div className="space-y-6">
@@ -307,17 +321,20 @@ export const SofifaPlayersExplorer: React.FC<SofifaPlayersExplorerProps> = ({
                       </div>
                     </td>
 
-                    {/* Cláusula / Precio Asignado */}
+                    {/* Cláusula / Precio Asignado por Manager */}
                     <td className="py-3 px-4 whitespace-nowrap text-right">
-                      {player.value && player.value > 0 ? (
-                        <span className="font-mono font-bold text-xs text-[#00ba68]">
-                          {formatMoney(player.value)}
-                        </span>
-                      ) : (
-                        <span className="text-slate-400 font-mono text-xs font-semibold px-2 py-0.5 bg-slate-100 rounded border border-slate-200">
-                          Sin Cláusula
-                        </span>
-                      )}
+                      {(() => {
+                        const managerClause = signedPlayerClauseMap.get(player.name.toLowerCase());
+                        return managerClause ? (
+                          <span className="font-mono font-bold text-xs text-[#00ba68]">
+                            {formatMoney(managerClause)}
+                          </span>
+                        ) : (
+                          <span className="text-slate-400 font-mono text-xs font-semibold px-2 py-0.5 bg-slate-100 rounded border border-slate-200">
+                            Sin Cláusula
+                          </span>
+                        );
+                      })()}
                     </td>
 
                     {/* Acción de Fichaje */}

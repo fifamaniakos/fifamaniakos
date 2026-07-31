@@ -426,12 +426,18 @@ export const SquadBuilder: React.FC<SquadBuilderProps> = ({
                         )}
                       </div>
                       <div className="flex items-center gap-2 mt-0.5">
-                        <span className="text-[10px] text-slate-600 font-tech font-bold">
-                          Valor/Cláusula: €{(player.value / 1000000).toFixed(1)}M
-                        </span>
+                        {player.value && player.value > 0 ? (
+                          <span className="text-[10px] text-[#00ba68] font-tech font-bold">
+                            Cláusula: €{(player.value / 1000000).toFixed(1)}M
+                          </span>
+                        ) : (
+                          <span className="text-[10px] text-slate-400 font-tech font-semibold">
+                            Sin Cláusula
+                          </span>
+                        )}
                         {transferItem && (
                           <span className="text-[10px] text-amber-800 font-extrabold font-mono bg-amber-100 px-1 rounded">
-                            Mercado: €{(transferItem.askingPrice / 1000000).toFixed(1)}M
+                            En Mercado
                           </span>
                         )}
                       </div>

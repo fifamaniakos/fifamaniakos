@@ -327,6 +327,7 @@ export const TransferMarket: React.FC<TransferMarketProps> = ({
         <div className="pt-2">
           <SofifaPlayersExplorer
             currentClub={currentClub}
+            signedPlayers={players}
             onSignPlayer={(preset) => {
               if (currentClub) {
                 onSignSofifaPlayer?.(preset, currentClub, preset.value);
@@ -479,12 +480,13 @@ export const TransferMarket: React.FC<TransferMarketProps> = ({
                                   )}
                                 </div>
                                 <div className="flex items-center gap-2 mt-0.5">
-                                  <span className="text-[10px] text-slate-600 font-bold font-mono">
-                                    Valor: €{(player.value / 1000000).toFixed(1)}M
-                                  </span>
-                                  {transferItem && (
+                                  {transferItem ? (
                                     <span className="text-[10px] text-amber-800 font-extrabold font-mono">
                                       Cláusula: €{(transferItem.askingPrice / 1000000).toFixed(1)}M
+                                    </span>
+                                  ) : (
+                                    <span className="text-[10px] text-slate-400 font-mono font-semibold">
+                                      Sin Cláusula
                                     </span>
                                   )}
                                 </div>
