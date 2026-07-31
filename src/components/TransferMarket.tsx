@@ -494,22 +494,19 @@ export const TransferMarket: React.FC<TransferMarketProps> = ({
                                   )}
                                 </div>
                                 <div className="flex items-center gap-2 mt-0.5">
-                                  {(() => {
-                                    const clause = (player.releaseClause && player.releaseClause > 0) ? player.releaseClause : (player.value && player.value > 0 ? player.value : 0);
-                                    return clause > 0 ? (
-                                      <span className="text-[10px] text-[#00ba68] font-extrabold font-mono">
-                                        Cláusula: €{(clause / 1000000).toFixed(1)}M
-                                      </span>
-                                    ) : transferItem ? (
-                                      <span className="text-[10px] text-amber-800 font-extrabold font-mono">
-                                        Cláusula: €{(transferItem.askingPrice / 1000000).toFixed(1)}M
-                                      </span>
-                                    ) : (
-                                      <span className="text-[10px] text-slate-400 font-mono font-semibold">
-                                        Sin Cláusula
-                                      </span>
-                                    );
-                                  })()}
+                                  {player.releaseClause && player.releaseClause > 0 ? (
+                                    <span className="text-[10px] text-[#00ba68] font-extrabold font-mono">
+                                      Cláusula: €{(player.releaseClause / 1000000).toFixed(1)}M
+                                    </span>
+                                  ) : transferItem ? (
+                                    <span className="text-[10px] text-amber-800 font-extrabold font-mono">
+                                      Cláusula: €{(transferItem.askingPrice / 1000000).toFixed(1)}M
+                                    </span>
+                                  ) : (
+                                    <span className="text-[10px] text-slate-400 font-mono font-semibold">
+                                      Sin Cláusula
+                                    </span>
+                                  )}
                                 </div>
                               </div>
                             </div>

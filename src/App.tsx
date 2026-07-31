@@ -800,7 +800,7 @@ export default function App() {
   const handleUpdatePlayerClause = (playerId: string, newClause: number) => {
     setPlayers(prev => prev.map(p => {
       if (p.id === playerId) {
-        return { ...p, releaseClause: newClause, value: newClause };
+        return { ...p, releaseClause: newClause };
       }
       return p;
     }));

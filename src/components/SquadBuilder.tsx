@@ -426,18 +426,15 @@ export const SquadBuilder: React.FC<SquadBuilderProps> = ({
                         )}
                       </div>
                       <div className="flex items-center gap-2 mt-0.5">
-                        {(() => {
-                          const clause = (player.releaseClause && player.releaseClause > 0) ? player.releaseClause : (player.value && player.value > 0 ? player.value : 0);
-                          return clause > 0 ? (
-                            <span className="text-[10px] text-[#00ba68] font-tech font-bold">
-                              Cláusula: €{(clause / 1000000).toFixed(1)}M
-                            </span>
-                          ) : (
-                            <span className="text-[10px] text-slate-400 font-tech font-semibold">
-                              Sin Cláusula
-                            </span>
-                          );
-                        })()}
+                        {player.releaseClause && player.releaseClause > 0 ? (
+                          <span className="text-[10px] text-[#00ba68] font-tech font-bold">
+                            Cláusula: €{(player.releaseClause / 1000000).toFixed(1)}M
+                          </span>
+                        ) : (
+                          <span className="text-[10px] text-slate-400 font-tech font-semibold">
+                            Sin Cláusula
+                          </span>
+                        )}
                         {transferItem && (
                           <span className="text-[10px] text-amber-800 font-extrabold font-mono bg-amber-100 px-1 rounded">
                             En Mercado
@@ -452,8 +449,7 @@ export const SquadBuilder: React.FC<SquadBuilderProps> = ({
                       <button
                         onClick={() => {
                           setClauseEditPlayer(player);
-                          const clause = (player.releaseClause && player.releaseClause > 0) ? player.releaseClause : (player.value && player.value > 0 ? player.value : 30000000);
-                          setNewClauseInput(clause);
+                          setNewClauseInput(player.releaseClause && player.releaseClause > 0 ? player.releaseClause : 30000000);
                         }}
                         className="px-2 py-1 rounded text-[10px] font-extrabold font-tech uppercase bg-emerald-50 text-emerald-800 hover:bg-emerald-100 border border-emerald-300 flex items-center gap-1 transition-colors"
                         title="Modificar cláusula de rescisión de este jugador"
