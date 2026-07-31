@@ -128,6 +128,33 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
     }
   }, [adminTab, managersLoaded]);
 
+  const handleToggleManagerRole = async (manager: ManagerRow) => {
+    const newRole = manager.role === 'admin' ? 'manager' : 'admin';
+    setManagerActionError(null);
+    const { error } = await supabase
+      .from('managers')
+      .update({ role: newRole })
+      .eq('user_id', manager.user_id);
+    if (error) {
+      setManagerActionError(error.message);
+      return;
+    }
+    setManagers(prev => prev.map(m => m.user_id === manager.user_id ? { ...m, role: newRole } : m));
+  };
+
+  const handleDeleteManager = async (manager: ManagerRow) => {
+    if (!confirm(`¿Eliminar la cuenta de ${manager.email} (${manager.gamertag})? Esta acción no se puede deshacer.`)) {
+      return;
+    }
+    setManagerActionError(null);
+    const { error } = await supabase.rpc('admin_delete_manager', { target_user_id: manager.user_id });
+    if (error) {
+      setManagerActionError(error.message);
+      return;
+    }
+    setManagers(prev => prev.filter(m => m.user_id !== manager.user_id));
+  };
+
   // Ticker News State
   const [newNewsText, setNewNewsText] = useState('');
   const [editingNewsId, setEditingNewsId] = useState<string | null>(null);
@@ -1374,6 +1401,84 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
               <Megaphone className="w-4 h-4" /> Publicar Comunicado Pinned
             </button>
           </form>
+        </div>
+      )}
+
+      {/* TAB 7: CUENTAS DE MANAGERS */}
+      {adminTab === 'cuentas' && (
+        <div className="fc-card p-6 rounded-2xl border-slate-200 space-y-6 shadow-md">
+          <div className="border-b border-slate-200 pb-3">
+            <h2 className="font-display font-extrabold text-xl text-slate-900 uppercase italic flex items-center gap-2">
+              <Users className="w-6 h-6 text-emerald-700" /> Cuentas de DTs Registrados
+            </h2>
+            <p className="text-xs text-slate-500 font-tech mt-1">
+              Gestioná el rol de los managers registrados. La cuenta del Fundador de la
+              liga está protegida y no puede modificarse desde aquí.
+            </p>
+          </div>
+
+          {managerActionError && (
+            <div className="p-3 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-700 font-tech">
+              {managerActionError}
+            </div>
+          )}
+
+          {!managersLoaded ? (
+            <p className="text-xs text-slate-500 font-tech">Cargando cuentas...</p>
+          ) : managers.length === 0 ? (
+            <p className="text-xs text-slate-500 font-tech">Todavía no hay DTs registrados.</p>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-xs font-tech">
+                <thead>
+                  <tr className="text-left text-slate-500 uppercase border-b border-slate-200">
+                    <th className="py-2 pr-3">Email</th>
+                    <th className="py-2 pr-3">Gamertag</th>
+                    <th className="py-2 pr-3">Plataforma</th>
+                    <th className="py-2 pr-3">Club</th>
+                    <th className="py-2 pr-3">Rol</th>
+                    <th className="py-2 pr-3">Acciones</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {managers.map(manager => {
+                    const linkedClub = clubs.find(c => c.id === manager.club_id);
+                    return (
+                      <tr key={manager.user_id} className="border-b border-slate-100">
+                        <td className="py-2 pr-3 font-semibold text-slate-800">{manager.email}</td>
+                        <td className="py-2 pr-3">{manager.gamertag}</td>
+                        <td className="py-2 pr-3">{manager.platform}</td>
+                        <td className="py-2 pr-3">{linkedClub?.name ?? '—'}</td>
+                        <td className="py-2 pr-3 uppercase">{manager.role}</td>
+                        <td className="py-2 pr-3">
+                          {manager.is_owner ? (
+                            <span className="px-2 py-1 bg-emerald-100 text-emerald-800 rounded-full font-bold uppercase text-[10px]">
+                              Fundador
+                            </span>
+                          ) : (
+                            <div className="flex items-center gap-2">
+                              <button
+                                onClick={() => handleToggleManagerRole(manager)}
+                                className="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 border border-slate-300 rounded text-[10px] font-bold uppercase"
+                              >
+                                {manager.role === 'admin' ? 'Quitar admin' : 'Hacer admin'}
+                              </button>
+                              <button
+                                onClick={() => handleDeleteManager(manager)}
+                                className="px-2.5 py-1 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 rounded text-[10px] font-bold uppercase flex items-center gap-1"
+                              >
+                                <Trash2 className="w-3 h-3" /> Eliminar
+                              </button>
+                            </div>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
       )}
 
