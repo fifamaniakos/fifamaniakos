@@ -931,7 +931,6 @@ export default function App() {
         onLogoutAdmin={handleLogoutAdmin}
         tickerNews={tickerNews}
         onAddNewsItem={handleAddTickerNews}
-        onOpenForumSection={handleOpenForumSection}
         onSelectCompetition={setSelectedCompetition}
       />
 
@@ -958,6 +957,7 @@ export default function App() {
             registeredClubs={clubs}
             isAdmin={isAdminLoggedIn}
             isFounder={isFounder}
+            onOpenForumSection={handleOpenForumSection}
             onTogglePinTopic={handleTogglePinTopic}
             onDeleteTopic={handleDeleteTopic}
             onEditTopic={handleEditTopic}

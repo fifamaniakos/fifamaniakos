@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { ForumTopic, ForumCategory, ForumReply, Club } from '../types';
+import { ForumTopic, ForumCategory, ForumReply, Club, ForumSectionTag } from '../types';
 import { MessageSquare, Plus, Eye, Heart, Pin, Share2, Search, CornerDownRight, Shield, User, Image as ImageIcon, ArrowLeft, Clock, Trash2, X, Edit3, Scale, Coins, Gavel, Dice5, Crown } from 'lucide-react';
 import { ImageWithFallback } from './ImageWithFallback';
 import { ClubLogo } from './ClubLogo';
@@ -25,6 +25,7 @@ interface ForumModuleProps {
   registeredClubs?: Club[];
   isAdmin?: boolean;
   isFounder?: boolean;
+  onOpenForumSection?: (sectionTag: ForumSectionTag) => void;
   onTogglePinTopic?: (topicId: string) => void;
   onDeleteTopic?: (topicId: string) => void;
   onEditTopic?: (topicId: string, title: string, content: string) => void;
@@ -47,6 +48,7 @@ export const ForumModule: React.FC<ForumModuleProps> = ({
   registeredClubs = [],
   isAdmin,
   isFounder = false,
+  onOpenForumSection,
   onTogglePinTopic,
   onDeleteTopic,
   onEditTopic,
@@ -485,6 +487,51 @@ export const ForumModule: React.FC<ForumModuleProps> = ({
               )}
             </div>
           </div>
+
+          {/* Reglamento de la Liga: accesos rápidos */}
+          {onOpenForumSection && (
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              <button
+                onClick={() => onOpenForumSection('normas')}
+                className="fc-card fc-card-hover p-3.5 rounded-xl border-slate-200 flex items-center gap-2.5 text-left"
+              >
+                <div className="w-9 h-9 rounded-lg bg-blue-100 border border-blue-300 flex items-center justify-center shrink-0">
+                  <Scale className="w-4.5 h-4.5 text-blue-600" />
+                </div>
+                <span className="text-xs font-tech font-bold text-slate-800">Normas competiciones</span>
+              </button>
+
+              <button
+                onClick={() => onOpenForumSection('ganancias')}
+                className="fc-card fc-card-hover p-3.5 rounded-xl border-slate-200 flex items-center gap-2.5 text-left"
+              >
+                <div className="w-9 h-9 rounded-lg bg-amber-100 border border-amber-300 flex items-center justify-center shrink-0">
+                  <Coins className="w-4.5 h-4.5 text-amber-600" />
+                </div>
+                <span className="text-xs font-tech font-bold text-slate-800">Ganancias competiciones</span>
+              </button>
+
+              <button
+                onClick={() => onOpenForumSection('sanciones')}
+                className="fc-card fc-card-hover p-3.5 rounded-xl border-slate-200 flex items-center gap-2.5 text-left"
+              >
+                <div className="w-9 h-9 rounded-lg bg-rose-100 border border-rose-300 flex items-center justify-center shrink-0">
+                  <Gavel className="w-4.5 h-4.5 text-rose-600" />
+                </div>
+                <span className="text-xs font-tech font-bold text-slate-800">Sanciones</span>
+              </button>
+
+              <button
+                onClick={() => onOpenForumSection('apuestas')}
+                className="fc-card fc-card-hover p-3.5 rounded-xl border-slate-200 flex items-center gap-2.5 text-left"
+              >
+                <div className="w-9 h-9 rounded-lg bg-purple-100 border border-purple-300 flex items-center justify-center shrink-0">
+                  <Dice5 className="w-4.5 h-4.5 text-purple-600" />
+                </div>
+                <span className="text-xs font-tech font-bold text-slate-800">Apuestas deportivas</span>
+              </button>
+            </div>
+          )}
 
           {/* Controls: Category Filter + Search */}
           <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4 bg-white p-3.5 rounded-2xl border border-slate-200 shadow-sm">
