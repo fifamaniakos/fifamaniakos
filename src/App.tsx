@@ -549,7 +549,13 @@ export default function App() {
 
   // Handler: Post Match Result (updates standings & rewards money)
   const handleAddMatchResult = (newMatch: MatchResult) => {
-    setMatches(prev => [newMatch, ...prev]);
+    // Los partidos del fixture ya existen como filas PENDIENTE: cargar un acta
+    // es reemplazar esa fila, no agregar una nueva. Prependerla generaba claves
+    // duplicadas en React y un upsert redundante.
+    setMatches(prev => prev.some(m => m.id === newMatch.id)
+      ? prev.map(m => m.id === newMatch.id ? newMatch : m)
+      : [newMatch, ...prev]
+    );
 
     // Record Prize Transaction & award budget if win and confirmed
     if (newMatch.status === 'CONFIRMADO') {
@@ -988,6 +994,7 @@ export default function App() {
             players={players}
             selectedCompetition={selectedCompetition}
             isAdmin={isAdminLoggedIn}
+            currentClubId={profile?.club_id ?? undefined}
             onSelectCompetition={setSelectedCompetition}
             onAddMatchResult={handleAddMatchResult}
           />

@@ -16,6 +16,7 @@ interface FixtureJornadaDetailProps {
   roundLabel: string;
   competition: string;
   isAdmin?: boolean;
+  currentClubId?: string;
   onAddMatchResult?: (match: MatchResult) => void;
   onBack: () => void;
 }
@@ -81,9 +82,17 @@ export const FixtureJornadaDetail: React.FC<FixtureJornadaDetailProps> = ({
   roundLabel,
   competition,
   isAdmin = false,
+  currentClubId,
   onAddMatchResult,
   onBack
 }) => {
+  // Un manager solo puede cargar el acta de sus propios partidos: la politica
+  // RLS manager_update_own_pending_matches rechaza cualquier otro, asi que
+  // mostrar el boton para partidos ajenos solo produce errores 403.
+  const canReportMatch = (match: MatchResult) =>
+    isAdmin ||
+    (!!currentClubId &&
+      (match.homeClubId === currentClubId || match.awayClubId === currentClubId));
   const [selectedMatch, setSelectedMatch] = useState<MatchResult | null>(null);
   const [reportingMatch, setReportingMatch] = useState<MatchResult | null>(null);
   const [reportHomeClubId, setReportHomeClubId] = useState<string>('');
@@ -256,12 +265,14 @@ export const FixtureJornadaDetail: React.FC<FixtureJornadaDetailProps> = ({
               </div>
 
               <div className="flex items-center gap-3 text-xs font-mono">
-                <button
-                  onClick={(e) => openReportModalForMatch(match, e)}
-                  className="px-3 py-1.5 bg-[#00ba68] hover:bg-[#00d282] text-white font-tech font-extrabold text-xs uppercase rounded-lg shadow flex items-center gap-1.5 transition-all shrink-0"
-                >
-                  <PlusCircle className="w-4 h-4" /> Reportar Resultado
-                </button>
+                {canReportMatch(match) && (
+                  <button
+                    onClick={(e) => openReportModalForMatch(match, e)}
+                    className="px-3 py-1.5 bg-[#00ba68] hover:bg-[#00d282] text-white font-tech font-extrabold text-xs uppercase rounded-lg shadow flex items-center gap-1.5 transition-all shrink-0"
+                  >
+                    <PlusCircle className="w-4 h-4" /> Reportar Resultado
+                  </button>
+                )}
 
                 {match.proofImageUrl && (
                   <span className="px-2 py-0.5 bg-emerald-100 text-emerald-800 border border-emerald-300 rounded-md flex items-center gap-1 text-[10px] font-tech font-bold hidden sm:flex">
