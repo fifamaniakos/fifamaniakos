@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
 interface ClubLogoProps {
   src?: string;
@@ -12,6 +12,15 @@ export const ClubLogo: React.FC<ClubLogoProps> = ({
   className = 'w-8 h-8 rounded-lg object-cover border border-slate-200'
 }) => {
   const [hasError, setHasError] = useState(false);
+
+  // Sin esto, una vez que una URL fallaba (ej: por referrer policy o un logo
+  // roto), el componente quedaba mostrando el escudo de reemplazo para
+  // siempre, aunque despues llegara un logoUrl distinto y valido -- el
+  // componente no se remonta al cambiar el src, solo cambia la prop. Por eso
+  // hacia falta F5 para que el escudo volviera a aparecer.
+  useEffect(() => {
+    setHasError(false);
+  }, [src]);
 
   // Fallback if src is missing or image fails to load
   if (!src || hasError || src.trim() === '') {
