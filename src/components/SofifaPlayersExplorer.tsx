@@ -84,7 +84,7 @@ export const SofifaPlayersExplorer: React.FC<SofifaPlayersExplorerProps> = ({
                 Base de Datos de Jugadores ({SOFIFA_PLAYERS_DATABASE.length.toLocaleString('es-ES')})
               </h2>
               <p className="text-xs text-slate-300 font-tech mt-0.5">
-                Explora las estadísticas oficiales, medias, posiciones y valores del mercado global
+                Explora las estadísticas oficiales, medias y posiciones de los jugadores
               </p>
             </div>
           </div>
@@ -135,7 +135,6 @@ export const SofifaPlayersExplorer: React.FC<SofifaPlayersExplorerProps> = ({
               className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs font-bold text-slate-900 focus:outline-none focus:border-[#00ba68] transition"
             >
               <option value="rating">🌟 Mayor Rating (Overall)</option>
-              <option value="value">💰 Mayor Valor de Mercado</option>
               <option value="age">👶 Más Joven</option>
               <option value="name">🔤 Orden Alfabético</option>
             </select>
@@ -224,7 +223,6 @@ export const SofifaPlayersExplorer: React.FC<SofifaPlayersExplorerProps> = ({
                 <th className="py-3 px-4 font-bold">Club Oficial</th>
                 <th className="py-3 px-4 font-bold">Liga / País</th>
                 <th className="py-3 px-4 font-bold text-center">Stats (PAC | SHO | PAS | DRI | DEF | PHY)</th>
-                <th className="py-3 px-4 font-bold text-right">Valor Mercado</th>
                 {onSignPlayer && <th className="py-3 px-4 font-bold text-center">Acción</th>}
               </tr>
             </thead>
@@ -306,13 +304,6 @@ export const SofifaPlayersExplorer: React.FC<SofifaPlayersExplorerProps> = ({
                         <span title="Defending"><strong className="text-emerald-700">{player.stats.defending}</strong> DEF</span> •
                         <span title="Physical"><strong className="text-emerald-700">{player.stats.physical}</strong> PHY</span>
                       </div>
-                    </td>
-
-                    {/* Valor de Mercado */}
-                    <td className="py-3 px-4 whitespace-nowrap text-right">
-                      <span className="font-mono font-bold text-xs text-[#00ba68]">
-                        {formatMoney(player.value)}
-                      </span>
                     </td>
 
                     {/* Acción de Fichaje */}

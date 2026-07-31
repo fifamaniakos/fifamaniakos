@@ -101,7 +101,7 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
             </div>
             <div>
               <h2 className="font-display font-black text-2xl text-slate-900 uppercase italic tracking-wide">
-                Inscripción de DT / Participante
+                Inscripción managers
               </h2>
               <p className="text-xs text-slate-500 font-tech">Regístrate para participar en el Sorteo Draft de la Liga</p>
             </div>
