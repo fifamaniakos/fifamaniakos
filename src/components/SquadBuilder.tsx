@@ -408,6 +408,18 @@ export const SquadBuilder: React.FC<SquadBuilderProps> = ({
                   }`}
                 >
                   <div className="flex items-center gap-2.5 min-w-0">
+                    {/* Real Player Face Photo */}
+                    <div className="w-9 h-9 rounded-full bg-slate-200 overflow-hidden border border-slate-300 shrink-0 relative">
+                      <img
+                        src={player.photoUrl || `https://cdn.sofifa.net/players/231/747/25_120.png`}
+                        alt={player.name}
+                        referrerPolicy="no-referrer"
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          (e.target as HTMLElement).style.display = 'none';
+                        }}
+                      />
+                    </div>
                     <span className={`w-6 h-6 rounded flex items-center justify-center font-display font-extrabold text-xs text-black shrink-0 ${
                       player.cardType === 'Special' ? 'bg-[#02f59b]' : 'bg-amber-400'
                     }`}>
@@ -425,14 +437,17 @@ export const SquadBuilder: React.FC<SquadBuilderProps> = ({
                           </span>
                         )}
                       </div>
-                      <div className="flex items-center gap-2 mt-0.5">
+                      <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 mt-0.5 text-[10px] font-tech">
+                        <span className="text-slate-500">
+                          Valor: <strong className="text-slate-700 font-mono">€{(player.value / 1000000).toFixed(1)}M</strong>
+                        </span>
                         {player.releaseClause && player.releaseClause > 0 ? (
-                          <span className="text-[10px] text-[#00ba68] font-tech font-bold">
-                            Cláusula: €{(player.releaseClause / 1000000).toFixed(1)}M
+                          <span className="text-[#00ba68] font-bold">
+                            Cláusula: <strong className="font-mono">€{(player.releaseClause / 1000000).toFixed(1)}M</strong>
                           </span>
                         ) : (
-                          <span className="text-[10px] text-slate-400 font-tech font-semibold">
-                            Sin Cláusula
+                          <span className="text-slate-400 font-semibold">
+                            Cláusula: <span className="italic">Sin Cláusula</span>
                           </span>
                         )}
                         {transferItem && (

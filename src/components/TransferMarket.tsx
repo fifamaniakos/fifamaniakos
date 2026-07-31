@@ -468,12 +468,17 @@ export const TransferMarket: React.FC<TransferMarketProps> = ({
                             }`}
                           >
                             <div className="flex items-center gap-2.5 min-w-0">
-                              <div className={`w-8 h-8 rounded-lg font-display font-black text-[10px] flex items-center justify-center shrink-0 border shadow-xs ${
-                                transferItem
-                                  ? 'bg-amber-400 text-slate-950 border-amber-500'
-                                  : 'bg-slate-900 text-[#02f59b] border-slate-700'
-                              }`}>
-                                {player.position}
+                              {/* Real Player Face Photo */}
+                              <div className="w-10 h-10 rounded-full bg-slate-200 overflow-hidden border border-slate-300 shrink-0 relative shadow-2xs">
+                                <img
+                                  src={player.photoUrl || `https://cdn.sofifa.net/players/231/747/25_120.png`}
+                                  alt={player.name}
+                                  referrerPolicy="no-referrer"
+                                  className="w-full h-full object-cover"
+                                  onError={(e) => {
+                                    (e.target as HTMLElement).style.display = 'none';
+                                  }}
+                                />
                               </div>
 
                               <div className="min-w-0">
@@ -493,17 +498,20 @@ export const TransferMarket: React.FC<TransferMarketProps> = ({
                                     </span>
                                   )}
                                 </div>
-                                <div className="flex items-center gap-2 mt-0.5">
+                                <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 mt-0.5 text-[10px]">
+                                  <span className="text-slate-500 font-mono">
+                                    Valor: €{(player.value / 1000000).toFixed(1)}M
+                                  </span>
                                   {player.releaseClause && player.releaseClause > 0 ? (
-                                    <span className="text-[10px] text-[#00ba68] font-extrabold font-mono">
+                                    <span className="text-[#00ba68] font-extrabold font-mono">
                                       Cláusula: €{(player.releaseClause / 1000000).toFixed(1)}M
                                     </span>
                                   ) : transferItem ? (
-                                    <span className="text-[10px] text-amber-800 font-extrabold font-mono">
+                                    <span className="text-amber-800 font-extrabold font-mono">
                                       Cláusula: €{(transferItem.askingPrice / 1000000).toFixed(1)}M
                                     </span>
                                   ) : (
-                                    <span className="text-[10px] text-slate-400 font-mono font-semibold">
+                                    <span className="text-slate-400 font-mono font-semibold">
                                       Sin Cláusula
                                     </span>
                                   )}
