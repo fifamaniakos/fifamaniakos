@@ -52,7 +52,7 @@ export const AdminLoginModal: React.FC<AdminLoginModalProps> = ({
             </div>
             <div>
               <h2 className="font-display font-black text-2xl text-slate-900 uppercase italic tracking-wide">
-                Acceso Administrador
+                Iniciar Sesión
               </h2>
               <p className="text-xs text-slate-500 font-tech">Liga FIFAMANIAKOS FC 27</p>
             </div>
@@ -69,7 +69,7 @@ export const AdminLoginModal: React.FC<AdminLoginModalProps> = ({
           <div>
             <label className="block text-xs font-bold uppercase text-slate-700 font-tech mb-1.5 flex items-center gap-1.5">
               <Mail className="w-3.5 h-3.5 text-slate-500" />
-              Email de Comisario / Admin *
+              Email *
             </label>
             <input
               type="email"

@@ -297,7 +297,9 @@ export default function App() {
 
   const handleAdminLoginSuccess = () => {
     setIsAdminModalOpen(false);
-    setActiveTab('admin');
+    // No se fuerza la navegacion a 'admin': el rol se refleja solo via
+    // profile (async), y este mismo modal ahora tambien lo usan managers
+    // comunes para iniciar sesion en una cuenta ya existente.
   };
 
   const handleLogoutAdmin = () => {
@@ -851,6 +853,8 @@ export default function App() {
         clubs={clubs}
         onSelectClub={() => { /* el club activo viene de la cuenta autenticada (profile.club_id) */ }}
         isAdmin={isAdminLoggedIn}
+        isLoggedIn={!!profile}
+        loggedInLabel={profile?.gamertag}
         onOpenAdminLogin={() => setIsAdminModalOpen(true)}
         onLogoutAdmin={handleLogoutAdmin}
         tickerNews={tickerNews}

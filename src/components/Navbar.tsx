@@ -13,6 +13,8 @@ interface NavbarProps {
   clubs: Club[];
   onSelectClub: (clubId: string) => void;
   isAdmin: boolean;
+  isLoggedIn?: boolean;
+  loggedInLabel?: string;
   onOpenAdminLogin: () => void;
   onLogoutAdmin?: () => void;
   tickerNews: TickerNewsItem[];
@@ -29,6 +31,8 @@ export const Navbar: React.FC<NavbarProps> = ({
   clubs,
   onSelectClub,
   isAdmin,
+  isLoggedIn = false,
+  loggedInLabel,
   onOpenAdminLogin,
   onLogoutAdmin,
   tickerNews,
@@ -147,13 +151,29 @@ export const Navbar: React.FC<NavbarProps> = ({
                 )}
               </div>
             </div>
+          ) : isLoggedIn ? (
+            <div className="flex items-center gap-2 bg-slate-800 border border-slate-700 px-2.5 py-0.5 rounded-lg text-[10px]">
+              <span className="w-2 h-2 rounded-full bg-sky-400" />
+              <span className="text-slate-200 font-bold uppercase tracking-wide">
+                {loggedInLabel ? `Conectado: ${loggedInLabel}` : 'Conectado'}
+              </span>
+              {onLogoutAdmin && (
+                <button
+                  onClick={onLogoutAdmin}
+                  className="text-slate-400 hover:text-rose-400 p-0.5 transition-colors border-l border-slate-700 pl-2"
+                  title="Cerrar sesión"
+                >
+                  <LogOut className="w-3.5 h-3.5" />
+                </button>
+              )}
+            </div>
           ) : (
             <button
               onClick={onOpenAdminLogin}
               className="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-emerald-300 hover:text-white rounded border border-emerald-700/50 text-[10px] font-bold uppercase transition-all flex items-center gap-1 cursor-pointer"
             >
               <ShieldCheck className="w-3.5 h-3.5 text-[#00ba68]" />
-              Acceso Admin
+              Iniciar Sesión
             </button>
           )}
 
