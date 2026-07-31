@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { Club } from '../types';
-import { Sparkles, X, Gamepad2, User, UserPlus, Info } from 'lucide-react';
+import { Sparkles, X, Gamepad2, User, UserPlus, Mail, Lock } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { FC27_STANDARD_LOGO } from '../data/initialData';
+import { useAuth } from '../contexts/AuthContext';
 
 interface RegistrationModalProps {
   isOpen: boolean;
@@ -15,15 +16,34 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
   onClose,
   onRegisterClub
 }) => {
+  const { signUp, linkClub } = useAuth();
   const [manager, setManager] = useState('');
   const [gamertag, setGamertag] = useState('');
   const [platform, setPlatform] = useState<'PS5' | 'Xbox Series X' | 'PC'>('PS5');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const [submitting, setSubmitting] = useState(false);
 
   if (!isOpen) return null;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!manager.trim()) return;
+    setError('');
+    setSubmitting(true);
+
+    const { error: signUpError } = await signUp({
+      email,
+      password,
+      gamertag: gamertag.trim() || `@${manager.trim()}`,
+      platform
+    });
+    if (signUpError) {
+      setError(signUpError);
+      setSubmitting(false);
+      return;
+    }
 
     const newClub: Club = {
       id: `club-${Date.now()}`,
@@ -48,15 +68,25 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
 
     onRegisterClub(newClub);
 
+    const { error: linkError } = await linkClub(newClub.id);
+    if (linkError) {
+      setError(`Cuenta creada, pero no se pudo vincular el club: ${linkError}`);
+      setSubmitting(false);
+      return;
+    }
+
     confetti({
       particleCount: 80,
       spread: 70,
       origin: { y: 0.6 }
     });
 
+    setSubmitting(false);
     onClose();
     setManager('');
     setGamertag('');
+    setEmail('');
+    setPassword('');
   };
 
   return (
@@ -139,6 +169,41 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
             </select>
           </div>
 
+          <div>
+            <label className="block text-xs font-bold uppercase text-slate-700 font-tech mb-1 flex items-center gap-1.5">
+              <Mail className="w-3.5 h-3.5 text-slate-500" /> Email *
+            </label>
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="tu@email.com"
+              required
+              className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-lg text-xs font-semibold text-slate-900 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-[#00ba68] focus:ring-1 focus:ring-[#00ba68] transition"
+            />
+          </div>
+
+          <div>
+            <label className="block text-xs font-bold uppercase text-slate-700 font-tech mb-1 flex items-center gap-1.5">
+              <Lock className="w-3.5 h-3.5 text-slate-500" /> Contraseña *
+            </label>
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="Mínimo 6 caracteres"
+              minLength={6}
+              required
+              className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-lg text-xs font-semibold text-slate-900 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-[#00ba68] focus:ring-1 focus:ring-[#00ba68] transition"
+            />
+          </div>
+
+          {error && (
+            <div className="bg-red-50 border border-red-200 text-red-700 text-xs font-tech font-semibold rounded-lg px-3.5 py-2.5">
+              {error}
+            </div>
+          )}
+
           {/* Actions */}
           <div className="flex justify-end gap-3 pt-3 border-t border-slate-100">
             <button
@@ -150,9 +215,10 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
             </button>
             <button
               type="submit"
-              className="fc-button-primary px-7 py-2.5 text-xs font-extrabold uppercase shadow-md hover:shadow-lg transition"
+              disabled={submitting}
+              className="fc-button-primary px-7 py-2.5 text-xs font-extrabold uppercase shadow-md hover:shadow-lg transition disabled:opacity-60 disabled:cursor-not-allowed"
             >
-              Confirmar Inscripción
+              {submitting ? 'Registrando...' : 'Confirmar Inscripción'}
             </button>
           </div>
         </form>
