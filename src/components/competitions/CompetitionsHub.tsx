@@ -7,6 +7,7 @@ interface CompetitionsHubProps {
   matches: MatchResult[];
   players?: Player[];
   selectedCompetition: string;
+  isAdmin?: boolean;
   onSelectCompetition: (comp: string) => void;
   onAddMatchResult?: (match: MatchResult) => void;
 }
@@ -18,6 +19,7 @@ export const CompetitionsHub: React.FC<CompetitionsHubProps> = ({
   matches,
   players = [],
   selectedCompetition,
+  isAdmin = false,
   onAddMatchResult
 }) => {
   const competition = KNOWN_COMPETITIONS.includes(selectedCompetition) ? selectedCompetition : '1ra División';
@@ -28,6 +30,7 @@ export const CompetitionsHub: React.FC<CompetitionsHubProps> = ({
       clubs={clubs}
       matches={matches}
       players={players}
+      isAdmin={isAdmin}
       onAddMatchResult={onAddMatchResult}
     />
   );

@@ -15,6 +15,7 @@ interface FixtureJornadaDetailProps {
   matches: MatchResult[];
   roundLabel: string;
   competition: string;
+  isAdmin?: boolean;
   onAddMatchResult?: (match: MatchResult) => void;
   onBack: () => void;
 }
@@ -79,6 +80,7 @@ export const FixtureJornadaDetail: React.FC<FixtureJornadaDetailProps> = ({
   matches,
   roundLabel,
   competition,
+  isAdmin = false,
   onAddMatchResult,
   onBack
 }) => {
@@ -177,7 +179,11 @@ export const FixtureJornadaDetail: React.FC<FixtureJornadaDetailProps> = ({
       notes: reportNotes || undefined,
       penaltyWinnerClubId: isDrawNeedingPenalties ? reportPenaltyWinnerClubId : undefined,
       playerEvents,
-      status: 'CONFIRMADO',
+      // Un admin puede confirmar el resultado directo; un manager solo puede
+      // dejarlo en PENDIENTE (la politica RLS de manager_update_own_pending_matches
+      // rechaza cualquier otro estado) a la espera de que un admin lo confirme
+      // desde el Panel de Administracion.
+      status: isAdmin ? 'CONFIRMADO' : 'PENDIENTE',
       createdAt: new Date().toLocaleString('es-ES', { dateStyle: 'short', timeStyle: 'short' })
     };
 
@@ -712,7 +718,9 @@ export const FixtureJornadaDetail: React.FC<FixtureJornadaDetailProps> = ({
               ¡Resultado Publicado!
             </h2>
             <p className="text-sm text-slate-600">
-              {successResult.homeGoals} - {successResult.awayGoals} registrado exitosamente. La tabla de posiciones y las estadísticas se actualizaron.
+              {isAdmin
+                ? `${successResult.homeGoals} - ${successResult.awayGoals} registrado exitosamente. La tabla de posiciones y las estadísticas se actualizaron.`
+                : `${successResult.homeGoals} - ${successResult.awayGoals} enviado para revisión. Un administrador debe confirmarlo antes de que se refleje en la tabla de posiciones.`}
             </p>
             <button
               onClick={() => setSuccessResult(null)}
