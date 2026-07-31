@@ -110,7 +110,7 @@ export const TransferMarket: React.FC<TransferMarketProps> = ({
       position: selectedSofifaPreset.position,
       rating: selectedSofifaPreset.rating,
       cardType: selectedSofifaPreset.cardType || 'Gold',
-      value: sofifaSignPrice,
+      value: 0,
       photoUrl: selectedSofifaPreset.photoUrl,
       stats: selectedSofifaPreset.stats,
       isStarter: false

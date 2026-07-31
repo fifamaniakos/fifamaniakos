@@ -449,7 +449,7 @@ export const SquadBuilder: React.FC<SquadBuilderProps> = ({
                       <button
                         onClick={() => {
                           setClauseEditPlayer(player);
-                          setNewClauseInput(player.value);
+                          setNewClauseInput(player.value > 0 ? player.value : 0);
                         }}
                         className="px-2 py-1 rounded text-[10px] font-extrabold font-tech uppercase bg-emerald-50 text-emerald-800 hover:bg-emerald-100 border border-emerald-300 flex items-center gap-1 transition-colors"
                         title="Modificar cláusula de rescisión de este jugador"

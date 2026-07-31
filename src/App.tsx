@@ -825,7 +825,7 @@ export default function App() {
       position: playerPreset.position,
       rating: playerPreset.rating,
       cardType: playerPreset.cardType || 'Gold',
-      value: price,
+      value: 0,
       photoUrl: playerPreset.photoUrl,
       stats: playerPreset.stats,
       isStarter: false
@@ -875,7 +875,7 @@ export default function App() {
       position: sp.position,
       rating: sp.rating,
       cardType: sp.cardType || 'Gold',
-      value: sp.value,
+      value: 0,
       photoUrl: sp.photoUrl,
       stats: sp.stats,
       isStarter: idx < 11
