@@ -223,6 +223,7 @@ export const SofifaPlayersExplorer: React.FC<SofifaPlayersExplorerProps> = ({
                 <th className="py-3 px-4 font-bold">Club Oficial</th>
                 <th className="py-3 px-4 font-bold">Liga / País</th>
                 <th className="py-3 px-4 font-bold text-center">Stats (PAC | SHO | PAS | DRI | DEF | PHY)</th>
+                <th className="py-3 px-4 font-bold text-right">Cláusula</th>
                 {onSignPlayer && <th className="py-3 px-4 font-bold text-center">Acción</th>}
               </tr>
             </thead>
@@ -304,6 +305,19 @@ export const SofifaPlayersExplorer: React.FC<SofifaPlayersExplorerProps> = ({
                         <span title="Defending"><strong className="text-emerald-700">{player.stats.defending}</strong> DEF</span> •
                         <span title="Physical"><strong className="text-emerald-700">{player.stats.physical}</strong> PHY</span>
                       </div>
+                    </td>
+
+                    {/* Cláusula / Precio Asignado */}
+                    <td className="py-3 px-4 whitespace-nowrap text-right">
+                      {player.value && player.value > 0 ? (
+                        <span className="font-mono font-bold text-xs text-[#00ba68]">
+                          {formatMoney(player.value)}
+                        </span>
+                      ) : (
+                        <span className="text-slate-400 font-mono text-xs font-semibold px-2 py-0.5 bg-slate-100 rounded border border-slate-200">
+                          Sin Cláusula
+                        </span>
+                      )}
                     </td>
 
                     {/* Acción de Fichaje */}
