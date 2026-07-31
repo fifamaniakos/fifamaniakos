@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
-import { MessageSquare, Trophy, Shield, DollarSign, UserPlus, PlusCircle, ShieldCheck, Megaphone, LogOut, Users, Shuffle, ChevronDown, Wallet, Star, Globe, Award } from 'lucide-react';
-import { Club, TickerNewsItem } from '../types';
+import { MessageSquare, Trophy, Shield, DollarSign, UserPlus, PlusCircle, ShieldCheck, Megaphone, LogOut, Users, Shuffle, ChevronDown, Wallet, Scale, Coins, Gavel, Dice5, Star, Globe, Award } from 'lucide-react';
+import { Club, TickerNewsItem, ForumSectionTag } from '../types';
 import { ClubLogo } from './ClubLogo';
 import { CompetitionLogo } from './competitions/CompetitionLogo';
 import { MarkdownToolbar } from './MarkdownToolbar';
@@ -20,6 +20,7 @@ interface NavbarProps {
   onLogoutAdmin?: () => void;
   tickerNews: TickerNewsItem[];
   onAddNewsItem?: (text: string) => void;
+  onOpenForumSection: (sectionTag: ForumSectionTag) => void;
   onSelectCompetition?: (comp: string) => void;
 }
 
@@ -37,6 +38,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   onLogoutAdmin,
   tickerNews,
   onAddNewsItem,
+  onOpenForumSection,
   onSelectCompetition
 }) => {
   const [quickNewsInput, setQuickNewsInput] = useState('');
@@ -67,6 +69,13 @@ export const Navbar: React.FC<NavbarProps> = ({
     setShowMiClubMenu(prev => !prev);
     setShowCompeticionesMenu(false);
   };
+
+  const forumSections: { tag: ForumSectionTag; label: string }[] = [
+    { tag: 'normas', label: 'Normas competiciones' },
+    { tag: 'ganancias', label: 'Ganancias competiciones' },
+    { tag: 'sanciones', label: 'Sanciones' },
+    { tag: 'apuestas', label: 'Apuestas deportivas' }
+  ];
 
   const isCompeticionesActive = activeTab === 'clasificacion' || activeTab === 'fichajes' || activeTab === 'sorteo' || activeTab === 'competicion-seccion';
 
@@ -311,6 +320,40 @@ export const Navbar: React.FC<NavbarProps> = ({
                 >
                   <Award className="w-4 h-4 shrink-0 text-emerald-500" />
                   <span>UEFA Conference League</span>
+                </button>
+
+                <div className="border-t border-slate-100 my-1" />
+
+                <button
+                  onClick={() => { onOpenForumSection('normas'); setShowCompeticionesMenu(false); }}
+                  className="w-full text-left px-3.5 py-2 text-xs font-bold flex items-center gap-2.5 transition-colors text-slate-700 hover:bg-slate-50"
+                >
+                  <Scale className="w-4 h-4 shrink-0 text-blue-500" />
+                  <span>Normas competiciones</span>
+                </button>
+
+                <button
+                  onClick={() => { onOpenForumSection('ganancias'); setShowCompeticionesMenu(false); }}
+                  className="w-full text-left px-3.5 py-2 text-xs font-bold flex items-center gap-2.5 transition-colors text-slate-700 hover:bg-slate-50"
+                >
+                  <Coins className="w-4 h-4 shrink-0 text-amber-500" />
+                  <span>Ganancias competiciones</span>
+                </button>
+
+                <button
+                  onClick={() => { onOpenForumSection('sanciones'); setShowCompeticionesMenu(false); }}
+                  className="w-full text-left px-3.5 py-2 text-xs font-bold flex items-center gap-2.5 transition-colors text-slate-700 hover:bg-slate-50"
+                >
+                  <Gavel className="w-4 h-4 shrink-0 text-rose-500" />
+                  <span>Sanciones</span>
+                </button>
+
+                <button
+                  onClick={() => { onOpenForumSection('apuestas'); setShowCompeticionesMenu(false); }}
+                  className="w-full text-left px-3.5 py-2 text-xs font-bold flex items-center gap-2.5 transition-colors text-slate-700 hover:bg-slate-50"
+                >
+                  <Dice5 className="w-4 h-4 shrink-0 text-purple-500" />
+                  <span>Apuestas deportivas</span>
                 </button>
 
                 <div className="border-t border-slate-100 my-1" />
