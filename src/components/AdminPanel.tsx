@@ -149,6 +149,21 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
     }
   }, [adminTab, managersLoaded]);
 
+  // Refresca la lista de cuentas en vivo cuando se registra un manager nuevo
+  // (o cambia su rol/suscripcion) desde otra sesion, sin necesitar F5.
+  useEffect(() => {
+    const channel = supabase
+      .channel('realtime:admin-managers')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'managers' }, () => {
+        fetchManagers();
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, []);
+
   const handleToggleManagerRole = async (manager: ManagerRow) => {
     const newRole = manager.role === 'admin' ? 'manager' : 'admin';
     setManagerActionError(null);
