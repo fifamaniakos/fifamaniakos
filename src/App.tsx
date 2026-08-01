@@ -1038,6 +1038,7 @@ export default function App() {
         {activeTab === 'jugadores-sofifa' && (
           <SofifaPlayersExplorer
             currentClub={currentClub}
+            signedPlayers={players}
             onSignPlayer={(preset) => {
               if (currentClub) {
                 if (!canUseGatedFeature) {

@@ -83,6 +83,34 @@ export const SofifaPlayersExplorer: React.FC<SofifaPlayersExplorerProps> = ({
     return map;
   }, [signedPlayers]);
 
+  // Un jugador ya fichado en esta liga puede tener su Valor de Mercado
+  // editado a mano desde Mi Club -- sin este mapa, la columna "Valor
+  // Mercado" siempre mostraba el dato estatico de la base SOFIFA, ignorando
+  // el valor real que el manager le puso al jugador que ya tiene en su
+  // plantilla.
+  const signedPlayerValueMap = useMemo(() => {
+    const map = new Map<string, number>();
+    signedPlayers.forEach(p => {
+      const norm = normalizeName(p.name);
+      if (norm && p.value && p.value > 0) {
+        map.set(norm, p.value);
+      }
+    });
+    return map;
+  }, [signedPlayers]);
+
+  // Set de jugadores ya fichados en algun club de la liga, para no ofrecer
+  // "Fichar" de nuevo sobre alguien que ya esta en una plantilla real (eso
+  // creaba un jugador duplicado y descontaba presupuesto otra vez).
+  const signedPlayerNames = useMemo(() => {
+    const set = new Set<string>();
+    signedPlayers.forEach(p => {
+      const norm = normalizeName(p.name);
+      if (norm) set.add(norm);
+    });
+    return set;
+  }, [signedPlayers]);
+
   return (
     <div className="space-y-6">
       {/* Header Banner */}
@@ -326,10 +354,10 @@ export const SofifaPlayersExplorer: React.FC<SofifaPlayersExplorerProps> = ({
                       </div>
                     </td>
 
-                    {/* Valor de Mercado (SOFIFA) */}
+                    {/* Valor de Mercado (SOFIFA, o el valor editado por el manager si ya esta fichado) */}
                     <td className="py-3 px-4 whitespace-nowrap text-right">
                       <span className="font-mono text-xs text-slate-500 font-semibold">
-                        {formatMoney(player.value)}
+                        {formatMoney(signedPlayerValueMap.get(normalizeName(player.name)) ?? player.value)}
                       </span>
                     </td>
 
@@ -352,12 +380,21 @@ export const SofifaPlayersExplorer: React.FC<SofifaPlayersExplorerProps> = ({
                     {/* Acción de Fichaje */}
                     {onSignPlayer && (
                       <td className="py-3 px-4 whitespace-nowrap text-center">
-                        <button
-                          onClick={() => onSignPlayer(player)}
-                          className="fc-button-primary px-3 py-1.5 text-[11px] font-extrabold uppercase rounded shadow-xs hover:scale-105 transition"
-                        >
-                          Fichar
-                        </button>
+                        {signedPlayerNames.has(normalizeName(player.name)) ? (
+                          <span
+                            className="inline-block px-3 py-1.5 text-[10px] font-extrabold uppercase rounded bg-slate-200 text-slate-600 border border-slate-300"
+                            title="Este jugador ya está en la plantilla de un club de la liga"
+                          >
+                            Ya Fichado
+                          </span>
+                        ) : (
+                          <button
+                            onClick={() => onSignPlayer(player)}
+                            className="fc-button-primary px-3 py-1.5 text-[11px] font-extrabold uppercase rounded shadow-xs hover:scale-105 transition"
+                          >
+                            Fichar
+                          </button>
+                        )}
                       </td>
                     )}
                   </tr>
