@@ -9,6 +9,9 @@ export interface Club {
   budget: number; // In Euros (€)
   division: string;
   stadium: string;
+  stadiumCity?: string;
+  stadiumCapacity?: number;
+  stadiumPhotoUrl?: string;
   played: number;
   won: number;
   drawn: number;
