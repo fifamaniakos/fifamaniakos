@@ -24,16 +24,27 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
   const [platform, setPlatform] = useState<'PS5' | 'Xbox Series X' | 'PC'>('PS5');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [selectedDivision, setSelectedDivision] = useState<'1ra División' | '2da División'>('1ra División');
   const [selectedCountry, setSelectedCountry] = useState('TODOS');
   const [selectedClubId, setSelectedClubId] = useState('');
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [isClubDropdownOpen, setClubDropdownOpen] = useState(false);
+  const [showNoSlotsPopup, setShowNoSlotsPopup] = useState(false);
   const clubDropdownRef = useRef<HTMLDivElement>(null);
 
-  const availableClubs = clubs.filter(club =>
+  const isDivision1 = (club: Club) => !club.division || club.division === '1ra División' || club.division === 'Primera División';
+  const isDivision2 = (club: Club) => club.division === '2da División' || club.division === 'Segunda División';
+
+  const vacantClubs = clubs.filter(club =>
     club.manager.toLowerCase().includes('vacante') ||
     club.manager.toLowerCase().includes('por inscribir')
+  );
+  const division1VacantCount = vacantClubs.filter(isDivision1).length;
+  const division2VacantCount = vacantClubs.filter(isDivision2).length;
+
+  const availableClubs = vacantClubs.filter(club =>
+    selectedDivision === '1ra División' ? isDivision1(club) : isDivision2(club)
   );
   const availableCountries = Array.from(new Set(availableClubs.map(club => club.country || 'Otros'))).sort();
   const filteredAvailableClubs = selectedCountry === 'TODOS'
@@ -51,6 +62,12 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
     if (selectedClubId && filteredAvailableClubs.some(club => club.id === selectedClubId)) return;
     setSelectedClubId(filteredAvailableClubs[0]?.id || '');
   }, [isOpen, selectedClubId, filteredAvailableClubs]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    setShowNoSlotsPopup(division1VacantCount === 0 && division2VacantCount > 0);
+    setSelectedDivision('1ra División');
+  }, [isOpen]);
 
   useEffect(() => {
     if (!isClubDropdownOpen) return;
@@ -171,6 +188,36 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
 
         {/* Main Form */}
         <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="block text-xs font-bold uppercase text-slate-700 font-tech mb-1 flex items-center gap-1.5">
+              <Shield className="w-3.5 h-3.5 text-slate-500" /> División *
+            </label>
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                type="button"
+                onClick={() => { setSelectedDivision('1ra División'); setSelectedCountry('TODOS'); }}
+                className={`px-3 py-2.5 rounded-lg text-xs font-tech font-bold uppercase border transition-colors ${
+                  selectedDivision === '1ra División'
+                    ? 'bg-[#00ba68] text-white border-[#00ba68]'
+                    : 'bg-slate-50 text-slate-700 border-slate-300 hover:border-emerald-400'
+                }`}
+              >
+                1ra División ({division1VacantCount})
+              </button>
+              <button
+                type="button"
+                onClick={() => { setSelectedDivision('2da División'); setSelectedCountry('TODOS'); }}
+                className={`px-3 py-2.5 rounded-lg text-xs font-tech font-bold uppercase border transition-colors ${
+                  selectedDivision === '2da División'
+                    ? 'bg-[#00ba68] text-white border-[#00ba68]'
+                    : 'bg-slate-50 text-slate-700 border-slate-300 hover:border-emerald-400'
+                }`}
+              >
+                2da División ({division2VacantCount})
+              </button>
+            </div>
+          </div>
+
           <div>
             <label className="block text-xs font-bold uppercase text-slate-700 font-tech mb-1 flex items-center gap-1.5">
               <Shield className="w-3.5 h-3.5 text-slate-500" /> Pais *
@@ -342,6 +389,42 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
           </div>
         </form>
       </div>
+
+      {showNoSlotsPopup && (
+        <div className="fixed inset-0 z-[120] bg-slate-900/70 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white border border-amber-200 max-w-sm w-full p-6 rounded-2xl shadow-2xl text-center space-y-4 animate-scale-up">
+            <div className="w-14 h-14 bg-amber-100 text-amber-600 rounded-2xl flex items-center justify-center mx-auto">
+              <Shield className="w-7 h-7" />
+            </div>
+            <h2 className="font-display font-black text-lg text-slate-900 uppercase italic">
+              Sin cupos en 1ra División
+            </h2>
+            <p className="text-sm text-slate-600">
+              Por ahora no hay clubes disponibles en 1ra División, pero hay{' '}
+              <strong className="text-emerald-700">{division2VacantCount} cupo{division2VacantCount === 1 ? '' : 's'} disponible{division2VacantCount === 1 ? '' : 's'}</strong>{' '}
+              en 2da División.
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowNoSlotsPopup(false)}
+                className="flex-1 px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-tech font-bold uppercase rounded-lg transition border border-slate-200"
+              >
+                Cerrar
+              </button>
+              <button
+                onClick={() => {
+                  setSelectedDivision('2da División');
+                  setSelectedCountry('TODOS');
+                  setShowNoSlotsPopup(false);
+                }}
+                className="flex-1 fc-button-primary px-4 py-2.5 text-xs font-extrabold uppercase shadow-md"
+              >
+                Ver 2da División
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
