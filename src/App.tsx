@@ -7,7 +7,7 @@ import React, { useState, useEffect } from 'react';
 import { Navbar } from './components/Navbar';
 import { ForumModule } from './components/ForumModule';
 import { InscripcionesModule } from './components/InscripcionesModule';
-import { SquadBuilder } from './components/SquadBuilder';
+import { MiClubHub } from './components/miclub/MiClubHub';
 import { CompetitionsHub } from './components/competitions/CompetitionsHub';
 import { TransferMarket } from './components/TransferMarket';
 import { RegistrationModal } from './components/RegistrationModal';
@@ -1151,8 +1151,10 @@ export default function App() {
         )}
 
         {activeTab === 'plantilla' && (
-          <SquadBuilder
+          <MiClubHub
             currentClub={currentClub}
+            clubs={clubs}
+            matches={matches}
             players={players}
             transactions={transactions}
             transfers={transfers}
