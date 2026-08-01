@@ -187,7 +187,7 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
                   <optgroup key={country} label={`${country} (${clubsByCountry[country].length})`}>
                     {clubsByCountry[country].map(club => (
                       <option key={club.id} value={club.id}>
-                        {club.name} - {club.league || club.division} - EUR {(club.budget / 1000000).toFixed(1)}M
+                        {club.name} - {club.league || club.division}
                       </option>
                     ))}
                   </optgroup>
