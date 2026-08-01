@@ -18,7 +18,7 @@ export const TOP10_LEAGUE_CLUBS: Top10LeagueClubSeed[] = [
     "country": "Inglaterra",
     "league": "Premier League",
     "division": "1ra División",
-    "logoUrl": "https://drop-assets.ea.com/images/2ng99bvkwKaA228PJje39i/09d2df89a78377d3f8d3f78469cbadc9/l1.png",
+    "logoUrl": "",
     "stadium": "Estadio Arsenal",
     "budget": 100000000
   },
@@ -29,7 +29,7 @@ export const TOP10_LEAGUE_CLUBS: Top10LeagueClubSeed[] = [
     "country": "Inglaterra",
     "league": "Premier League",
     "division": "1ra División",
-    "logoUrl": "https://drop-assets.ea.com/images/57c0ppYsEA88xL0gxqce8K/99605df97c6a96ea3b6e8a424c217af0/l2.png",
+    "logoUrl": "",
     "stadium": "Estadio Aston Villa",
     "budget": 100000000
   },
@@ -40,7 +40,7 @@ export const TOP10_LEAGUE_CLUBS: Top10LeagueClubSeed[] = [
     "country": "Inglaterra",
     "league": "Premier League",
     "division": "1ra División",
-    "logoUrl": "https://cdn.sofifa.net/teams/241/60.png",
+    "logoUrl": "",
     "stadium": "Estadio Bournemouth",
     "budget": 100000000
   },
@@ -51,7 +51,7 @@ export const TOP10_LEAGUE_CLUBS: Top10LeagueClubSeed[] = [
     "country": "Inglaterra",
     "league": "Premier League",
     "division": "1ra División",
-    "logoUrl": "https://drop-assets.ea.com/images/3UCvZhjBB0odWNL0OPusuK/1de0f5b97a2e137201670df2cf09e1a5/l1925.png",
+    "logoUrl": "",
     "stadium": "Estadio Brentford",
     "budget": 100000000
   },
@@ -62,7 +62,7 @@ export const TOP10_LEAGUE_CLUBS: Top10LeagueClubSeed[] = [
     "country": "Inglaterra",
     "league": "Premier League",
     "division": "1ra División",
-    "logoUrl": "https://cdn.sofifa.net/teams/241/60.png",
+    "logoUrl": "",
     "stadium": "Estadio Brighton & Hove Albion",
     "budget": 100000000
   },
@@ -73,7 +73,7 @@ export const TOP10_LEAGUE_CLUBS: Top10LeagueClubSeed[] = [
     "country": "Inglaterra",
     "league": "Premier League",
     "division": "1ra División",
-    "logoUrl": "https://drop-assets.ea.com/images/6CqBvyQgjJzPA5vU64paT8/03d21bd0df65afa73b752f66ca5c1714/l1796.png",
+    "logoUrl": "",
     "stadium": "Estadio Burnley",
     "budget": 100000000
   },
@@ -84,7 +84,7 @@ export const TOP10_LEAGUE_CLUBS: Top10LeagueClubSeed[] = [
     "country": "Inglaterra",
     "league": "Premier League",
     "division": "1ra División",
-    "logoUrl": "https://drop-assets.ea.com/images/6T0vfhzb3y9R6YVtmVwYcD/b99723a87536e30979c7cbdb8bba9310/l5.png",
+    "logoUrl": "",
     "stadium": "Estadio Chelsea",
     "budget": 100000000
   },
@@ -95,7 +95,7 @@ export const TOP10_LEAGUE_CLUBS: Top10LeagueClubSeed[] = [
     "country": "Inglaterra",
     "league": "Premier League",
     "division": "1ra División",
-    "logoUrl": "https://drop-assets.ea.com/images/6j7pLWl2t3yl13bu6Y9s5K/91a346d14011a610d95ec956816b6a38/l1799.png",
+    "logoUrl": "",
     "stadium": "Estadio Crystal Palace",
     "budget": 100000000
   },
@@ -106,7 +106,7 @@ export const TOP10_LEAGUE_CLUBS: Top10LeagueClubSeed[] = [
     "country": "Inglaterra",
     "league": "Premier League",
     "division": "1ra División",
-    "logoUrl": "https://drop-assets.ea.com/images/6Cth6wtCt1i37ZjPMZKIm3/4c68def58bf71a34afa1870cad4d5cfe/l7.png",
+    "logoUrl": "",
     "stadium": "Estadio Everton",
     "budget": 100000000
   },
@@ -117,7 +117,7 @@ export const TOP10_LEAGUE_CLUBS: Top10LeagueClubSeed[] = [
     "country": "Inglaterra",
     "league": "Premier League",
     "division": "1ra División",
-    "logoUrl": "https://drop-assets.ea.com/images/1YL8ULAZyOPtffpFGZcGe8/84ec5701079276f33aa349d253fa0321/l144.png",
+    "logoUrl": "",
     "stadium": "Estadio Fulham",
     "budget": 100000000
   },
@@ -128,7 +128,7 @@ export const TOP10_LEAGUE_CLUBS: Top10LeagueClubSeed[] = [
     "country": "Inglaterra",
     "league": "Premier League",
     "division": "1ra División",
-    "logoUrl": "https://cdn.sofifa.net/teams/241/60.png",
+    "logoUrl": "",
     "stadium": "Estadio Leeds United",
     "budget": 100000000
   },
@@ -139,7 +139,7 @@ export const TOP10_LEAGUE_CLUBS: Top10LeagueClubSeed[] = [
     "country": "Inglaterra",
     "league": "Premier League",
     "division": "1ra División",
-    "logoUrl": "https://drop-assets.ea.com/images/3mmzooNXBDCKuCy6kWcGQo/2e332a30fe2a7225a88fcb1898f48bbf/l9.png",
+    "logoUrl": "",
     "stadium": "Estadio Liverpool",
     "budget": 100000000
   },
@@ -150,7 +150,7 @@ export const TOP10_LEAGUE_CLUBS: Top10LeagueClubSeed[] = [
     "country": "Inglaterra",
     "league": "Premier League",
     "division": "1ra División",
-    "logoUrl": "https://drop-assets.ea.com/images/4asmNLic4aQn6cjlEg1t5u/88bea3ddd6c1f620bbf813041f248685/l10.png",
+    "logoUrl": "",
     "stadium": "Estadio Manchester City",
     "budget": 100000000
   },
@@ -161,7 +161,7 @@ export const TOP10_LEAGUE_CLUBS: Top10LeagueClubSeed[] = [
     "country": "Inglaterra",
     "league": "Premier League",
     "division": "1ra División",
-    "logoUrl": "https://cdn.sofifa.net/teams/241/60.png",
+    "logoUrl": "",
     "stadium": "Estadio Manchester United",
     "budget": 100000000
   },
@@ -172,7 +172,7 @@ export const TOP10_LEAGUE_CLUBS: Top10LeagueClubSeed[] = [
     "country": "Inglaterra",
     "league": "Premier League",
     "division": "1ra División",
-    "logoUrl": "https://drop-assets.ea.com/images/69fXoaX4p9zFwKaZYoNtNX/14d86649a9b5a3f7e876cc3d46357b5d/l13.png",
+    "logoUrl": "",
     "stadium": "Estadio Newcastle Utd",
     "budget": 100000000
   },
@@ -183,7 +183,7 @@ export const TOP10_LEAGUE_CLUBS: Top10LeagueClubSeed[] = [
     "country": "Inglaterra",
     "league": "Premier League",
     "division": "1ra División",
-    "logoUrl": "https://cdn.sofifa.net/teams/241/60.png",
+    "logoUrl": "",
     "stadium": "Estadio Nottingham Forest",
     "budget": 100000000
   },
@@ -194,7 +194,7 @@ export const TOP10_LEAGUE_CLUBS: Top10LeagueClubSeed[] = [
     "country": "Inglaterra",
     "league": "Premier League",
     "division": "1ra División",
-    "logoUrl": "https://drop-assets.ea.com/images/6ja62Iw2LyY8cVrud4aSHi/aa6c15e4a2ceed66f92099108bea9dfa/l106.png",
+    "logoUrl": "",
     "stadium": "Estadio Sunderland",
     "budget": 100000000
   },
@@ -205,7 +205,7 @@ export const TOP10_LEAGUE_CLUBS: Top10LeagueClubSeed[] = [
     "country": "Inglaterra",
     "league": "Premier League",
     "division": "1ra División",
-    "logoUrl": "https://drop-assets.ea.com/images/7kUcyCh5xGrzQlcjP2Q9NH/11aba507486f44765ee5938b1b5b097e/l18.png",
+    "logoUrl": "",
     "stadium": "Estadio Spurs",
     "budget": 100000000
   },
@@ -216,7 +216,7 @@ export const TOP10_LEAGUE_CLUBS: Top10LeagueClubSeed[] = [
     "country": "Inglaterra",
     "league": "Premier League",
     "division": "1ra División",
-    "logoUrl": "https://cdn.sofifa.net/teams/241/60.png",
+    "logoUrl": "",
     "stadium": "Estadio West Ham United",
     "budget": 100000000
   },
@@ -227,7 +227,7 @@ export const TOP10_LEAGUE_CLUBS: Top10LeagueClubSeed[] = [
     "country": "Inglaterra",
     "league": "Premier League",
     "division": "1ra División",
-    "logoUrl": "https://drop-assets.ea.com/images/3DIKyPF6XcAgIrI3Wv0UBo/4b26ac5525105f84de13860ebe177633/l110.png",
+    "logoUrl": "",
     "stadium": "Estadio Wolves",
     "budget": 100000000
   },
@@ -238,7 +238,7 @@ export const TOP10_LEAGUE_CLUBS: Top10LeagueClubSeed[] = [
     "country": "España",
     "league": "LaLiga",
     "division": "1ra División",
-    "logoUrl": "https://cdn.sofifa.net/teams/241/60.png",
+    "logoUrl": "",
     "stadium": "Estadio Alavés",
     "budget": 100000000
   },
@@ -249,7 +249,7 @@ export const TOP10_LEAGUE_CLUBS: Top10LeagueClubSeed[] = [
     "country": "España",
     "league": "LaLiga",
     "division": "1ra División",
-    "logoUrl": "https://drop-assets.ea.com/images/5lGGXYvaOCdAYlo8xWPzQb/7092243785809519c68b482ad21b2c41/l448.png",
+    "logoUrl": "",
     "stadium": "Estadio Athletic Club",
     "budget": 100000000
   },
@@ -260,7 +260,7 @@ export const TOP10_LEAGUE_CLUBS: Top10LeagueClubSeed[] = [
     "country": "España",
     "league": "LaLiga",
     "division": "1ra División",
-    "logoUrl": "https://drop-assets.ea.com/images/vYcueolPvaGx8blMqhPZ5/5dc3479fc8b85d475fd980c53fc2056f/l240.png",
+    "logoUrl": "",
     "stadium": "Estadio Atlético de Madrid",
     "budget": 100000000
   },
@@ -271,7 +271,7 @@ export const TOP10_LEAGUE_CLUBS: Top10LeagueClubSeed[] = [
     "country": "España",
     "league": "LaLiga",
     "division": "1ra División",
-    "logoUrl": "https://cdn.sofifa.net/teams/241/60.png",
+    "logoUrl": "",
     "stadium": "Estadio Barcelona",
     "budget": 100000000
   },
@@ -282,7 +282,7 @@ export const TOP10_LEAGUE_CLUBS: Top10LeagueClubSeed[] = [
     "country": "España",
     "league": "LaLiga",
     "division": "1ra División",
-    "logoUrl": "https://cdn.sofifa.net/teams/241/60.png",
+    "logoUrl": "",
     "stadium": "Estadio Celta de Vigo",
     "budget": 100000000
   },
@@ -293,7 +293,7 @@ export const TOP10_LEAGUE_CLUBS: Top10LeagueClubSeed[] = [
     "country": "España",
     "league": "LaLiga",
     "division": "1ra División",
-    "logoUrl": "https://cdn.sofifa.net/teams/241/60.png",
+    "logoUrl": "",
     "stadium": "Estadio Elche",
     "budget": 100000000
   },
@@ -304,7 +304,7 @@ export const TOP10_LEAGUE_CLUBS: Top10LeagueClubSeed[] = [
     "country": "España",
     "league": "LaLiga",
     "division": "1ra División",
-    "logoUrl": "https://cdn.sofifa.net/teams/241/60.png",
+    "logoUrl": "",
     "stadium": "Estadio Espanyol",
     "budget": 100000000
   },
@@ -315,7 +315,7 @@ export const TOP10_LEAGUE_CLUBS: Top10LeagueClubSeed[] = [
     "country": "España",
     "league": "LaLiga",
     "division": "1ra División",
-    "logoUrl": "https://cdn.sofifa.net/teams/241/60.png",
+    "logoUrl": "",
     "stadium": "Estadio Getafe",
     "budget": 100000000
   },
@@ -326,7 +326,7 @@ export const TOP10_LEAGUE_CLUBS: Top10LeagueClubSeed[] = [
     "country": "España",
     "league": "LaLiga",
     "division": "1ra División",
-    "logoUrl": "https://cdn.sofifa.net/teams/241/60.png",
+    "logoUrl": "",
     "stadium": "Estadio Girona",
     "budget": 100000000
   },
@@ -337,7 +337,7 @@ export const TOP10_LEAGUE_CLUBS: Top10LeagueClubSeed[] = [
     "country": "España",
     "league": "LaLiga",
     "division": "1ra División",
-    "logoUrl": "https://cdn.sofifa.net/teams/241/60.png",
+    "logoUrl": "",
     "stadium": "Estadio Levante",
     "budget": 100000000
   },
@@ -348,7 +348,7 @@ export const TOP10_LEAGUE_CLUBS: Top10LeagueClubSeed[] = [
     "country": "España",
     "league": "LaLiga",
     "division": "1ra División",
-    "logoUrl": "https://cdn.sofifa.net/teams/241/60.png",
+    "logoUrl": "",
     "stadium": "Estadio Mallorca",
     "budget": 100000000
   },
@@ -359,7 +359,7 @@ export const TOP10_LEAGUE_CLUBS: Top10LeagueClubSeed[] = [
     "country": "España",
     "league": "LaLiga",
     "division": "1ra División",
-    "logoUrl": "https://cdn.sofifa.net/teams/241/60.png",
+    "logoUrl": "",
     "stadium": "Estadio Osasuna",
     "budget": 100000000
   },
@@ -370,7 +370,7 @@ export const TOP10_LEAGUE_CLUBS: Top10LeagueClubSeed[] = [
     "country": "España",
     "league": "LaLiga",
     "division": "1ra División",
-    "logoUrl": "https://drop-assets.ea.com/images/3SSzCmmavBBvrdJVySdnrm/f51360f07320e2dba9520037d3789543/l480.png",
+    "logoUrl": "",
     "stadium": "Estadio Rayo Vallecano",
     "budget": 100000000
   },
@@ -381,7 +381,7 @@ export const TOP10_LEAGUE_CLUBS: Top10LeagueClubSeed[] = [
     "country": "España",
     "league": "LaLiga",
     "division": "1ra División",
-    "logoUrl": "https://drop-assets.ea.com/images/4rODtg2WvYGHhUGfPXxilW/e047163865b561a0ced87f9f593498c1/l449.png",
+    "logoUrl": "",
     "stadium": "Estadio Real Betis",
     "budget": 100000000
   },
@@ -392,7 +392,7 @@ export const TOP10_LEAGUE_CLUBS: Top10LeagueClubSeed[] = [
     "country": "España",
     "league": "LaLiga",
     "division": "1ra División",
-    "logoUrl": "https://drop-assets.ea.com/images/Pk8nYrWuRt895RlhJx8jI/445d98b711f413a3a1e70c41b19b0f95/l243.png",
+    "logoUrl": "",
     "stadium": "Estadio Real Madrid",
     "budget": 100000000
   },
@@ -403,7 +403,7 @@ export const TOP10_LEAGUE_CLUBS: Top10LeagueClubSeed[] = [
     "country": "España",
     "league": "LaLiga",
     "division": "1ra División",
-    "logoUrl": "https://cdn.sofifa.net/teams/241/60.png",
+    "logoUrl": "",
     "stadium": "Estadio Real Oviedo",
     "budget": 100000000
   },
@@ -414,7 +414,7 @@ export const TOP10_LEAGUE_CLUBS: Top10LeagueClubSeed[] = [
     "country": "España",
     "league": "LaLiga",
     "division": "1ra División",
-    "logoUrl": "https://drop-assets.ea.com/images/2ohvULVVtNoXptjhNS2dLq/08d0f2d7ecfd9e0f43ce837a4e73d139/l457.png",
+    "logoUrl": "",
     "stadium": "Estadio Real Sociedad",
     "budget": 100000000
   },
@@ -425,7 +425,7 @@ export const TOP10_LEAGUE_CLUBS: Top10LeagueClubSeed[] = [
     "country": "España",
     "league": "LaLiga",
     "division": "1ra División",
-    "logoUrl": "https://cdn.sofifa.net/teams/241/60.png",
+    "logoUrl": "",
     "stadium": "Estadio Sevilla",
     "budget": 100000000
   },
@@ -436,7 +436,7 @@ export const TOP10_LEAGUE_CLUBS: Top10LeagueClubSeed[] = [
     "country": "España",
     "league": "LaLiga",
     "division": "1ra División",
-    "logoUrl": "https://cdn.sofifa.net/teams/241/60.png",
+    "logoUrl": "",
     "stadium": "Estadio Valencia",
     "budget": 100000000
   },
@@ -447,7 +447,7 @@ export const TOP10_LEAGUE_CLUBS: Top10LeagueClubSeed[] = [
     "country": "España",
     "league": "LaLiga",
     "division": "1ra División",
-    "logoUrl": "https://cdn.sofifa.net/teams/241/60.png",
+    "logoUrl": "",
     "stadium": "Estadio Villarreal",
     "budget": 100000000
   },
@@ -458,7 +458,7 @@ export const TOP10_LEAGUE_CLUBS: Top10LeagueClubSeed[] = [
     "country": "Italia",
     "league": "Serie A",
     "division": "1ra División",
-    "logoUrl": "https://drop-assets.ea.com/images/19gWEcyonp2fvk02MNHZOA/83b82283fc62f7010b529a53a0724eee/l115845.png",
+    "logoUrl": "",
     "stadium": "Estadio Bergamo Calcio",
     "budget": 100000000
   },
@@ -469,7 +469,7 @@ export const TOP10_LEAGUE_CLUBS: Top10LeagueClubSeed[] = [
     "country": "Italia",
     "league": "Serie A",
     "division": "1ra División",
-    "logoUrl": "https://cdn.sofifa.net/teams/241/60.png",
+    "logoUrl": "",
     "stadium": "Estadio Bologna",
     "budget": 100000000
   },
@@ -480,7 +480,7 @@ export const TOP10_LEAGUE_CLUBS: Top10LeagueClubSeed[] = [
     "country": "Italia",
     "league": "Serie A",
     "division": "1ra División",
-    "logoUrl": "https://drop-assets.ea.com/images/5sjhiBbFzi7mnkVrR5zk76/7ecf5510b695d3053df0fa1f94cd4cea/l1842.png",
+    "logoUrl": "",
     "stadium": "Estadio Cagliari",
     "budget": 100000000
   },
@@ -491,7 +491,7 @@ export const TOP10_LEAGUE_CLUBS: Top10LeagueClubSeed[] = [
     "country": "Italia",
     "league": "Serie A",
     "division": "1ra División",
-    "logoUrl": "https://drop-assets.ea.com/images/3y8mulzaICjwfi7inFVld2/ec9c71566982f8df59f26e81745143ec/l1745.png",
+    "logoUrl": "",
     "stadium": "Estadio Como",
     "budget": 100000000
   },
@@ -502,7 +502,7 @@ export const TOP10_LEAGUE_CLUBS: Top10LeagueClubSeed[] = [
     "country": "Italia",
     "league": "Serie A",
     "division": "1ra División",
-    "logoUrl": "https://drop-assets.ea.com/images/5qGQiqAc43aS9qGMCgpOAT/60c44a125cdec67fa0bae64fb42aa10a/l111434.png",
+    "logoUrl": "",
     "stadium": "Estadio Cremonese",
     "budget": 100000000
   },
@@ -513,7 +513,7 @@ export const TOP10_LEAGUE_CLUBS: Top10LeagueClubSeed[] = [
     "country": "Italia",
     "league": "Serie A",
     "division": "1ra División",
-    "logoUrl": "https://drop-assets.ea.com/images/j2Zuc19dll43zq88V7CgZ/d2e748909a451985aed5a26b122a4d8f/l110374.png",
+    "logoUrl": "",
     "stadium": "Estadio Fiorentina",
     "budget": 100000000
   },
@@ -524,7 +524,7 @@ export const TOP10_LEAGUE_CLUBS: Top10LeagueClubSeed[] = [
     "country": "Italia",
     "league": "Serie A",
     "division": "1ra División",
-    "logoUrl": "https://drop-assets.ea.com/images/K5vcQ5KjT64Rr1dZZu3RG/0955cabcb0645ef5649ed69904e4b502/l110556.png",
+    "logoUrl": "",
     "stadium": "Estadio Genoa",
     "budget": 100000000
   },
@@ -535,7 +535,7 @@ export const TOP10_LEAGUE_CLUBS: Top10LeagueClubSeed[] = [
     "country": "Italia",
     "league": "Serie A",
     "division": "1ra División",
-    "logoUrl": "https://drop-assets.ea.com/images/5sDHfKyYzQUx61yjdwHNAs/f27b36d6fa211871a9936b452406ccc6/l206.png",
+    "logoUrl": "",
     "stadium": "Estadio Hellas Verona",
     "budget": 100000000
   },
@@ -546,7 +546,7 @@ export const TOP10_LEAGUE_CLUBS: Top10LeagueClubSeed[] = [
     "country": "Italia",
     "league": "Serie A",
     "division": "1ra División",
-    "logoUrl": "https://cdn.sofifa.net/teams/241/60.png",
+    "logoUrl": "",
     "stadium": "Estadio Inter",
     "budget": 100000000
   },
@@ -557,7 +557,7 @@ export const TOP10_LEAGUE_CLUBS: Top10LeagueClubSeed[] = [
     "country": "Italia",
     "league": "Serie A",
     "division": "1ra División",
-    "logoUrl": "https://drop-assets.ea.com/images/6zWQmPATtK8lpsiXbKb3mY/6b2d1dab08ef14f63271a5cd70a0db0d/l45.png",
+    "logoUrl": "",
     "stadium": "Estadio Juventus",
     "budget": 100000000
   },
@@ -568,7 +568,7 @@ export const TOP10_LEAGUE_CLUBS: Top10LeagueClubSeed[] = [
     "country": "Italia",
     "league": "Serie A",
     "division": "1ra División",
-    "logoUrl": "https://drop-assets.ea.com/images/APtVhL3q3cFDG9pkum0Q4/cbfe542e327cc69c0890b8b5a189fad7/l115841.png",
+    "logoUrl": "",
     "stadium": "Estadio Latium",
     "budget": 100000000
   },
@@ -579,7 +579,7 @@ export const TOP10_LEAGUE_CLUBS: Top10LeagueClubSeed[] = [
     "country": "Italia",
     "league": "Serie A",
     "division": "1ra División",
-    "logoUrl": "https://drop-assets.ea.com/images/24tjxIlBXF6g0puyjqRqqx/04aa5e48c5938944bee35b1893c0d0fa/l347.png",
+    "logoUrl": "",
     "stadium": "Estadio Lecce",
     "budget": 100000000
   },
@@ -590,7 +590,7 @@ export const TOP10_LEAGUE_CLUBS: Top10LeagueClubSeed[] = [
     "country": "Italia",
     "league": "Serie A",
     "division": "1ra División",
-    "logoUrl": "https://cdn.sofifa.net/teams/241/60.png",
+    "logoUrl": "",
     "stadium": "Estadio Milan",
     "budget": 100000000
   },
@@ -601,7 +601,7 @@ export const TOP10_LEAGUE_CLUBS: Top10LeagueClubSeed[] = [
     "country": "Italia",
     "league": "Serie A",
     "division": "1ra División",
-    "logoUrl": "https://cdn.sofifa.net/teams/241/60.png",
+    "logoUrl": "",
     "stadium": "Estadio Napoli",
     "budget": 100000000
   },
@@ -612,7 +612,7 @@ export const TOP10_LEAGUE_CLUBS: Top10LeagueClubSeed[] = [
     "country": "Italia",
     "league": "Serie A",
     "division": "1ra División",
-    "logoUrl": "https://drop-assets.ea.com/images/5yViIzJxGDnBEeuNhjjHJc/adbfeb6c414f290e1aa51813f26cd829/l50.png",
+    "logoUrl": "",
     "stadium": "Estadio Parma",
     "budget": 100000000
   },
@@ -623,7 +623,7 @@ export const TOP10_LEAGUE_CLUBS: Top10LeagueClubSeed[] = [
     "country": "Italia",
     "league": "Serie A",
     "division": "1ra División",
-    "logoUrl": "https://drop-assets.ea.com/images/6DfSpNABeyrlXE4KPph3hG/2958a98dfea4d81f07b4491d3215c270/l110738.png",
+    "logoUrl": "",
     "stadium": "Estadio Pisa",
     "budget": 100000000
   },
@@ -634,7 +634,7 @@ export const TOP10_LEAGUE_CLUBS: Top10LeagueClubSeed[] = [
     "country": "Italia",
     "league": "Serie A",
     "division": "1ra División",
-    "logoUrl": "https://cdn.sofifa.net/teams/241/60.png",
+    "logoUrl": "",
     "stadium": "Estadio Roma",
     "budget": 100000000
   },
@@ -645,7 +645,7 @@ export const TOP10_LEAGUE_CLUBS: Top10LeagueClubSeed[] = [
     "country": "Italia",
     "league": "Serie A",
     "division": "1ra División",
-    "logoUrl": "https://drop-assets.ea.com/images/1XH03NyWoyYHO0EH69QYG4/fe0a0c7effe48754e97248d04e352f4e/l111974.png",
+    "logoUrl": "",
     "stadium": "Estadio Sassuolo",
     "budget": 100000000
   },
@@ -656,7 +656,7 @@ export const TOP10_LEAGUE_CLUBS: Top10LeagueClubSeed[] = [
     "country": "Italia",
     "league": "Serie A",
     "division": "1ra División",
-    "logoUrl": "https://drop-assets.ea.com/images/hSLWPIkJFJBzTMyk85qej/40d38d4675390d6677c4f17dddae5627/l54.png",
+    "logoUrl": "",
     "stadium": "Estadio Torino",
     "budget": 100000000
   },
@@ -667,7 +667,7 @@ export const TOP10_LEAGUE_CLUBS: Top10LeagueClubSeed[] = [
     "country": "Italia",
     "league": "Serie A",
     "division": "1ra División",
-    "logoUrl": "https://drop-assets.ea.com/images/eksZxUrkppoFO3BHpIKxc/ce0190c8a5e09464b8019123eb42a39d/l55.png",
+    "logoUrl": "",
     "stadium": "Estadio Udinese",
     "budget": 100000000
   },
@@ -678,7 +678,7 @@ export const TOP10_LEAGUE_CLUBS: Top10LeagueClubSeed[] = [
     "country": "Alemania",
     "league": "Bundesliga",
     "division": "1ra División",
-    "logoUrl": "https://cdn.sofifa.net/teams/241/60.png",
+    "logoUrl": "",
     "stadium": "Estadio Augsburg",
     "budget": 100000000
   },
@@ -689,7 +689,7 @@ export const TOP10_LEAGUE_CLUBS: Top10LeagueClubSeed[] = [
     "country": "Alemania",
     "league": "Bundesliga",
     "division": "1ra División",
-    "logoUrl": "https://cdn.sofifa.net/teams/241/60.png",
+    "logoUrl": "",
     "stadium": "Estadio Bayer Leverkusen",
     "budget": 100000000
   },
@@ -700,7 +700,7 @@ export const TOP10_LEAGUE_CLUBS: Top10LeagueClubSeed[] = [
     "country": "Alemania",
     "league": "Bundesliga",
     "division": "1ra División",
-    "logoUrl": "https://drop-assets.ea.com/images/3p0dv1pGWIH6lGAKZssZKH/4f70d2c5a3c147f3e006c863e85e4993/l21.png",
+    "logoUrl": "",
     "stadium": "Estadio FC Bayern München",
     "budget": 100000000
   },
@@ -711,7 +711,7 @@ export const TOP10_LEAGUE_CLUBS: Top10LeagueClubSeed[] = [
     "country": "Alemania",
     "league": "Bundesliga",
     "division": "1ra División",
-    "logoUrl": "https://drop-assets.ea.com/images/TmqxUZk2FrbFXOK1kdE89/3dce225926ac7cfd9f283ecd731fa710/l22.png",
+    "logoUrl": "",
     "stadium": "Estadio Borussia Dortmund",
     "budget": 100000000
   },
@@ -722,7 +722,7 @@ export const TOP10_LEAGUE_CLUBS: Top10LeagueClubSeed[] = [
     "country": "Alemania",
     "league": "Bundesliga",
     "division": "1ra División",
-    "logoUrl": "https://cdn.sofifa.net/teams/241/60.png",
+    "logoUrl": "",
     "stadium": "Estadio Borussia Mönchengladbach",
     "budget": 100000000
   },
@@ -733,7 +733,7 @@ export const TOP10_LEAGUE_CLUBS: Top10LeagueClubSeed[] = [
     "country": "Alemania",
     "league": "Bundesliga",
     "division": "1ra División",
-    "logoUrl": "https://cdn.sofifa.net/teams/241/60.png",
+    "logoUrl": "",
     "stadium": "Estadio Eintracht Frankfurt",
     "budget": 100000000
   },
@@ -744,7 +744,7 @@ export const TOP10_LEAGUE_CLUBS: Top10LeagueClubSeed[] = [
     "country": "Alemania",
     "league": "Bundesliga",
     "division": "1ra División",
-    "logoUrl": "https://cdn.sofifa.net/teams/241/60.png",
+    "logoUrl": "",
     "stadium": "Estadio Freiburg",
     "budget": 100000000
   },
@@ -755,7 +755,7 @@ export const TOP10_LEAGUE_CLUBS: Top10LeagueClubSeed[] = [
     "country": "Alemania",
     "league": "Bundesliga",
     "division": "1ra División",
-    "logoUrl": "https://drop-assets.ea.com/images/Vwj9mu65nCqScjLevwVoY/37cf47cedf66f85ed8078fe491b122a7/l28.png",
+    "logoUrl": "",
     "stadium": "Estadio Hamburger SV",
     "budget": 100000000
   },
@@ -766,7 +766,7 @@ export const TOP10_LEAGUE_CLUBS: Top10LeagueClubSeed[] = [
     "country": "Alemania",
     "league": "Bundesliga",
     "division": "1ra División",
-    "logoUrl": "https://drop-assets.ea.com/images/6dl6SeJkgA1H6G1sodfRJj/043b959d86a91b252159ff32eb46a14a/l111235.png",
+    "logoUrl": "",
     "stadium": "Estadio Heidenheim",
     "budget": 100000000
   },
@@ -777,7 +777,7 @@ export const TOP10_LEAGUE_CLUBS: Top10LeagueClubSeed[] = [
     "country": "Alemania",
     "league": "Bundesliga",
     "division": "1ra División",
-    "logoUrl": "https://cdn.sofifa.net/teams/241/60.png",
+    "logoUrl": "",
     "stadium": "Estadio Hoffenheim",
     "budget": 100000000
   },
@@ -788,7 +788,7 @@ export const TOP10_LEAGUE_CLUBS: Top10LeagueClubSeed[] = [
     "country": "Alemania",
     "league": "Bundesliga",
     "division": "1ra División",
-    "logoUrl": "https://cdn.sofifa.net/teams/241/60.png",
+    "logoUrl": "",
     "stadium": "Estadio Köln",
     "budget": 100000000
   },
@@ -799,7 +799,7 @@ export const TOP10_LEAGUE_CLUBS: Top10LeagueClubSeed[] = [
     "country": "Alemania",
     "league": "Bundesliga",
     "division": "1ra División",
-    "logoUrl": "https://cdn.sofifa.net/teams/241/60.png",
+    "logoUrl": "",
     "stadium": "Estadio Mainz 05",
     "budget": 100000000
   },
@@ -810,7 +810,7 @@ export const TOP10_LEAGUE_CLUBS: Top10LeagueClubSeed[] = [
     "country": "Alemania",
     "league": "Bundesliga",
     "division": "1ra División",
-    "logoUrl": "https://drop-assets.ea.com/images/1EoW6b2VkhiP3S0vqikd9s/f181f899a2037360f70a9a8aba18af30/l112172.png",
+    "logoUrl": "",
     "stadium": "Estadio RB Leipzig",
     "budget": 100000000
   },
@@ -821,7 +821,7 @@ export const TOP10_LEAGUE_CLUBS: Top10LeagueClubSeed[] = [
     "country": "Alemania",
     "league": "Bundesliga",
     "division": "1ra División",
-    "logoUrl": "https://cdn.sofifa.net/teams/241/60.png",
+    "logoUrl": "",
     "stadium": "Estadio St. Pauli",
     "budget": 100000000
   },
@@ -832,7 +832,7 @@ export const TOP10_LEAGUE_CLUBS: Top10LeagueClubSeed[] = [
     "country": "Alemania",
     "league": "Bundesliga",
     "division": "1ra División",
-    "logoUrl": "https://drop-assets.ea.com/images/32dPG6jDXuIAOhWKeTYmeG/8d2df657c666abfbf84baaa732140a2a/l1831.png",
+    "logoUrl": "",
     "stadium": "Estadio Union Berlin",
     "budget": 100000000
   },
@@ -843,7 +843,7 @@ export const TOP10_LEAGUE_CLUBS: Top10LeagueClubSeed[] = [
     "country": "Alemania",
     "league": "Bundesliga",
     "division": "1ra División",
-    "logoUrl": "https://cdn.sofifa.net/teams/241/60.png",
+    "logoUrl": "",
     "stadium": "Estadio Werder Bremen",
     "budget": 100000000
   },
@@ -854,7 +854,7 @@ export const TOP10_LEAGUE_CLUBS: Top10LeagueClubSeed[] = [
     "country": "Alemania",
     "league": "Bundesliga",
     "division": "1ra División",
-    "logoUrl": "https://cdn.sofifa.net/teams/241/60.png",
+    "logoUrl": "",
     "stadium": "Estadio Wolfsburg",
     "budget": 100000000
   },
@@ -865,7 +865,7 @@ export const TOP10_LEAGUE_CLUBS: Top10LeagueClubSeed[] = [
     "country": "Alemania",
     "league": "Bundesliga",
     "division": "1ra División",
-    "logoUrl": "https://cdn.sofifa.net/teams/241/60.png",
+    "logoUrl": "",
     "stadium": "Estadio Stuttgart",
     "budget": 100000000
   },
@@ -876,7 +876,7 @@ export const TOP10_LEAGUE_CLUBS: Top10LeagueClubSeed[] = [
     "country": "Francia",
     "league": "Ligue 1",
     "division": "1ra División",
-    "logoUrl": "https://cdn.sofifa.net/teams/241/60.png",
+    "logoUrl": "",
     "stadium": "Estadio Angers",
     "budget": 100000000
   },
@@ -887,7 +887,7 @@ export const TOP10_LEAGUE_CLUBS: Top10LeagueClubSeed[] = [
     "country": "Francia",
     "league": "Ligue 1",
     "division": "1ra División",
-    "logoUrl": "https://cdn.sofifa.net/teams/241/60.png",
+    "logoUrl": "",
     "stadium": "Estadio Auxerre",
     "budget": 100000000
   },
@@ -898,7 +898,7 @@ export const TOP10_LEAGUE_CLUBS: Top10LeagueClubSeed[] = [
     "country": "Francia",
     "league": "Ligue 1",
     "division": "1ra División",
-    "logoUrl": "https://cdn.sofifa.net/teams/241/60.png",
+    "logoUrl": "",
     "stadium": "Estadio Brest",
     "budget": 100000000
   },
@@ -909,7 +909,7 @@ export const TOP10_LEAGUE_CLUBS: Top10LeagueClubSeed[] = [
     "country": "Francia",
     "league": "Ligue 1",
     "division": "1ra División",
-    "logoUrl": "https://cdn.sofifa.net/teams/241/60.png",
+    "logoUrl": "",
     "stadium": "Estadio Le Havre",
     "budget": 100000000
   },
@@ -920,7 +920,7 @@ export const TOP10_LEAGUE_CLUBS: Top10LeagueClubSeed[] = [
     "country": "Francia",
     "league": "Ligue 1",
     "division": "1ra División",
-    "logoUrl": "https://cdn.sofifa.net/teams/241/60.png",
+    "logoUrl": "",
     "stadium": "Estadio Lens",
     "budget": 100000000
   },
@@ -931,7 +931,7 @@ export const TOP10_LEAGUE_CLUBS: Top10LeagueClubSeed[] = [
     "country": "Francia",
     "league": "Ligue 1",
     "division": "1ra División",
-    "logoUrl": "https://cdn.sofifa.net/teams/241/60.png",
+    "logoUrl": "",
     "stadium": "Estadio Lille",
     "budget": 100000000
   },
@@ -942,7 +942,7 @@ export const TOP10_LEAGUE_CLUBS: Top10LeagueClubSeed[] = [
     "country": "Francia",
     "league": "Ligue 1",
     "division": "1ra División",
-    "logoUrl": "https://cdn.sofifa.net/teams/241/60.png",
+    "logoUrl": "",
     "stadium": "Estadio Lorient",
     "budget": 100000000
   },
@@ -953,7 +953,7 @@ export const TOP10_LEAGUE_CLUBS: Top10LeagueClubSeed[] = [
     "country": "Francia",
     "league": "Ligue 1",
     "division": "1ra División",
-    "logoUrl": "https://cdn.sofifa.net/teams/241/60.png",
+    "logoUrl": "",
     "stadium": "Estadio Lyon",
     "budget": 100000000
   },
@@ -964,7 +964,7 @@ export const TOP10_LEAGUE_CLUBS: Top10LeagueClubSeed[] = [
     "country": "Francia",
     "league": "Ligue 1",
     "division": "1ra División",
-    "logoUrl": "https://cdn.sofifa.net/teams/241/60.png",
+    "logoUrl": "",
     "stadium": "Estadio Marseille",
     "budget": 100000000
   },
@@ -975,7 +975,7 @@ export const TOP10_LEAGUE_CLUBS: Top10LeagueClubSeed[] = [
     "country": "Francia",
     "league": "Ligue 1",
     "division": "1ra División",
-    "logoUrl": "https://cdn.sofifa.net/teams/241/60.png",
+    "logoUrl": "",
     "stadium": "Estadio Metz",
     "budget": 100000000
   },
@@ -986,7 +986,7 @@ export const TOP10_LEAGUE_CLUBS: Top10LeagueClubSeed[] = [
     "country": "Francia",
     "league": "Ligue 1",
     "division": "1ra División",
-    "logoUrl": "https://cdn.sofifa.net/teams/241/60.png",
+    "logoUrl": "",
     "stadium": "Estadio Monaco",
     "budget": 100000000
   },
@@ -997,7 +997,7 @@ export const TOP10_LEAGUE_CLUBS: Top10LeagueClubSeed[] = [
     "country": "Francia",
     "league": "Ligue 1",
     "division": "1ra División",
-    "logoUrl": "https://drop-assets.ea.com/images/3xZ7onNB3vSemaIEmalF3k/d87612f125c8d293ebcc202f04e3ec11/l71.png",
+    "logoUrl": "",
     "stadium": "Estadio Nantes",
     "budget": 100000000
   },
@@ -1008,7 +1008,7 @@ export const TOP10_LEAGUE_CLUBS: Top10LeagueClubSeed[] = [
     "country": "Francia",
     "league": "Ligue 1",
     "division": "1ra División",
-    "logoUrl": "https://cdn.sofifa.net/teams/241/60.png",
+    "logoUrl": "",
     "stadium": "Estadio Nice",
     "budget": 100000000
   },
@@ -1019,7 +1019,7 @@ export const TOP10_LEAGUE_CLUBS: Top10LeagueClubSeed[] = [
     "country": "Francia",
     "league": "Ligue 1",
     "division": "1ra División",
-    "logoUrl": "https://drop-assets.ea.com/images/2QwnhmHh5K7bjkfZAF7ZCi/7c53874542fb5c606ff810a4b1f6b88b/l73.png",
+    "logoUrl": "",
     "stadium": "Estadio PSG",
     "budget": 100000000
   },
@@ -1030,7 +1030,7 @@ export const TOP10_LEAGUE_CLUBS: Top10LeagueClubSeed[] = [
     "country": "Francia",
     "league": "Ligue 1",
     "division": "1ra División",
-    "logoUrl": "https://drop-assets.ea.com/images/3q4gMefpvBrGdVOPMxk1dD/d310abcaf71d2a45ee4362b169469a93/l111817.png",
+    "logoUrl": "",
     "stadium": "Estadio París FC",
     "budget": 100000000
   },
@@ -1041,7 +1041,7 @@ export const TOP10_LEAGUE_CLUBS: Top10LeagueClubSeed[] = [
     "country": "Francia",
     "league": "Ligue 1",
     "division": "1ra División",
-    "logoUrl": "https://cdn.sofifa.net/teams/241/60.png",
+    "logoUrl": "",
     "stadium": "Estadio Rennes",
     "budget": 100000000
   },
@@ -1052,7 +1052,7 @@ export const TOP10_LEAGUE_CLUBS: Top10LeagueClubSeed[] = [
     "country": "Francia",
     "league": "Ligue 1",
     "division": "1ra División",
-    "logoUrl": "https://drop-assets.ea.com/images/5ujpJkozlZbo3FNV0Fi84H/d39ffa173bd150d5f10bcfe3392abe54/l76.png",
+    "logoUrl": "",
     "stadium": "Estadio Strasbourg",
     "budget": 100000000
   },
@@ -1063,7 +1063,7 @@ export const TOP10_LEAGUE_CLUBS: Top10LeagueClubSeed[] = [
     "country": "Francia",
     "league": "Ligue 1",
     "division": "1ra División",
-    "logoUrl": "https://cdn.sofifa.net/teams/241/60.png",
+    "logoUrl": "",
     "stadium": "Estadio Toulouse",
     "budget": 100000000
   },
@@ -1074,7 +1074,7 @@ export const TOP10_LEAGUE_CLUBS: Top10LeagueClubSeed[] = [
     "country": "Países Bajos",
     "league": "Eredivisie",
     "division": "1ra División",
-    "logoUrl": "https://drop-assets.ea.com/images/3vDHoYa0pxdah1d3lHEAMe/8d79a7bab130bda618e70b67cabb961c/l131359.png",
+    "logoUrl": "",
     "stadium": "Estadio Ajax",
     "budget": 100000000
   },
@@ -1085,7 +1085,7 @@ export const TOP10_LEAGUE_CLUBS: Top10LeagueClubSeed[] = [
     "country": "Países Bajos",
     "league": "Eredivisie",
     "division": "1ra División",
-    "logoUrl": "https://cdn.sofifa.net/teams/241/60.png",
+    "logoUrl": "",
     "stadium": "Estadio AZ Alkmaar",
     "budget": 100000000
   },
@@ -1096,7 +1096,7 @@ export const TOP10_LEAGUE_CLUBS: Top10LeagueClubSeed[] = [
     "country": "Países Bajos",
     "league": "Eredivisie",
     "division": "1ra División",
-    "logoUrl": "https://cdn.sofifa.net/teams/241/60.png",
+    "logoUrl": "",
     "stadium": "Estadio Excelsior",
     "budget": 100000000
   },
@@ -1107,7 +1107,7 @@ export const TOP10_LEAGUE_CLUBS: Top10LeagueClubSeed[] = [
     "country": "Países Bajos",
     "league": "Eredivisie",
     "division": "1ra División",
-    "logoUrl": "https://cdn.sofifa.net/teams/241/60.png",
+    "logoUrl": "",
     "stadium": "Estadio Feyenoord",
     "budget": 100000000
   },
@@ -1118,7 +1118,7 @@ export const TOP10_LEAGUE_CLUBS: Top10LeagueClubSeed[] = [
     "country": "Países Bajos",
     "league": "Eredivisie",
     "division": "1ra División",
-    "logoUrl": "https://cdn.sofifa.net/teams/241/60.png",
+    "logoUrl": "",
     "stadium": "Estadio Fortuna Sittard",
     "budget": 100000000
   },
@@ -1129,7 +1129,7 @@ export const TOP10_LEAGUE_CLUBS: Top10LeagueClubSeed[] = [
     "country": "Países Bajos",
     "league": "Eredivisie",
     "division": "1ra División",
-    "logoUrl": "https://cdn.sofifa.net/teams/241/60.png",
+    "logoUrl": "",
     "stadium": "Estadio Go Ahead Eagles",
     "budget": 100000000
   },
@@ -1140,7 +1140,7 @@ export const TOP10_LEAGUE_CLUBS: Top10LeagueClubSeed[] = [
     "country": "Países Bajos",
     "league": "Eredivisie",
     "division": "1ra División",
-    "logoUrl": "https://cdn.sofifa.net/teams/241/60.png",
+    "logoUrl": "",
     "stadium": "Estadio Groningen",
     "budget": 100000000
   },
@@ -1151,7 +1151,7 @@ export const TOP10_LEAGUE_CLUBS: Top10LeagueClubSeed[] = [
     "country": "Países Bajos",
     "league": "Eredivisie",
     "division": "1ra División",
-    "logoUrl": "https://cdn.sofifa.net/teams/241/60.png",
+    "logoUrl": "",
     "stadium": "Estadio Heerenveen",
     "budget": 100000000
   },
@@ -1162,7 +1162,7 @@ export const TOP10_LEAGUE_CLUBS: Top10LeagueClubSeed[] = [
     "country": "Países Bajos",
     "league": "Eredivisie",
     "division": "1ra División",
-    "logoUrl": "https://cdn.sofifa.net/teams/241/60.png",
+    "logoUrl": "",
     "stadium": "Estadio Heracles Almelo",
     "budget": 100000000
   },
@@ -1173,7 +1173,7 @@ export const TOP10_LEAGUE_CLUBS: Top10LeagueClubSeed[] = [
     "country": "Países Bajos",
     "league": "Eredivisie",
     "division": "1ra División",
-    "logoUrl": "https://cdn.sofifa.net/teams/241/60.png",
+    "logoUrl": "",
     "stadium": "Estadio NAC Breda",
     "budget": 100000000
   },
@@ -1184,7 +1184,7 @@ export const TOP10_LEAGUE_CLUBS: Top10LeagueClubSeed[] = [
     "country": "Países Bajos",
     "league": "Eredivisie",
     "division": "1ra División",
-    "logoUrl": "https://cdn.sofifa.net/teams/241/60.png",
+    "logoUrl": "",
     "stadium": "Estadio NEC Nijmegen",
     "budget": 100000000
   },
@@ -1195,7 +1195,7 @@ export const TOP10_LEAGUE_CLUBS: Top10LeagueClubSeed[] = [
     "country": "Países Bajos",
     "league": "Eredivisie",
     "division": "1ra División",
-    "logoUrl": "https://cdn.sofifa.net/teams/241/60.png",
+    "logoUrl": "",
     "stadium": "Estadio PEC Zwolle",
     "budget": 100000000
   },
@@ -1206,7 +1206,7 @@ export const TOP10_LEAGUE_CLUBS: Top10LeagueClubSeed[] = [
     "country": "Países Bajos",
     "league": "Eredivisie",
     "division": "1ra División",
-    "logoUrl": "https://cdn.sofifa.net/teams/241/60.png",
+    "logoUrl": "",
     "stadium": "Estadio PSV Eindhoven",
     "budget": 100000000
   },
@@ -1217,7 +1217,7 @@ export const TOP10_LEAGUE_CLUBS: Top10LeagueClubSeed[] = [
     "country": "Países Bajos",
     "league": "Eredivisie",
     "division": "1ra División",
-    "logoUrl": "https://cdn.sofifa.net/teams/241/60.png",
+    "logoUrl": "",
     "stadium": "Estadio Sparta Rotterdam",
     "budget": 100000000
   },
@@ -1228,7 +1228,7 @@ export const TOP10_LEAGUE_CLUBS: Top10LeagueClubSeed[] = [
     "country": "Países Bajos",
     "league": "Eredivisie",
     "division": "1ra División",
-    "logoUrl": "https://cdn.sofifa.net/teams/241/60.png",
+    "logoUrl": "",
     "stadium": "Estadio Telstar",
     "budget": 100000000
   },
@@ -1239,7 +1239,7 @@ export const TOP10_LEAGUE_CLUBS: Top10LeagueClubSeed[] = [
     "country": "Países Bajos",
     "league": "Eredivisie",
     "division": "1ra División",
-    "logoUrl": "https://cdn.sofifa.net/teams/241/60.png",
+    "logoUrl": "",
     "stadium": "Estadio Twente",
     "budget": 100000000
   },
@@ -1250,7 +1250,7 @@ export const TOP10_LEAGUE_CLUBS: Top10LeagueClubSeed[] = [
     "country": "Países Bajos",
     "league": "Eredivisie",
     "division": "1ra División",
-    "logoUrl": "https://cdn.sofifa.net/teams/241/60.png",
+    "logoUrl": "",
     "stadium": "Estadio Utrecht",
     "budget": 100000000
   },
@@ -1261,7 +1261,7 @@ export const TOP10_LEAGUE_CLUBS: Top10LeagueClubSeed[] = [
     "country": "Países Bajos",
     "league": "Eredivisie",
     "division": "1ra División",
-    "logoUrl": "https://cdn.sofifa.net/teams/241/60.png",
+    "logoUrl": "",
     "stadium": "Estadio Volendam",
     "budget": 100000000
   },
@@ -1272,7 +1272,7 @@ export const TOP10_LEAGUE_CLUBS: Top10LeagueClubSeed[] = [
     "country": "Portugal",
     "league": "Primeira Liga",
     "division": "1ra División",
-    "logoUrl": "https://cdn.sofifa.net/teams/241/60.png",
+    "logoUrl": "",
     "stadium": "Estadio AVS",
     "budget": 100000000
   },
@@ -1283,7 +1283,7 @@ export const TOP10_LEAGUE_CLUBS: Top10LeagueClubSeed[] = [
     "country": "Portugal",
     "league": "Primeira Liga",
     "division": "1ra División",
-    "logoUrl": "https://drop-assets.ea.com/images/2DamHkQ1ZP1CYVjFPp6ofg/3e07292021842fdadb7aaaa84e7473aa/l234.png",
+    "logoUrl": "",
     "stadium": "Estadio SL Benfica",
     "budget": 100000000
   },
@@ -1294,7 +1294,7 @@ export const TOP10_LEAGUE_CLUBS: Top10LeagueClubSeed[] = [
     "country": "Portugal",
     "league": "Primeira Liga",
     "division": "1ra División",
-    "logoUrl": "https://cdn.sofifa.net/teams/241/60.png",
+    "logoUrl": "",
     "stadium": "Estadio Braga",
     "budget": 100000000
   },
@@ -1305,7 +1305,7 @@ export const TOP10_LEAGUE_CLUBS: Top10LeagueClubSeed[] = [
     "country": "Portugal",
     "league": "Primeira Liga",
     "division": "1ra División",
-    "logoUrl": "https://cdn.sofifa.net/teams/241/60.png",
+    "logoUrl": "",
     "stadium": "Estadio Casa Pia",
     "budget": 100000000
   },
@@ -1316,7 +1316,7 @@ export const TOP10_LEAGUE_CLUBS: Top10LeagueClubSeed[] = [
     "country": "Portugal",
     "league": "Primeira Liga",
     "division": "1ra División",
-    "logoUrl": "https://cdn.sofifa.net/teams/241/60.png",
+    "logoUrl": "",
     "stadium": "Estadio Estoril",
     "budget": 100000000
   },
@@ -1327,7 +1327,7 @@ export const TOP10_LEAGUE_CLUBS: Top10LeagueClubSeed[] = [
     "country": "Portugal",
     "league": "Primeira Liga",
     "division": "1ra División",
-    "logoUrl": "https://cdn.sofifa.net/teams/241/60.png",
+    "logoUrl": "",
     "stadium": "Estadio Estrela da Amadora",
     "budget": 100000000
   },
@@ -1338,7 +1338,7 @@ export const TOP10_LEAGUE_CLUBS: Top10LeagueClubSeed[] = [
     "country": "Portugal",
     "league": "Primeira Liga",
     "division": "1ra División",
-    "logoUrl": "https://cdn.sofifa.net/teams/241/60.png",
+    "logoUrl": "",
     "stadium": "Estadio Famalicão",
     "budget": 100000000
   },
@@ -1349,7 +1349,7 @@ export const TOP10_LEAGUE_CLUBS: Top10LeagueClubSeed[] = [
     "country": "Portugal",
     "league": "Primeira Liga",
     "division": "1ra División",
-    "logoUrl": "https://drop-assets.ea.com/images/4NrTKZNrTGTxLhe8oMuhxP/a8334000a30c120b5387f8dbe0322574/l1888.png",
+    "logoUrl": "",
     "stadium": "Estadio Gil Vicente",
     "budget": 100000000
   },
@@ -1360,7 +1360,7 @@ export const TOP10_LEAGUE_CLUBS: Top10LeagueClubSeed[] = [
     "country": "Portugal",
     "league": "Primeira Liga",
     "division": "1ra División",
-    "logoUrl": "https://cdn.sofifa.net/teams/241/60.png",
+    "logoUrl": "",
     "stadium": "Estadio Moreirense",
     "budget": 100000000
   },
@@ -1371,7 +1371,7 @@ export const TOP10_LEAGUE_CLUBS: Top10LeagueClubSeed[] = [
     "country": "Portugal",
     "league": "Primeira Liga",
     "division": "1ra División",
-    "logoUrl": "https://drop-assets.ea.com/images/4F0sgnOW3XygWtEbF65jyt/2a47941e79d1b79f5ca49f3a853ded2b/l1891.png",
+    "logoUrl": "",
     "stadium": "Estadio Nacional",
     "budget": 100000000
   },
@@ -1382,7 +1382,7 @@ export const TOP10_LEAGUE_CLUBS: Top10LeagueClubSeed[] = [
     "country": "Portugal",
     "league": "Primeira Liga",
     "division": "1ra División",
-    "logoUrl": "https://drop-assets.ea.com/images/3rIoG9U8fPPfaXZiGOGtvw/37c0c0ceefe454e9c299d4cc1852671f/l236.png",
+    "logoUrl": "",
     "stadium": "Estadio FC Porto",
     "budget": 100000000
   },
@@ -1393,7 +1393,7 @@ export const TOP10_LEAGUE_CLUBS: Top10LeagueClubSeed[] = [
     "country": "Portugal",
     "league": "Primeira Liga",
     "division": "1ra División",
-    "logoUrl": "https://cdn.sofifa.net/teams/241/60.png",
+    "logoUrl": "",
     "stadium": "Estadio Rio Ave",
     "budget": 100000000
   },
@@ -1404,7 +1404,7 @@ export const TOP10_LEAGUE_CLUBS: Top10LeagueClubSeed[] = [
     "country": "Portugal",
     "league": "Primeira Liga",
     "division": "1ra División",
-    "logoUrl": "https://drop-assets.ea.com/images/53IEL5NTK7wsA5oFghZvg7/38e193b44a85f6ac65f7c95457abd1e7/l1438.png",
+    "logoUrl": "",
     "stadium": "Estadio Santa Clara",
     "budget": 100000000
   },
@@ -1415,7 +1415,7 @@ export const TOP10_LEAGUE_CLUBS: Top10LeagueClubSeed[] = [
     "country": "Portugal",
     "league": "Primeira Liga",
     "division": "1ra División",
-    "logoUrl": "https://drop-assets.ea.com/images/2bL9oGApMvbYE1o0Byl8KB/c914cde8141f11124f026cb198a0eb00/l237.png",
+    "logoUrl": "",
     "stadium": "Estadio Sporting CP",
     "budget": 100000000
   },
@@ -1426,7 +1426,7 @@ export const TOP10_LEAGUE_CLUBS: Top10LeagueClubSeed[] = [
     "country": "Portugal",
     "league": "Primeira Liga",
     "division": "1ra División",
-    "logoUrl": "https://cdn.sofifa.net/teams/241/60.png",
+    "logoUrl": "",
     "stadium": "Estadio Tondela",
     "budget": 100000000
   },
@@ -1437,7 +1437,7 @@ export const TOP10_LEAGUE_CLUBS: Top10LeagueClubSeed[] = [
     "country": "Portugal",
     "league": "Primeira Liga",
     "division": "1ra División",
-    "logoUrl": "https://drop-assets.ea.com/images/3gj0rsCEv47Uirop4H5fae/d80e273e8f42b5bb1c49cb2fa2e4bb21/l1887.png",
+    "logoUrl": "",
     "stadium": "Estadio Vitória SC",
     "budget": 100000000
   },
@@ -1448,7 +1448,7 @@ export const TOP10_LEAGUE_CLUBS: Top10LeagueClubSeed[] = [
     "country": "Portugal",
     "league": "Primeira Liga",
     "division": "1ra División",
-    "logoUrl": "https://cdn.sofifa.net/teams/241/60.png",
+    "logoUrl": "",
     "stadium": "Estadio Alverca",
     "budget": 100000000
   },
@@ -1459,7 +1459,7 @@ export const TOP10_LEAGUE_CLUBS: Top10LeagueClubSeed[] = [
     "country": "Portugal",
     "league": "Primeira Liga",
     "division": "1ra División",
-    "logoUrl": "https://drop-assets.ea.com/images/6TS5K2cgvvwPpBxwjH7PQV/c71fb859857329f6e28cd5d23f8aadcf/l112513.png",
+    "logoUrl": "",
     "stadium": "Estadio Arouca",
     "budget": 100000000
   },
@@ -1470,7 +1470,7 @@ export const TOP10_LEAGUE_CLUBS: Top10LeagueClubSeed[] = [
     "country": "Brasil",
     "league": "Brasileirão Série A",
     "division": "1ra División",
-    "logoUrl": "https://cdn.sofifa.net/teams/241/60.png",
+    "logoUrl": "",
     "stadium": "Estadio Atlético Mineiro",
     "budget": 100000000
   },
@@ -1481,7 +1481,7 @@ export const TOP10_LEAGUE_CLUBS: Top10LeagueClubSeed[] = [
     "country": "Brasil",
     "league": "Brasileirão Série A",
     "division": "1ra División",
-    "logoUrl": "https://cdn.sofifa.net/teams/241/60.png",
+    "logoUrl": "",
     "stadium": "Estadio Bahia",
     "budget": 100000000
   },
@@ -1492,7 +1492,7 @@ export const TOP10_LEAGUE_CLUBS: Top10LeagueClubSeed[] = [
     "country": "Brasil",
     "league": "Brasileirão Série A",
     "division": "1ra División",
-    "logoUrl": "https://cdn.sofifa.net/teams/241/60.png",
+    "logoUrl": "",
     "stadium": "Estadio Botafogo",
     "budget": 100000000
   },
@@ -1503,7 +1503,7 @@ export const TOP10_LEAGUE_CLUBS: Top10LeagueClubSeed[] = [
     "country": "Brasil",
     "league": "Brasileirão Série A",
     "division": "1ra División",
-    "logoUrl": "https://cdn.sofifa.net/teams/241/60.png",
+    "logoUrl": "",
     "stadium": "Estadio Ceará",
     "budget": 100000000
   },
@@ -1514,7 +1514,7 @@ export const TOP10_LEAGUE_CLUBS: Top10LeagueClubSeed[] = [
     "country": "Brasil",
     "league": "Brasileirão Série A",
     "division": "1ra División",
-    "logoUrl": "https://cdn.sofifa.net/teams/241/60.png",
+    "logoUrl": "",
     "stadium": "Estadio Corinthians",
     "budget": 100000000
   },
@@ -1525,7 +1525,7 @@ export const TOP10_LEAGUE_CLUBS: Top10LeagueClubSeed[] = [
     "country": "Brasil",
     "league": "Brasileirão Série A",
     "division": "1ra División",
-    "logoUrl": "https://cdn.sofifa.net/teams/241/60.png",
+    "logoUrl": "",
     "stadium": "Estadio Cruzeiro",
     "budget": 100000000
   },
@@ -1536,7 +1536,7 @@ export const TOP10_LEAGUE_CLUBS: Top10LeagueClubSeed[] = [
     "country": "Brasil",
     "league": "Brasileirão Série A",
     "division": "1ra División",
-    "logoUrl": "https://cdn.sofifa.net/teams/241/60.png",
+    "logoUrl": "",
     "stadium": "Estadio Flamengo",
     "budget": 100000000
   },
@@ -1547,7 +1547,7 @@ export const TOP10_LEAGUE_CLUBS: Top10LeagueClubSeed[] = [
     "country": "Brasil",
     "league": "Brasileirão Série A",
     "division": "1ra División",
-    "logoUrl": "https://cdn.sofifa.net/teams/241/60.png",
+    "logoUrl": "",
     "stadium": "Estadio Fluminense",
     "budget": 100000000
   },
@@ -1558,7 +1558,7 @@ export const TOP10_LEAGUE_CLUBS: Top10LeagueClubSeed[] = [
     "country": "Brasil",
     "league": "Brasileirão Série A",
     "division": "1ra División",
-    "logoUrl": "https://cdn.sofifa.net/teams/241/60.png",
+    "logoUrl": "",
     "stadium": "Estadio Fortaleza",
     "budget": 100000000
   },
@@ -1569,7 +1569,7 @@ export const TOP10_LEAGUE_CLUBS: Top10LeagueClubSeed[] = [
     "country": "Brasil",
     "league": "Brasileirão Série A",
     "division": "1ra División",
-    "logoUrl": "https://cdn.sofifa.net/teams/241/60.png",
+    "logoUrl": "",
     "stadium": "Estadio Grêmio",
     "budget": 100000000
   },
@@ -1580,7 +1580,7 @@ export const TOP10_LEAGUE_CLUBS: Top10LeagueClubSeed[] = [
     "country": "Brasil",
     "league": "Brasileirão Série A",
     "division": "1ra División",
-    "logoUrl": "https://cdn.sofifa.net/teams/241/60.png",
+    "logoUrl": "",
     "stadium": "Estadio Internacional",
     "budget": 100000000
   },
@@ -1591,7 +1591,7 @@ export const TOP10_LEAGUE_CLUBS: Top10LeagueClubSeed[] = [
     "country": "Brasil",
     "league": "Brasileirão Série A",
     "division": "1ra División",
-    "logoUrl": "https://cdn.sofifa.net/teams/241/60.png",
+    "logoUrl": "",
     "stadium": "Estadio Juventude",
     "budget": 100000000
   },
@@ -1602,7 +1602,7 @@ export const TOP10_LEAGUE_CLUBS: Top10LeagueClubSeed[] = [
     "country": "Brasil",
     "league": "Brasileirão Série A",
     "division": "1ra División",
-    "logoUrl": "https://cdn.sofifa.net/teams/241/60.png",
+    "logoUrl": "",
     "stadium": "Estadio Mirassol",
     "budget": 100000000
   },
@@ -1613,7 +1613,7 @@ export const TOP10_LEAGUE_CLUBS: Top10LeagueClubSeed[] = [
     "country": "Brasil",
     "league": "Brasileirão Série A",
     "division": "1ra División",
-    "logoUrl": "https://cdn.sofifa.net/teams/241/60.png",
+    "logoUrl": "",
     "stadium": "Estadio Palmeiras",
     "budget": 100000000
   },
@@ -1624,7 +1624,7 @@ export const TOP10_LEAGUE_CLUBS: Top10LeagueClubSeed[] = [
     "country": "Brasil",
     "league": "Brasileirão Série A",
     "division": "1ra División",
-    "logoUrl": "https://cdn.sofifa.net/teams/241/60.png",
+    "logoUrl": "",
     "stadium": "Estadio Red Bull Bragantino",
     "budget": 100000000
   },
@@ -1635,7 +1635,7 @@ export const TOP10_LEAGUE_CLUBS: Top10LeagueClubSeed[] = [
     "country": "Brasil",
     "league": "Brasileirão Série A",
     "division": "1ra División",
-    "logoUrl": "https://cdn.sofifa.net/teams/241/60.png",
+    "logoUrl": "",
     "stadium": "Estadio Santos",
     "budget": 100000000
   },
@@ -1646,7 +1646,7 @@ export const TOP10_LEAGUE_CLUBS: Top10LeagueClubSeed[] = [
     "country": "Brasil",
     "league": "Brasileirão Série A",
     "division": "1ra División",
-    "logoUrl": "https://cdn.sofifa.net/teams/241/60.png",
+    "logoUrl": "",
     "stadium": "Estadio Sport Recife",
     "budget": 100000000
   },
@@ -1657,7 +1657,7 @@ export const TOP10_LEAGUE_CLUBS: Top10LeagueClubSeed[] = [
     "country": "Brasil",
     "league": "Brasileirão Série A",
     "division": "1ra División",
-    "logoUrl": "https://cdn.sofifa.net/teams/241/60.png",
+    "logoUrl": "",
     "stadium": "Estadio São Paulo",
     "budget": 100000000
   },
@@ -1668,7 +1668,7 @@ export const TOP10_LEAGUE_CLUBS: Top10LeagueClubSeed[] = [
     "country": "Brasil",
     "league": "Brasileirão Série A",
     "division": "1ra División",
-    "logoUrl": "https://cdn.sofifa.net/teams/241/60.png",
+    "logoUrl": "",
     "stadium": "Estadio Vasco da Gama",
     "budget": 100000000
   },
@@ -1679,7 +1679,7 @@ export const TOP10_LEAGUE_CLUBS: Top10LeagueClubSeed[] = [
     "country": "Brasil",
     "league": "Brasileirão Série A",
     "division": "1ra División",
-    "logoUrl": "https://cdn.sofifa.net/teams/241/60.png",
+    "logoUrl": "",
     "stadium": "Estadio Vitória",
     "budget": 100000000
   },
@@ -1690,7 +1690,7 @@ export const TOP10_LEAGUE_CLUBS: Top10LeagueClubSeed[] = [
     "country": "Argentina",
     "league": "Liga Profesional",
     "division": "1ra División",
-    "logoUrl": "https://cdn.sofifa.net/teams/241/60.png",
+    "logoUrl": "",
     "stadium": "Estadio Aldosivi",
     "budget": 100000000
   },
@@ -1701,7 +1701,7 @@ export const TOP10_LEAGUE_CLUBS: Top10LeagueClubSeed[] = [
     "country": "Argentina",
     "league": "Liga Profesional",
     "division": "1ra División",
-    "logoUrl": "https://cdn.sofifa.net/teams/241/60.png",
+    "logoUrl": "",
     "stadium": "Estadio Argentinos Juniors",
     "budget": 100000000
   },
@@ -1712,7 +1712,7 @@ export const TOP10_LEAGUE_CLUBS: Top10LeagueClubSeed[] = [
     "country": "Argentina",
     "league": "Liga Profesional",
     "division": "1ra División",
-    "logoUrl": "https://drop-assets.ea.com/images/6L3YkoD8cwQ5ui33qjJXS6/f906216d8c80b0c85ed3960c88568e56/l111708.png",
+    "logoUrl": "",
     "stadium": "Estadio Atlético Tucumán",
     "budget": 100000000
   },
@@ -1723,7 +1723,7 @@ export const TOP10_LEAGUE_CLUBS: Top10LeagueClubSeed[] = [
     "country": "Argentina",
     "league": "Liga Profesional",
     "division": "1ra División",
-    "logoUrl": "https://drop-assets.ea.com/images/1Scs88aAFwUITTcHvzxjnc/4059beaa3acc9614d27bb33b52707ca4/l110404.png",
+    "logoUrl": "",
     "stadium": "Estadio Banfield",
     "budget": 100000000
   },
@@ -1734,7 +1734,7 @@ export const TOP10_LEAGUE_CLUBS: Top10LeagueClubSeed[] = [
     "country": "Argentina",
     "league": "Liga Profesional",
     "division": "1ra División",
-    "logoUrl": "https://drop-assets.ea.com/images/lNLvLLy1oSZjVQSbogAtj/f71701cd9c83992564b9261d03044714/l113044.png",
+    "logoUrl": "",
     "stadium": "Estadio Barracas Central",
     "budget": 100000000
   },
@@ -1745,7 +1745,7 @@ export const TOP10_LEAGUE_CLUBS: Top10LeagueClubSeed[] = [
     "country": "Argentina",
     "league": "Liga Profesional",
     "division": "1ra División",
-    "logoUrl": "https://drop-assets.ea.com/images/6DO3TSy0AxrUyUGCPtjhbh/2365c6c79492f4d14c64c8470a2f6314/l111022.png",
+    "logoUrl": "",
     "stadium": "Estadio Belgrano",
     "budget": 100000000
   },
@@ -1756,7 +1756,7 @@ export const TOP10_LEAGUE_CLUBS: Top10LeagueClubSeed[] = [
     "country": "Argentina",
     "league": "Liga Profesional",
     "division": "1ra División",
-    "logoUrl": "https://drop-assets.ea.com/images/4v42cau4ZlAgfPnWHaQSKn/a9fa2af475b4b779ed13870c7f1ec66b/l1877.png",
+    "logoUrl": "",
     "stadium": "Estadio Boca Juniors",
     "budget": 100000000
   },
@@ -1767,7 +1767,7 @@ export const TOP10_LEAGUE_CLUBS: Top10LeagueClubSeed[] = [
     "country": "Argentina",
     "league": "Liga Profesional",
     "division": "1ra División",
-    "logoUrl": "https://drop-assets.ea.com/images/53joER8sL1FzOrPsRJKonW/eef48828b4d1dc8e7a008e6bf676b6bd/l112965.png",
+    "logoUrl": "",
     "stadium": "Estadio Central Córdoba",
     "budget": 100000000
   },
@@ -1778,7 +1778,7 @@ export const TOP10_LEAGUE_CLUBS: Top10LeagueClubSeed[] = [
     "country": "Argentina",
     "league": "Liga Profesional",
     "division": "1ra División",
-    "logoUrl": "https://cdn.sofifa.net/teams/241/60.png",
+    "logoUrl": "",
     "stadium": "Estadio Defensa y Justicia",
     "budget": 100000000
   },
@@ -1789,7 +1789,7 @@ export const TOP10_LEAGUE_CLUBS: Top10LeagueClubSeed[] = [
     "country": "Argentina",
     "league": "Liga Profesional",
     "division": "1ra División",
-    "logoUrl": "https://cdn.sofifa.net/teams/241/60.png",
+    "logoUrl": "",
     "stadium": "Estadio Deportivo Riestra",
     "budget": 100000000
   },
@@ -1800,7 +1800,7 @@ export const TOP10_LEAGUE_CLUBS: Top10LeagueClubSeed[] = [
     "country": "Argentina",
     "league": "Liga Profesional",
     "division": "1ra División",
-    "logoUrl": "https://drop-assets.ea.com/images/4YAQMFITOGB7FMvl3pAP52/0b2344540d9573f06dea8d5ed3af4bff/l101083.png",
+    "logoUrl": "",
     "stadium": "Estadio Estudiantes",
     "budget": 100000000
   },
@@ -1811,7 +1811,7 @@ export const TOP10_LEAGUE_CLUBS: Top10LeagueClubSeed[] = [
     "country": "Argentina",
     "league": "Liga Profesional",
     "division": "1ra División",
-    "logoUrl": "https://cdn.sofifa.net/teams/241/60.png",
+    "logoUrl": "",
     "stadium": "Estadio Gimnasia LP",
     "budget": 100000000
   },
@@ -1822,7 +1822,7 @@ export const TOP10_LEAGUE_CLUBS: Top10LeagueClubSeed[] = [
     "country": "Argentina",
     "league": "Liga Profesional",
     "division": "1ra División",
-    "logoUrl": "https://drop-assets.ea.com/images/3V3IzF2dwJdQzGTVQhv6EO/36c340ad07362c643a00419c405eedfb/l111706.png",
+    "logoUrl": "",
     "stadium": "Estadio Godoy Cruz",
     "budget": 100000000
   },
@@ -1833,7 +1833,7 @@ export const TOP10_LEAGUE_CLUBS: Top10LeagueClubSeed[] = [
     "country": "Argentina",
     "league": "Liga Profesional",
     "division": "1ra División",
-    "logoUrl": "https://drop-assets.ea.com/images/3FJoWMsQWBn1s7iu1eVCYM/6c279863936f9aa0fd1eb1a704cec7ca/l111711.png",
+    "logoUrl": "",
     "stadium": "Estadio Huracán",
     "budget": 100000000
   },
@@ -1844,7 +1844,7 @@ export const TOP10_LEAGUE_CLUBS: Top10LeagueClubSeed[] = [
     "country": "Argentina",
     "league": "Liga Profesional",
     "division": "1ra División",
-    "logoUrl": "https://drop-assets.ea.com/images/1jWKtSnzOJLCUGQjgSw9B6/1c59266ca28d3abb505fb74ca58f12df/l110093.png",
+    "logoUrl": "",
     "stadium": "Estadio Independiente",
     "budget": 100000000
   },
@@ -1855,7 +1855,7 @@ export const TOP10_LEAGUE_CLUBS: Top10LeagueClubSeed[] = [
     "country": "Argentina",
     "league": "Liga Profesional",
     "division": "1ra División",
-    "logoUrl": "https://cdn.sofifa.net/teams/241/60.png",
+    "logoUrl": "",
     "stadium": "Estadio Independiente Rivadavia",
     "budget": 100000000
   },
@@ -1866,7 +1866,7 @@ export const TOP10_LEAGUE_CLUBS: Top10LeagueClubSeed[] = [
     "country": "Argentina",
     "league": "Liga Profesional",
     "division": "1ra División",
-    "logoUrl": "https://drop-assets.ea.com/images/6kXARUlBpdTR33bUsF4yaf/3b2f25a2172d85c7adca45d0c9c08678/l110953.png",
+    "logoUrl": "",
     "stadium": "Estadio Instituto",
     "budget": 100000000
   },
@@ -1877,7 +1877,7 @@ export const TOP10_LEAGUE_CLUBS: Top10LeagueClubSeed[] = [
     "country": "Argentina",
     "league": "Liga Profesional",
     "division": "1ra División",
-    "logoUrl": "https://drop-assets.ea.com/images/3YdIDtCdoAVx6qHfneuLay/c0dc2285e2422882233c8137a4f40606/l110395.png",
+    "logoUrl": "",
     "stadium": "Estadio Lanús",
     "budget": 100000000
   },
@@ -1888,7 +1888,7 @@ export const TOP10_LEAGUE_CLUBS: Top10LeagueClubSeed[] = [
     "country": "Argentina",
     "league": "Liga Profesional",
     "division": "1ra División",
-    "logoUrl": "https://cdn.sofifa.net/teams/241/60.png",
+    "logoUrl": "",
     "stadium": "Estadio Newell's Old Boys",
     "budget": 100000000
   },
@@ -1899,7 +1899,7 @@ export const TOP10_LEAGUE_CLUBS: Top10LeagueClubSeed[] = [
     "country": "Argentina",
     "league": "Liga Profesional",
     "division": "1ra División",
-    "logoUrl": "https://drop-assets.ea.com/images/5MRmqHRNGOpLB6rt6afdQw/c27a9727c13d5e1fd465b8e91199b290/l112689.png",
+    "logoUrl": "",
     "stadium": "Estadio Platense",
     "budget": 100000000
   },
@@ -1910,7 +1910,7 @@ export const TOP10_LEAGUE_CLUBS: Top10LeagueClubSeed[] = [
     "country": "Argentina",
     "league": "Liga Profesional",
     "division": "1ra División",
-    "logoUrl": "https://drop-assets.ea.com/images/A8RKWVxKQsKjBbty5kzt6/a21fa30821daf7c6a65546e58558c496/l101085.png",
+    "logoUrl": "",
     "stadium": "Estadio Racing Club",
     "budget": 100000000
   },
@@ -1921,7 +1921,7 @@ export const TOP10_LEAGUE_CLUBS: Top10LeagueClubSeed[] = [
     "country": "Argentina",
     "league": "Liga Profesional",
     "division": "1ra División",
-    "logoUrl": "https://drop-assets.ea.com/images/3a9cbBltvLpgMO1eByYVRq/bc311aba63f687dc0480c592dfeca1b4/l1876.png",
+    "logoUrl": "",
     "stadium": "Estadio River Plate",
     "budget": 100000000
   },
@@ -1932,7 +1932,7 @@ export const TOP10_LEAGUE_CLUBS: Top10LeagueClubSeed[] = [
     "country": "Argentina",
     "league": "Liga Profesional",
     "division": "1ra División",
-    "logoUrl": "https://drop-assets.ea.com/images/4A7PCwuGJb5YWjRaD4BuXm/f4161b7e626811f4379ebbc4d28abd15/l110580.png",
+    "logoUrl": "",
     "stadium": "Estadio Rosario Central",
     "budget": 100000000
   },
@@ -1943,7 +1943,7 @@ export const TOP10_LEAGUE_CLUBS: Top10LeagueClubSeed[] = [
     "country": "Argentina",
     "league": "Liga Profesional",
     "division": "1ra División",
-    "logoUrl": "https://drop-assets.ea.com/images/3KG1XvmWFfY1Xp5QJk34KJ/f9dc8f3b7f55053c525a4a44a0c4eb52/l1013.png",
+    "logoUrl": "",
     "stadium": "Estadio San Lorenzo",
     "budget": 100000000
   },
@@ -1954,7 +1954,7 @@ export const TOP10_LEAGUE_CLUBS: Top10LeagueClubSeed[] = [
     "country": "Argentina",
     "league": "Liga Profesional",
     "division": "1ra División",
-    "logoUrl": "https://cdn.sofifa.net/teams/241/60.png",
+    "logoUrl": "",
     "stadium": "Estadio San Martín SJ",
     "budget": 100000000
   },
@@ -1965,7 +1965,7 @@ export const TOP10_LEAGUE_CLUBS: Top10LeagueClubSeed[] = [
     "country": "Argentina",
     "league": "Liga Profesional",
     "division": "1ra División",
-    "logoUrl": "https://drop-assets.ea.com/images/47krh9O79avKCp6PLgVGpZ/d9abdbed5fbdab376713418fe830fee8/l112713.png",
+    "logoUrl": "",
     "stadium": "Estadio Sarmiento",
     "budget": 100000000
   },
@@ -1976,7 +1976,7 @@ export const TOP10_LEAGUE_CLUBS: Top10LeagueClubSeed[] = [
     "country": "Argentina",
     "league": "Liga Profesional",
     "division": "1ra División",
-    "logoUrl": "https://drop-assets.ea.com/images/1R2LqksefAtfdbvZTyQGWH/bc50746e52d4eafae765204e5a4e1dcd/l112670.png",
+    "logoUrl": "",
     "stadium": "Estadio Talleres",
     "budget": 100000000
   },
@@ -1987,7 +1987,7 @@ export const TOP10_LEAGUE_CLUBS: Top10LeagueClubSeed[] = [
     "country": "Argentina",
     "league": "Liga Profesional",
     "division": "1ra División",
-    "logoUrl": "https://drop-assets.ea.com/images/1YnAgAGiL7YIIUPy20mcnh/61c15cbad1d5dd3e65bb186bad72bd00/l111715.png",
+    "logoUrl": "",
     "stadium": "Estadio Tigre",
     "budget": 100000000
   },
@@ -1998,7 +1998,7 @@ export const TOP10_LEAGUE_CLUBS: Top10LeagueClubSeed[] = [
     "country": "Argentina",
     "league": "Liga Profesional",
     "division": "1ra División",
-    "logoUrl": "https://drop-assets.ea.com/images/InPYiKZbKde1NUlkdacCB/fb7a07ab161894e723272605a3ae24db/l111716.png",
+    "logoUrl": "",
     "stadium": "Estadio Unión",
     "budget": 100000000
   },
@@ -2009,7 +2009,7 @@ export const TOP10_LEAGUE_CLUBS: Top10LeagueClubSeed[] = [
     "country": "Argentina",
     "league": "Liga Profesional",
     "division": "1ra División",
-    "logoUrl": "https://drop-assets.ea.com/images/7npiMv3iWuBU6UGoPKMDzm/6856e8f10f2137a1f28d5a911b95c350/l101088.png",
+    "logoUrl": "",
     "stadium": "Estadio Vélez Sarsfield",
     "budget": 100000000
   },
@@ -2020,7 +2020,7 @@ export const TOP10_LEAGUE_CLUBS: Top10LeagueClubSeed[] = [
     "country": "Bélgica",
     "league": "Belgian Pro League",
     "division": "1ra División",
-    "logoUrl": "https://cdn.sofifa.net/teams/241/60.png",
+    "logoUrl": "",
     "stadium": "Estadio Anderlecht",
     "budget": 100000000
   },
@@ -2031,7 +2031,7 @@ export const TOP10_LEAGUE_CLUBS: Top10LeagueClubSeed[] = [
     "country": "Bélgica",
     "league": "Belgian Pro League",
     "division": "1ra División",
-    "logoUrl": "https://cdn.sofifa.net/teams/241/60.png",
+    "logoUrl": "",
     "stadium": "Estadio Antwerp",
     "budget": 100000000
   },
@@ -2042,7 +2042,7 @@ export const TOP10_LEAGUE_CLUBS: Top10LeagueClubSeed[] = [
     "country": "Bélgica",
     "league": "Belgian Pro League",
     "division": "1ra División",
-    "logoUrl": "https://cdn.sofifa.net/teams/241/60.png",
+    "logoUrl": "",
     "stadium": "Estadio Cercle Brugge",
     "budget": 100000000
   },
@@ -2053,7 +2053,7 @@ export const TOP10_LEAGUE_CLUBS: Top10LeagueClubSeed[] = [
     "country": "Bélgica",
     "league": "Belgian Pro League",
     "division": "1ra División",
-    "logoUrl": "https://cdn.sofifa.net/teams/241/60.png",
+    "logoUrl": "",
     "stadium": "Estadio Charleroi",
     "budget": 100000000
   },
@@ -2064,7 +2064,7 @@ export const TOP10_LEAGUE_CLUBS: Top10LeagueClubSeed[] = [
     "country": "Bélgica",
     "league": "Belgian Pro League",
     "division": "1ra División",
-    "logoUrl": "https://cdn.sofifa.net/teams/241/60.png",
+    "logoUrl": "",
     "stadium": "Estadio Club Brugge",
     "budget": 100000000
   },
@@ -2075,7 +2075,7 @@ export const TOP10_LEAGUE_CLUBS: Top10LeagueClubSeed[] = [
     "country": "Bélgica",
     "league": "Belgian Pro League",
     "division": "1ra División",
-    "logoUrl": "https://cdn.sofifa.net/teams/241/60.png",
+    "logoUrl": "",
     "stadium": "Estadio Dender",
     "budget": 100000000
   },
@@ -2086,7 +2086,7 @@ export const TOP10_LEAGUE_CLUBS: Top10LeagueClubSeed[] = [
     "country": "Bélgica",
     "league": "Belgian Pro League",
     "division": "1ra División",
-    "logoUrl": "https://cdn.sofifa.net/teams/241/60.png",
+    "logoUrl": "",
     "stadium": "Estadio Genk",
     "budget": 100000000
   },
@@ -2097,7 +2097,7 @@ export const TOP10_LEAGUE_CLUBS: Top10LeagueClubSeed[] = [
     "country": "Bélgica",
     "league": "Belgian Pro League",
     "division": "1ra División",
-    "logoUrl": "https://drop-assets.ea.com/images/6yyNmrjeahHfB0uWJP0pD/1531a54f512af00033f9dbe78c78c0bb/l674.png",
+    "logoUrl": "",
     "stadium": "Estadio KAA Gent",
     "budget": 100000000
   },
@@ -2108,7 +2108,7 @@ export const TOP10_LEAGUE_CLUBS: Top10LeagueClubSeed[] = [
     "country": "Bélgica",
     "league": "Belgian Pro League",
     "division": "1ra División",
-    "logoUrl": "https://cdn.sofifa.net/teams/241/60.png",
+    "logoUrl": "",
     "stadium": "Estadio Kortrijk",
     "budget": 100000000
   },
@@ -2119,7 +2119,7 @@ export const TOP10_LEAGUE_CLUBS: Top10LeagueClubSeed[] = [
     "country": "Bélgica",
     "league": "Belgian Pro League",
     "division": "1ra División",
-    "logoUrl": "https://cdn.sofifa.net/teams/241/60.png",
+    "logoUrl": "",
     "stadium": "Estadio Mechelen",
     "budget": 100000000
   },
@@ -2130,7 +2130,7 @@ export const TOP10_LEAGUE_CLUBS: Top10LeagueClubSeed[] = [
     "country": "Bélgica",
     "league": "Belgian Pro League",
     "division": "1ra División",
-    "logoUrl": "https://drop-assets.ea.com/images/BKrD9M2cbnE405KQhTSbs/63ee6b09efc556a3d9a5444805713ead/l100087.png",
+    "logoUrl": "",
     "stadium": "Estadio OH Leuven",
     "budget": 100000000
   },
@@ -2141,7 +2141,7 @@ export const TOP10_LEAGUE_CLUBS: Top10LeagueClubSeed[] = [
     "country": "Bélgica",
     "league": "Belgian Pro League",
     "division": "1ra División",
-    "logoUrl": "https://cdn.sofifa.net/teams/241/60.png",
+    "logoUrl": "",
     "stadium": "Estadio RAAL La Louvière",
     "budget": 100000000
   },
@@ -2152,7 +2152,7 @@ export const TOP10_LEAGUE_CLUBS: Top10LeagueClubSeed[] = [
     "country": "Bélgica",
     "league": "Belgian Pro League",
     "division": "1ra División",
-    "logoUrl": "https://cdn.sofifa.net/teams/241/60.png",
+    "logoUrl": "",
     "stadium": "Estadio Sint-Truiden",
     "budget": 100000000
   },
@@ -2163,7 +2163,7 @@ export const TOP10_LEAGUE_CLUBS: Top10LeagueClubSeed[] = [
     "country": "Bélgica",
     "league": "Belgian Pro League",
     "division": "1ra División",
-    "logoUrl": "https://cdn.sofifa.net/teams/241/60.png",
+    "logoUrl": "",
     "stadium": "Estadio Standard Liège",
     "budget": 100000000
   },
@@ -2174,7 +2174,7 @@ export const TOP10_LEAGUE_CLUBS: Top10LeagueClubSeed[] = [
     "country": "Bélgica",
     "league": "Belgian Pro League",
     "division": "1ra División",
-    "logoUrl": "https://cdn.sofifa.net/teams/241/60.png",
+    "logoUrl": "",
     "stadium": "Estadio Union Saint-Gilloise",
     "budget": 100000000
   },
@@ -2185,7 +2185,7 @@ export const TOP10_LEAGUE_CLUBS: Top10LeagueClubSeed[] = [
     "country": "Bélgica",
     "league": "Belgian Pro League",
     "division": "1ra División",
-    "logoUrl": "https://cdn.sofifa.net/teams/241/60.png",
+    "logoUrl": "",
     "stadium": "Estadio Westerlo",
     "budget": 100000000
   }

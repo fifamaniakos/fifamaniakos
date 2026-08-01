@@ -203,17 +203,24 @@ export default function App() {
   );
 
   const sofifaClubsByName = new Map(SOFIFA_CLUBS.map(c => [c.name.toLowerCase(), c.logoUrl]));
-  const initialClubsByName = new Map(INITIAL_CLUBS.map(c => [c.name.toLowerCase(), c.logoUrl]));
-  const initialClubsById = new Map(INITIAL_CLUBS.map(c => [c.id, c.logoUrl]));
+  const initialClubDataByName = new Map(INITIAL_CLUBS.map(c => [c.name.toLowerCase(), c]));
+  const initialClubDataById = new Map(INITIAL_CLUBS.map(c => [c.id, c]));
 
-  const rawClubsWithLogos = rawClubs.map(club => {
-    if (club.logoUrl && club.logoUrl.trim() !== '') return club;
+  const rawClubsWithSeedData = rawClubs.map(club => {
+    const seedClub = initialClubDataById.get(club.id) || initialClubDataByName.get(club.name.toLowerCase());
+    const isImportedTop10Club = club.id.startsWith('club-top10-');
     const logoUrl =
+      isImportedTop10Club ? '' :
+      (club.logoUrl && club.logoUrl.trim() !== '' ? club.logoUrl : '') ||
       sofifaClubsByName.get(club.name.toLowerCase()) ||
-      initialClubsById.get(club.id) ||
-      initialClubsByName.get(club.name.toLowerCase()) ||
+      seedClub?.logoUrl ||
       '';
-    return { ...club, logoUrl };
+    return {
+      ...club,
+      logoUrl,
+      country: club.country || seedClub?.country,
+      league: club.league || seedClub?.league
+    };
   });
 
   const [matches, setMatches, , matchesWriteError, clearMatchesWriteError] = useSupabaseTable<MatchResult>(
@@ -228,7 +235,7 @@ export default function App() {
     clearClubsWriteError();
   };
 
-  const clubs = recalculateStandings(ensure36FirstDivClubs(rawClubsWithLogos), matches);
+  const clubs = recalculateStandings(ensure36FirstDivClubs(rawClubsWithSeedData), matches);
 
   // El club "activo" de un manager es el vinculado a su cuenta autenticada,
   // no uno elegido libremente -- un manager no puede hacerse pasar por otro
