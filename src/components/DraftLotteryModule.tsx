@@ -3,15 +3,13 @@ import { ClubLogo } from './ClubLogo';
 import { PlayerAvatar } from './PlayerAvatar';
 import { ImageWithFallback } from './ImageWithFallback';
 import { Club, Player } from '../types';
-import { DRAFT_BOMBO_TEAMS } from '../data/initialData';
 import { SOFIFA_PLAYERS, SoFifaPlayerPreset } from '../data/sofifaData';
-import { Shuffle, Sparkles, Trophy, Globe, CheckCircle, RefreshCw, Dices, Award, Users, Play, Shield, UserCheck, Filter, Star, ChevronDown } from 'lucide-react';
+import { Shuffle, Sparkles, CheckCircle, RefreshCw, Dices, Award, Users, Play, Filter, Star, ChevronDown } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
 interface DraftLotteryModuleProps {
   registeredClubs: Club[];
   isAdmin?: boolean;
-  onAssignDraftClub?: (registeredClubId: string, assignedPreset: any) => void;
   onAssignDraftPlayer?: (registeredClubId: string, playerPreset: SoFifaPlayerPreset) => void;
   onAssignFullSquadDraft?: (registeredClubId: string, playerPresets: SoFifaPlayerPreset[]) => void;
 }
@@ -19,17 +17,9 @@ interface DraftLotteryModuleProps {
 export const DraftLotteryModule: React.FC<DraftLotteryModuleProps> = ({
   registeredClubs,
   isAdmin = false,
-  onAssignDraftClub,
   onAssignDraftPlayer,
   onAssignFullSquadDraft
 }) => {
-  // Pestaña activa: 'teams' (Draft de Equipos) o 'players' (Draft de Jugadores Top Stats)
-  const [draftMode, setDraftMode] = useState<'teams' | 'players'>('players');
-
-  // Estado del Draft de Equipos
-  const [bomboTeams, setBomboTeams] = useState<any[]>(DRAFT_BOMBO_TEAMS);
-  const [highlightedPreset, setHighlightedPreset] = useState<any | null>(null);
-
   // Estado del Draft de Jugadores (Top Stats)
   const [minRating, setMinRating] = useState<number>(85);
   const [selectedPosition, setSelectedPosition] = useState<string>('TODAS');
@@ -37,7 +27,7 @@ export const DraftLotteryModule: React.FC<DraftLotteryModuleProps> = ({
   const [highlightedPlayer, setHighlightedPlayer] = useState<SoFifaPlayerPreset | null>(null);
 
   const [isSpinning, setIsSpinning] = useState(false);
-  const [lotteryHistory, setLotteryHistory] = useState<Array<{ type: 'team' | 'player'; title: string; manager: string; subtext: string; imgUrl: string; badge?: string }>>([]);
+  const [lotteryHistory, setLotteryHistory] = useState<Array<{ type: 'player'; title: string; manager: string; subtext: string; imgUrl: string; badge?: string }>>([]);
 
   const [targetManagerId, setTargetManagerId] = useState<string>(registeredClubs[0]?.id || '');
   const [assignedDTName, setAssignedDTName] = useState<string>('');
@@ -62,73 +52,6 @@ export const DraftLotteryModule: React.FC<DraftLotteryModuleProps> = ({
     }
     setAvailablePlayers(filtered);
   }, [minRating, selectedPosition]);
-
-  // Ejecutar sorteo de equipos
-  const handleStartTeamDraw = () => {
-    if (bomboTeams.length === 0) {
-      alert('¡Se han sorteado todos los equipos disponibles del bombo!');
-      return;
-    }
-
-    if (!targetManagerId) {
-      alert('Por favor selecciona un DT / Participante para sortearle equipo.');
-      return;
-    }
-
-    const managerObj = registeredClubs.find(c => c.id === targetManagerId);
-    const finalManagerName = managerObj ? `${managerObj.manager} (${managerObj.gamertag})` : 'DT Participante';
-
-    setIsSpinning(true);
-    let counter = 0;
-    const maxSpins = 25;
-    const speed = 80;
-
-    const interval = setInterval(() => {
-      const randomIdx = Math.floor(Math.random() * bomboTeams.length);
-      setHighlightedPreset(bomboTeams[randomIdx]);
-      counter++;
-
-      if (counter >= maxSpins) {
-        clearInterval(interval);
-        setIsSpinning(false);
-
-        const winnerIdx = Math.floor(Math.random() * bomboTeams.length);
-        const finalWinner = bomboTeams[winnerIdx];
-        setHighlightedPreset(finalWinner);
-        setAssignedDTName(finalManagerName);
-
-        setBomboTeams(prev => prev.filter((_, idx) => idx !== winnerIdx));
-
-        confetti({
-          particleCount: 100,
-          spread: 80,
-          origin: { y: 0.6 }
-        });
-
-        setLotteryHistory(prev => [
-          {
-            type: 'team',
-            title: finalWinner.name,
-            manager: finalManagerName,
-            subtext: `Estadio: ${finalWinner.stadium}`,
-            imgUrl: finalWinner.logoUrl,
-            badge: 'Equipo Asignado'
-          },
-          ...prev
-        ]);
-
-        if (targetManagerId && onAssignDraftClub) {
-          onAssignDraftClub(targetManagerId, {
-            name: finalWinner.name,
-            shortName: finalWinner.shortName,
-            logoUrl: finalWinner.logoUrl,
-            stadium: finalWinner.stadium,
-            defaultBudget: finalWinner.defaultBudget
-          });
-        }
-      }
-    }, speed);
-  };
 
   // Ejecutar sorteo de jugadores con Stats Altos
   const handleStartPlayerDraw = () => {
@@ -278,8 +201,6 @@ export const DraftLotteryModule: React.FC<DraftLotteryModuleProps> = ({
   // Reiniciar estado del Draft (solo accesible para Admin)
   const handleResetDraft = () => {
     if (confirm('⚠️ ¿Reiniciar todo el historial de Draft y restablecer los bombos de sorteo?')) {
-      setBomboTeams(DRAFT_BOMBO_TEAMS);
-      setHighlightedPreset(null);
       setHighlightedPlayer(null);
       setLastSquadGenerated(null);
       setLotteryHistory([]);
@@ -360,7 +281,7 @@ export const DraftLotteryModule: React.FC<DraftLotteryModuleProps> = ({
                 Draft Oficial de la Liga Online
               </h2>
               <p className="text-xs text-slate-300 font-tech mt-0.5">
-                Sortea aleatoriamente Equipos Oficiales o Plantillas de Jugadores Equitativas (Máx 3 Cracks)
+                Sortea plantillas de jugadores equitativas para los clubes elegidos por sus managers al inscribirse
               </p>
             </div>
           </div>
@@ -376,30 +297,6 @@ export const DraftLotteryModule: React.FC<DraftLotteryModuleProps> = ({
                 <RefreshCw className="w-3.5 h-3.5" /> Reset Draft
               </button>
             )}
-
-            {/* Selector de Modo de Draft */}
-            <div className="flex items-center bg-slate-900/80 p-1.5 rounded-xl border border-slate-700/80 flex-1 md:flex-initial">
-              <button
-                onClick={() => setDraftMode('players')}
-                className={`flex-1 md:flex-initial px-4 py-2 rounded-lg text-xs font-extrabold uppercase transition flex items-center justify-center gap-2 ${
-                  draftMode === 'players'
-                    ? 'bg-[#02f59b] text-slate-950 shadow-md'
-                    : 'text-slate-300 hover:text-white'
-                }`}
-              >
-                <Star className="w-4 h-4" /> Draft Jugadores Top
-              </button>
-              <button
-                onClick={() => setDraftMode('teams')}
-                className={`flex-1 md:flex-initial px-4 py-2 rounded-lg text-xs font-extrabold uppercase transition flex items-center justify-center gap-2 ${
-                  draftMode === 'teams'
-                    ? 'bg-[#02f59b] text-slate-950 shadow-md'
-                    : 'text-slate-300 hover:text-white'
-                }`}
-              >
-                <Shield className="w-4 h-4" /> Draft de Equipos
-              </button>
-            </div>
           </div>
         </div>
       </div>
@@ -456,7 +353,7 @@ export const DraftLotteryModule: React.FC<DraftLotteryModuleProps> = ({
         <div className="fc-card p-6 rounded-2xl bg-white border-slate-200 shadow-md space-y-5 h-auto">
           <h3 className="font-display font-black text-lg text-slate-900 uppercase italic flex items-center gap-2 border-b border-slate-100 pb-3">
             <Shuffle className="w-5 h-5 text-emerald-600" />
-            {draftMode === 'players' ? 'Draft de Jugadores Top Stats' : 'Configuración de Equipos'}
+            Draft de Jugadores Top Stats
           </h3>
 
           {/* Manager Participante y Tarjeta Unificada de Club */}
@@ -574,9 +471,7 @@ export const DraftLotteryModule: React.FC<DraftLotteryModuleProps> = ({
             })()}
           </div>
 
-          {/* Filtros Exclusivos para Draft de Jugadores */}
-          {draftMode === 'players' && (
-            <div className="space-y-4 pt-2 border-t border-slate-100">
+          <div className="space-y-4 pt-2 border-t border-slate-100">
               <div>
                 <label className="block text-xs font-bold uppercase text-slate-700 font-tech mb-1 flex items-center justify-between">
                   <span className="flex items-center gap-1.5"><Filter className="w-3.5 h-3.5 text-slate-500" /> Rating Mínimo (OVR)</span>
@@ -620,17 +515,8 @@ export const DraftLotteryModule: React.FC<DraftLotteryModuleProps> = ({
                 <span className="font-bold text-emerald-800 text-sm">{availablePlayers.length} cracks</span>
               </div>
             </div>
-          )}
 
-          {draftMode === 'teams' && (
-            <div className="bg-slate-50 p-3 rounded-xl border border-slate-200 text-xs font-tech text-slate-600 flex items-center justify-between">
-              <span>Equipos Restantes en Bombo:</span>
-              <span className="font-bold text-emerald-700 text-sm">{bomboTeams.length} disponibles</span>
-            </div>
-          )}
-
-          {draftMode === 'players' && (
-            <div className="space-y-3 pt-2 border-t border-slate-100">
+          <div className="space-y-3 pt-2 border-t border-slate-100">
               <div>
                 <label className="block text-xs font-bold uppercase text-slate-700 font-tech mb-1 flex items-center justify-between">
                   <span>Tope de Cracks Elite por Plantilla</span>
@@ -666,18 +552,15 @@ export const DraftLotteryModule: React.FC<DraftLotteryModuleProps> = ({
               <p className="text-[10px] text-slate-500 font-tech text-center">
                 Garantiza equidad: Máx {maxTopPlayers} Cracks (+86 OVR) + 19 Jugadores Competitivos (78-85 OVR)
               </p>
-            </div>
-          )}
+          </div>
 
           <button
-            onClick={draftMode === 'players' ? handleStartPlayerDraw : handleStartTeamDraw}
-            disabled={isSpinning || (draftMode === 'players' ? availablePlayers.length === 0 : bomboTeams.length === 0)}
+            onClick={handleStartPlayerDraw}
+            disabled={isSpinning || availablePlayers.length === 0}
             className="w-full fc-button-primary py-3 text-xs font-extrabold uppercase shadow-md flex items-center justify-center gap-2 hover:scale-102 transition disabled:opacity-50"
           >
             <Play className={`w-4 h-4 ${isSpinning ? 'animate-spin' : ''}`} />
-            {isSpinning
-              ? (draftMode === 'players' ? 'Sorteando Jugador...' : 'Sorteando Equipo...')
-              : (draftMode === 'players' ? 'Sortear 1 Jugador Individual' : 'Sortear 1 Equipo')}
+            {isSpinning ? 'Sorteando Jugador...' : 'Sortear 1 Jugador Individual'}
           </button>
 
           {/* Insignia / Banner Oficial FIFAMANIAKOS FC 27 para rellenar el espacio inferior */}
@@ -699,7 +582,7 @@ export const DraftLotteryModule: React.FC<DraftLotteryModuleProps> = ({
         {/* Resultado del Draft (Tema Claro & Vista por Filas) */}
         <div className="lg:col-span-2 space-y-6">
           {/* Muestra de Plantilla Completa de 22 Jugadores Sorteada (Tema Claro) */}
-          {draftMode === 'players' && lastSquadGenerated && (
+          {lastSquadGenerated && (
             <div className="fc-card p-6 rounded-2xl bg-white border-2 border-emerald-500 text-slate-900 shadow-xl space-y-5">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
                 <div>
@@ -760,14 +643,14 @@ export const DraftLotteryModule: React.FC<DraftLotteryModuleProps> = ({
           )}
 
           {/* Animación/Ruleta Individual (Solo visible cuando se gira la ruleta o hay selección individual) */}
-          {(isSpinning || (draftMode === 'players' ? highlightedPlayer : highlightedPreset)) && (
+          {(isSpinning || highlightedPlayer) && (
             <div className="fc-card p-6 rounded-2xl bg-white border border-slate-200 text-slate-900 shadow-lg text-center space-y-4 relative overflow-hidden flex flex-col justify-center items-center">
               <span className="text-xs font-tech text-emerald-600 uppercase tracking-widest font-bold flex items-center gap-2">
                 <Sparkles className="w-4 h-4" /> Resultado Sorteo Individual
               </span>
 
               {/* Resultado Modo Jugadores */}
-              {draftMode === 'players' && highlightedPlayer && (
+              {highlightedPlayer && (
                 <div className={`space-y-3 transition-all duration-150 ${isSpinning ? 'scale-95 opacity-80 blur-xs' : 'scale-100 opacity-100'}`}>
                   <div className="w-28 h-28 mx-auto rounded-2xl bg-slate-100 border-2 border-emerald-500 p-2 shadow-md flex items-center justify-center relative overflow-hidden">
                     <PlayerAvatar
@@ -800,29 +683,6 @@ export const DraftLotteryModule: React.FC<DraftLotteryModuleProps> = ({
                 </div>
               )}
 
-              {/* Resultado Modo Equipos */}
-              {draftMode === 'teams' && highlightedPreset && (
-                <div className={`space-y-3 transition-all duration-150 ${isSpinning ? 'scale-95 opacity-80 blur-xs' : 'scale-100 opacity-100'}`}>
-                  <div className="w-28 h-28 mx-auto rounded-2xl bg-slate-50 border-2 border-emerald-500 p-3 shadow-md flex items-center justify-center">
-                    <ClubLogo
-                      src={highlightedPreset.logoUrl}
-                      alt={highlightedPreset.name}
-                      className="w-full h-full object-cover rounded-xl"
-                    />
-                  </div>
-                  <div>
-                    <h2 className="font-display font-black text-2xl text-slate-900 uppercase italic tracking-wide">
-                      {highlightedPreset.name}
-                    </h2>
-                    <div className="mt-2 inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-800 font-tech font-bold text-xs">
-                      👤 Asignado a: <span className="text-slate-900 font-black uppercase">{assignedDTName || 'DT Participante'}</span>
-                    </div>
-                    <span className="text-xs text-slate-500 font-tech block mt-1">
-                      🏟️ Estadio: {highlightedPreset.stadium} • Presupuesto: €{(highlightedPreset.budget || 100000000).toLocaleString('es-ES')}
-                    </span>
-                  </div>
-                </div>
-              )}
             </div>
           )}
 

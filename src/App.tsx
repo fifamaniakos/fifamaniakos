@@ -1067,29 +1067,6 @@ export default function App() {
           <DraftLotteryModule
             registeredClubs={clubs}
             isAdmin={isAdminLoggedIn}
-            onAssignDraftClub={(clubId, preset) => {
-              // clubId puede ser un slot virtual (club-1ra-slot-N) que
-              // ensure36FirstDivClubs agrega solo para mostrar, y que todavia
-              // no existe como fila real en Supabase. Si se lo busca con
-              // .map() sobre la lista real (rawClubs), no aparece y el update
-              // no hace nada, sin error. Por eso se busca la base en `clubs`
-              // (la lista ya completada) y se agrega si prev no la tiene.
-              setClubs(prev => {
-                const base = clubs.find(c => c.id === clubId);
-                if (!base) return prev;
-                const updated = {
-                  ...base,
-                  name: preset.name,
-                  shortName: preset.shortName,
-                  logoUrl: preset.logoUrl,
-                  stadium: preset.stadium,
-                  budget: preset.defaultBudget
-                };
-                return prev.some(c => c.id === clubId)
-                  ? prev.map(c => c.id === clubId ? updated : c)
-                  : [...prev, updated];
-              });
-            }}
             onAssignDraftPlayer={(clubId, playerPreset) => {
               const newPlayer: Player = {
                 id: `pl-draft-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
