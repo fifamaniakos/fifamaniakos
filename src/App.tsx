@@ -667,7 +667,7 @@ export default function App() {
     }));
   };
 
-  const handleGenerateFixtures = (competitionName?: string) => {
+  const handleGenerateFixtures = (competitionName?: string, silent: boolean = false) => {
     // Solo juegan los clubes con un DT real. La semilla de clubes (migracion
     // 009) carga 234 clubes marcados como "1ra Division" para que el usuario
     // elija uno al inscribirse -- son un catalogo, no participantes. Sin este
@@ -682,7 +682,7 @@ export default function App() {
     });
 
     if (activeClubs.length < 2) {
-      alert('Se necesitan al menos 2 clubes con DT inscripto para generar el fixture.');
+      if (!silent) alert('Se necesitan al menos 2 clubes con DT inscripto para generar el fixture.');
       return;
     }
 
@@ -700,6 +700,21 @@ export default function App() {
     }
     setMatches(newMatches);
   };
+
+  // Si el admin cambia el cupo de una division (Panel de Administracion ->
+  // Cuentas), el fixture de esa division se rearma solo -- sin esto, cambiar
+  // de 36 a 20 equipos dejaba la cantidad de jornadas vieja hasta que
+  // alguien tocara "Generar Fixtures" a mano.
+  const prevDivisionCountsRef = React.useRef<{ div1: number; div2: number } | null>(null);
+  useEffect(() => {
+    if (!isAdminLoggedIn) return;
+    const prev = prevDivisionCountsRef.current;
+    prevDivisionCountsRef.current = { div1: division1TeamCount, div2: division2TeamCount };
+    if (!prev) return; // no regenerar en el primer render, solo ante un cambio real
+
+    if (prev.div1 !== division1TeamCount) handleGenerateFixtures('1ra División', true);
+    if (prev.div2 !== division2TeamCount) handleGenerateFixtures('2da División', true);
+  }, [division1TeamCount, division2TeamCount, isAdminLoggedIn]);
 
   // Generar partidos de eliminatorias es una operacion de nivel admin (crea
   // partidos entre clubes que no son necesariamente el propio) — si corriera
