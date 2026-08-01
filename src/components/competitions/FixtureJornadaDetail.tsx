@@ -704,26 +704,41 @@ export const FixtureJornadaDetail: React.FC<FixtureJornadaDetailProps> = ({
         )}
       </Modal>
 
-      {selectedMatch && (
-        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="fc-card max-w-lg w-full p-6 rounded-2xl border-emerald-300 shadow-2xl space-y-4 animate-scale-up">
-            <div className="flex justify-between items-center border-b border-slate-200 pb-3">
-              <h2 className="font-display font-bold text-lg text-slate-900 uppercase italic flex items-center gap-2">
-                <CheckCircle2 className="w-5 h-5 text-[#00ba68]" /> Acta de Partido Jornada {selectedMatch.matchday}
-              </h2>
-              <button onClick={() => setSelectedMatch(null)} className="text-slate-400 hover:text-slate-800">✕</button>
-            </div>
-
-            <div className="text-center space-y-2 py-2">
-              <div className="font-display font-black text-3xl text-slate-900">
-                {selectedMatch.homeGoals} - {selectedMatch.awayGoals}
+      {selectedMatch && (() => {
+        const matchHomeClub = clubs.find(c => c.id === selectedMatch.homeClubId);
+        const matchAwayClub = clubs.find(c => c.id === selectedMatch.awayClubId);
+        return (
+          <Modal
+            isOpen={Boolean(selectedMatch)}
+            onClose={() => setSelectedMatch(null)}
+            title={`Acta de Partido · ${matchRoundLabel(selectedMatch)}`}
+            subtitle="Marcador oficial y eventos del partido"
+            badgeText="ACTA OFICIAL FIFAMANIAKOS"
+            icon={<CheckCircle2 className="w-5 h-5 text-[#02f59b]" />}
+            maxWidth="lg"
+          >
+            <div className="flex items-center justify-center gap-4 sm:gap-6 py-2">
+              <div className="flex flex-col items-center gap-2 flex-1 min-w-0">
+                <ClubLogo src={matchHomeClub?.logoUrl} alt={matchHomeClub?.name} className="w-14 h-14 rounded-lg object-cover border border-slate-200 shrink-0" />
+                <span className="font-display font-extrabold text-xs sm:text-sm text-slate-900 text-center truncate w-full">{matchHomeClub?.name || 'Local'}</span>
               </div>
-              <div className="text-xs text-slate-500 font-mono">{selectedMatch.createdAt}</div>
+
+              <div className="flex flex-col items-center gap-1 shrink-0">
+                <div className="px-4 py-1.5 bg-slate-900 rounded-lg border border-emerald-500 font-display font-black text-2xl text-[#02f59b] tracking-wider shadow-sm">
+                  {selectedMatch.homeGoals} - {selectedMatch.awayGoals}
+                </div>
+                <div className="text-[10px] text-slate-500 font-mono">{selectedMatch.createdAt}</div>
+              </div>
+
+              <div className="flex flex-col items-center gap-2 flex-1 min-w-0">
+                <ClubLogo src={matchAwayClub?.logoUrl} alt={matchAwayClub?.name} className="w-14 h-14 rounded-lg object-cover border border-slate-200 shrink-0" />
+                <span className="font-display font-extrabold text-xs sm:text-sm text-slate-900 text-center truncate w-full">{matchAwayClub?.name || 'Visitante'}</span>
+              </div>
             </div>
 
             <div className="space-y-2 text-xs font-sans bg-slate-50 p-3.5 rounded-xl border border-slate-200">
-              <p><strong className="text-emerald-700">Goleadores Local:</strong> {selectedMatch.homeScorers}</p>
-              <p><strong className="text-emerald-700">Goleadores Visitante:</strong> {selectedMatch.awayScorers}</p>
+              <p><strong className="text-emerald-700">Goleadores Local:</strong> {selectedMatch.homeScorers || '-'}</p>
+              <p><strong className="text-emerald-700">Goleadores Visitante:</strong> {selectedMatch.awayScorers || '-'}</p>
               {selectedMatch.homeAssists && <p><strong className="text-cyan-700">Asistencias Local:</strong> {selectedMatch.homeAssists}</p>}
               {selectedMatch.awayAssists && <p><strong className="text-cyan-700">Asistencias Visitante:</strong> {selectedMatch.awayAssists}</p>}
               {selectedMatch.homeYellowCards && <p><strong className="text-amber-700">T. Amarillas Local:</strong> {selectedMatch.homeYellowCards}</p>}
@@ -738,9 +753,9 @@ export const FixtureJornadaDetail: React.FC<FixtureJornadaDetailProps> = ({
                 <ImageWithFallback src={selectedMatch.proofImageUrl} alt="Prueba de Partido FC 27" className="w-full object-cover max-h-72" />
               </div>
             )}
-          </div>
-        </div>
-      )}
+          </Modal>
+        );
+      })()}
 
       {successResult && (
         <div className="fixed inset-0 z-50 bg-slate-900/70 backdrop-blur-sm flex items-center justify-center p-4">
