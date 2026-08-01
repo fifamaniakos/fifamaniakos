@@ -80,6 +80,28 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return () => sub.subscription.unsubscribe();
   }, []);
 
+  // Si el club_id (u otro dato) de la propia fila en `managers` cambia del lado
+  // del servidor -- ej: un admin lo vincula o corrige a mano -- sin esto el
+  // `profile` en memoria quedaba desactualizado hasta cerrar sesion y volver
+  // a entrar, y funciones como "es mi propio partido" comparaban mal.
+  useEffect(() => {
+    const userId = session?.user.id;
+    if (!userId) return;
+
+    const channel = supabase
+      .channel(`realtime:own-manager-row:${userId}`)
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'managers', filter: `user_id=eq.${userId}` },
+        () => loadProfile(userId)
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [session?.user.id]);
+
   const signUp: AuthContextValue['signUp'] = async ({ email, password, gamertag, platform }) => {
     const { data: taken } = await supabase.rpc('gamertag_taken', {
       p_gamertag: gamertag,
