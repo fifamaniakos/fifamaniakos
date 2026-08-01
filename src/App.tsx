@@ -137,31 +137,28 @@ export default function App() {
     return manager.includes('vacante') || manager.includes('por inscribir');
   };
 
-  // Recorta o completa una division al cupo exacto que definio el admin. Los
-  // clubes con DT real nunca se ocultan (para no romper una cuenta ya
-  // registrada, aunque el admin haya bajado el cupo por debajo de esa
-  // cantidad); el resto del cupo se llena con clubes vacantes existentes
-  // (ordenados por nombre para que el recorte sea estable entre renders) y,
-  // si no alcanzan, se completa con "Equipo N" nuevos.
-  const capDivisionToCount = (
+  // Arma la lista de participantes de una division: los clubes que ya tienen
+  // DT, mas lugares vacios genericos ("Equipo N") hasta llegar al cupo.
+  //
+  // Los clubes vacantes que vienen de la semilla (migracion 009, 234 clubes)
+  // NO entran aca: son un catalogo para que el usuario elija uno al
+  // inscribirse, no equipos jugando. Cuando se rellenaba el cupo con ellos,
+  // la liga terminaba con entradas casi identicas del catalogo (ej: "Bayern
+  // Munich" junto al "FC Bayern München" ya reclamado) y parecian duplicados.
+  const buildDivisionParticipants = (
     divisionClubs: Club[],
     targetCount: number,
     idPrefix: string,
     divisionLabel: '1ra División' | '2da División'
   ): Club[] => {
     const claimedClubs = divisionClubs.filter(c => !isVacantClub(c));
-    const vacantClubs = [...divisionClubs.filter(isVacantClub)].sort((a, b) => a.name.localeCompare(b.name));
-
-    const remainingSlots = Math.max(0, targetCount - claimedClubs.length);
-    const result = [...claimedClubs, ...vacantClubs.slice(0, remainingSlots)];
-
-    return padDivisionToCount(result, targetCount, idPrefix, divisionLabel);
+    return padDivisionToCount(claimedClubs, targetCount, idPrefix, divisionLabel);
   };
 
   // El admin define cuantos equipos tiene cada division (Panel de
   // Administracion -> Cuentas); por defecto 1ra arranca en 36 y 2da en 0
   // (sin clubes) hasta que el admin la configure.
-  const ensureDivisionTeamCounts = (
+  const buildLeagueClubs = (
     loadedClubs: Club[],
     division1TeamCount: number,
     division2TeamCount: number
@@ -172,16 +169,11 @@ export default function App() {
     const div2Clubs = loadedClubs.filter(
       c => c.division === '2da División' || c.division === 'Segunda División'
     );
-    const otherDivClubs = loadedClubs.filter(
-      c => c.division
-        && c.division !== '1ra División' && c.division !== 'Primera División'
-        && c.division !== '2da División' && c.division !== 'Segunda División'
-    );
 
-    const cappedDiv1 = capDivisionToCount(div1Clubs, division1TeamCount, 'club-1ra-slot', '1ra División');
-    const cappedDiv2 = capDivisionToCount(div2Clubs, division2TeamCount, 'club-2da-slot', '2da División');
-
-    return [...cappedDiv1, ...cappedDiv2, ...otherDivClubs];
+    return [
+      ...buildDivisionParticipants(div1Clubs, division1TeamCount, 'club-1ra-slot', '1ra División'),
+      ...buildDivisionParticipants(div2Clubs, division2TeamCount, 'club-2da-slot', '2da División')
+    ];
   };
 
   // Helper to recalculate standings for all clubs based on confirmed matches.
@@ -306,7 +298,16 @@ export default function App() {
   const setDivision2TeamCount = (n: number) =>
     setLeagueSettings([{ ...currentLeagueSettings, id: 'current', currentSeasonNumber, division2TeamCount: n }]);
 
-  const clubs = recalculateStandings(ensureDivisionTeamCounts(rawClubsWithSeedData, division1TeamCount, division2TeamCount), matches);
+  // `clubs` es el catalogo completo (incluye los 234 clubes elegibles al
+  // inscribirse); `leagueClubs` son los que realmente juegan la liga: los
+  // reclamados por un DT mas los lugares libres hasta el cupo. La tabla de
+  // posiciones y el fixture usan `leagueClubs`; el modal de inscripcion y el
+  // panel de admin siguen usando `clubs`.
+  const clubs = recalculateStandings(rawClubsWithSeedData, matches);
+  const leagueClubs = recalculateStandings(
+    buildLeagueClubs(rawClubsWithSeedData, division1TeamCount, division2TeamCount),
+    matches
+  );
 
   // El club "activo" de un manager es el vinculado a su cuenta autenticada,
   // no uno elegido libremente -- un manager no puede hacerse pasar por otro
@@ -673,19 +674,19 @@ export default function App() {
     // llenando a medida que se inscriben managers, asi que la cantidad de
     // jornadas depende del cupo y no de cuantos DTs hay hoy.
     //
-    // `clubs` ya viene recortado al cupo de cada division por
-    // ensureDivisionTeamCounts, por eso aca no hace falta filtrar de nuevo:
-    // ese recorte es lo que evita el fixture gigante de los 234 clubes de la
-    // semilla (migracion 009), que moria por timeout al guardarse y dejaba
-    // partidos viejos y nuevos mezclados.
-    if (clubs.length < 2) {
+    // Se usa `leagueClubs` (clubes con DT + lugares libres hasta el cupo), no
+    // el catalogo completo: los 234 clubes de la semilla (migracion 009) son
+    // opciones para elegir al inscribirse, no equipos jugando. Armar el
+    // fixture con todos ellos generaba +54.000 partidos que morian por
+    // timeout al guardarse, dejando partidos viejos y nuevos mezclados.
+    if (leagueClubs.length < 2) {
       if (!silent) alert('Se necesitan al menos 2 clubes para generar el fixture.');
       return;
     }
 
     let newMatches: MatchResult[] = [];
     if (competitionName && competitionName !== 'TODAS') {
-      const compClubs = clubs.filter(c =>
+      const compClubs = leagueClubs.filter(c =>
         competitionName === '2da División'
           ? (c.division === '2da División' || c.division === 'Segunda División')
           : (!c.division || c.division === '1ra División' || c.division === 'Primera División')
@@ -697,7 +698,7 @@ export default function App() {
         newMatches = [...matches.filter(m => m.competition !== competitionName), ...generated];
       }
     } else {
-      newMatches = generateAllCompetitionsFixtures(clubs);
+      newMatches = generateAllCompetitionsFixtures(leagueClubs);
     }
     setMatches(newMatches);
   };
@@ -723,13 +724,13 @@ export default function App() {
   useEffect(() => {
     if (!isAdminLoggedIn) return;
     setMatches(prev => {
-      const newBracketMatches = generatePendingKnockoutMatches(clubs, prev).filter(
+      const newBracketMatches = generatePendingKnockoutMatches(leagueClubs, prev).filter(
         nm => !prev.some(m => m.id === nm.id)
       );
       if (newBracketMatches.length === 0) return prev;
       return [...newBracketMatches, ...prev];
     });
-  }, [matches, clubs, isAdminLoggedIn]);
+  }, [matches, leagueClubs, isAdminLoggedIn]);
 
   // Handler: Post Match Result (updates standings & rewards money)
   const handleAddMatchResult = (newMatch: MatchResult) => {
@@ -1226,7 +1227,7 @@ export default function App() {
 
         {activeTab === 'clasificacion' && (
           <CompetitionsHub
-            clubs={clubs}
+            clubs={leagueClubs}
             matches={matches}
             players={players}
             selectedCompetition={selectedCompetition}
@@ -1242,7 +1243,7 @@ export default function App() {
         {activeTab === 'plantilla' && (
           <MiClubHub
             currentClub={currentClub}
-            clubs={clubs}
+            clubs={leagueClubs}
             matches={matches}
             players={players}
             transactions={transactions}
