@@ -209,12 +209,12 @@ export default function App() {
   const rawClubsWithSeedData = rawClubs.map(club => {
     const seedClub = initialClubDataById.get(club.id) || initialClubDataByName.get(club.name.toLowerCase());
     const isImportedTop10Club = club.id.startsWith('club-top10-');
-    const logoUrl =
-      isImportedTop10Club ? '' :
-      (club.logoUrl && club.logoUrl.trim() !== '' ? club.logoUrl : '') ||
-      sofifaClubsByName.get(club.name.toLowerCase()) ||
-      seedClub?.logoUrl ||
-      '';
+    const logoUrl = isImportedTop10Club
+      ? seedClub?.logoUrl || ''
+      : (club.logoUrl && club.logoUrl.trim() !== '' ? club.logoUrl : '') ||
+        sofifaClubsByName.get(club.name.toLowerCase()) ||
+        seedClub?.logoUrl ||
+        '';
     return {
       ...club,
       logoUrl,
