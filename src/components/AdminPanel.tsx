@@ -424,7 +424,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
       logoUrl: editLogoUrl || club.logoUrl,
       stadium: editStadium || club.stadium,
       stadiumCity: editStadiumCity || undefined,
-      stadiumCapacity: editStadiumCapacity || undefined,
+      stadiumCapacity: editStadiumCapacity > 0 ? editStadiumCapacity : undefined,
       stadiumPhotoUrl: editStadiumPhotoUrl || undefined
     });
     setEditingClubId(null);
@@ -870,7 +870,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                               type="text"
                               value={editStadium}
                               onChange={(e) => setEditStadium(e.target.value)}
-                              className="w-full px-2 py-1 bg-white border border-slate-300 rounded text-[11px] text-slate-700"
+                              className="w-full px-2 py-1 bg-white border border-slate-300 rounded text-[10px] text-slate-700"
                               placeholder="Nombre del estadio"
                             />
                             <div className="flex gap-1">
@@ -878,7 +878,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                                 type="text"
                                 value={editStadiumCity}
                                 onChange={(e) => setEditStadiumCity(e.target.value)}
-                                className="flex-1 px-2 py-1 bg-white border border-slate-300 rounded text-[11px] text-slate-700"
+                                className="flex-1 px-2 py-1 bg-white border border-slate-300 rounded text-[10px] text-slate-700"
                                 placeholder="Ciudad"
                               />
                               <input
