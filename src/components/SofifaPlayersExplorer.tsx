@@ -7,12 +7,17 @@ interface SofifaPlayersExplorerProps {
   currentClub?: Club | null;
   onSignPlayer?: (playerPreset: SoFifaPlayerPreset) => void;
   signedPlayers?: Player[];
+  // Cuando se usa embebido dentro de otra pantalla que ya tiene su propio
+  // banner (ej: Mercado de Fichajes), se oculta el banner propio para no
+  // mostrar dos carteles apilados diciendo básicamente lo mismo.
+  compact?: boolean;
 }
 
 export const SofifaPlayersExplorer: React.FC<SofifaPlayersExplorerProps> = ({
   currentClub,
   onSignPlayer,
-  signedPlayers = []
+  signedPlayers = [],
+  compact = false
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedPosition, setSelectedPosition] = useState<string>('');
@@ -113,29 +118,31 @@ export const SofifaPlayersExplorer: React.FC<SofifaPlayersExplorerProps> = ({
 
   return (
     <div className="space-y-6">
-      {/* Header Banner */}
-      <div className="fc-card p-6 md:p-8 rounded-2xl bg-gradient-to-r from-slate-900 via-emerald-950 to-slate-900 border-slate-800 text-white shadow-2xl relative overflow-hidden">
-        <div className="flex flex-col md:flex-row items-center justify-between gap-6 relative z-10">
-          <div className="flex items-center gap-4">
-            <div className="w-14 h-14 rounded-2xl bg-emerald-500/20 border-2 border-[#02f59b] flex items-center justify-center shrink-0 shadow-inner">
-              <Zap className="w-8 h-8 text-[#02f59b] animate-pulse" />
-            </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="px-2.5 py-0.5 rounded-full bg-[#02f59b]/20 border border-[#02f59b]/40 text-[#02f59b] text-[10px] font-mono font-bold uppercase tracking-wider">
-                  Base de Datos Oficial EA FC 27
-                </span>
+      {/* Header Banner (se oculta en modo compact, cuando ya hay un banner arriba) */}
+      {!compact && (
+        <div className="fc-card p-6 md:p-8 rounded-2xl bg-gradient-to-r from-slate-900 via-emerald-950 to-slate-900 border-slate-800 text-white shadow-2xl relative overflow-hidden">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-6 relative z-10">
+            <div className="flex items-center gap-4">
+              <div className="w-14 h-14 rounded-2xl bg-emerald-500/20 border-2 border-[#02f59b] flex items-center justify-center shrink-0 shadow-inner">
+                <Zap className="w-8 h-8 text-[#02f59b] animate-pulse" />
               </div>
-              <h2 className="font-display font-black text-2xl md:text-3xl text-white uppercase italic tracking-wide mt-1">
-                Base de Datos de Jugadores ({SOFIFA_PLAYERS_DATABASE.length.toLocaleString('es-ES')})
-              </h2>
-              <p className="text-xs text-slate-300 font-tech mt-0.5">
-                Explora las estadísticas oficiales, medias y posiciones de los jugadores
-              </p>
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="px-2.5 py-0.5 rounded-full bg-[#02f59b]/20 border border-[#02f59b]/40 text-[#02f59b] text-[10px] font-mono font-bold uppercase tracking-wider">
+                    Base de Datos Oficial EA FC 27
+                  </span>
+                </div>
+                <h2 className="font-display font-black text-2xl md:text-3xl text-white uppercase italic tracking-wide mt-1">
+                  Base de Datos de Jugadores ({SOFIFA_PLAYERS_DATABASE.length.toLocaleString('es-ES')})
+                </h2>
+                <p className="text-xs text-slate-300 font-tech mt-0.5">
+                  Explora las estadísticas oficiales, medias y posiciones de los jugadores
+                </p>
+              </div>
             </div>
           </div>
         </div>
-      </div>
+      )}
 
       {/* Control Panel: Buscador & Filtros */}
       <div className="fc-card p-5 rounded-2xl bg-white border-slate-200 shadow-md space-y-4">
