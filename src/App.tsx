@@ -537,6 +537,18 @@ export default function App() {
     let registeredId = newClub.id;
 
     setClubs(prev => {
+      const selectedIndex = prev.findIndex(c => c.id === newClub.id);
+      if (selectedIndex !== -1) {
+        const updated = [...prev];
+        updated[selectedIndex] = {
+          ...updated[selectedIndex],
+          ...newClub,
+          id: updated[selectedIndex].id
+        };
+        registeredId = updated[selectedIndex].id;
+        return updated;
+      }
+
       if (isFirstDiv) {
         const vacantIndex = prev.findIndex(
           c => (!c.division || c.division === '1ra División' || c.division === 'Primera División') &&
@@ -1239,6 +1251,7 @@ export default function App() {
         isOpen={isRegisterOpen}
         onClose={() => setIsRegisterOpen(false)}
         onRegisterClub={handleRegisterClub}
+        clubs={clubs}
       />
 
       {/* Admin Login Modal */}

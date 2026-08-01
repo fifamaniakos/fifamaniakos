@@ -1,20 +1,22 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Club } from '../types';
-import { Sparkles, X, Gamepad2, User, UserPlus, Mail, Lock } from 'lucide-react';
+import { Sparkles, X, Gamepad2, User, UserPlus, Mail, Lock, Shield } from 'lucide-react';
 import confetti from 'canvas-confetti';
-import { FC27_STANDARD_LOGO } from '../data/initialData';
 import { useAuth } from '../contexts/AuthContext';
+import { ClubLogo } from './ClubLogo';
 
 interface RegistrationModalProps {
   isOpen: boolean;
   onClose: () => void;
   onRegisterClub: (club: Club) => string;
+  clubs: Club[];
 }
 
 export const RegistrationModal: React.FC<RegistrationModalProps> = ({
   isOpen,
   onClose,
-  onRegisterClub
+  onRegisterClub,
+  clubs
 }) => {
   const { signUp, linkClub } = useAuth();
   const [manager, setManager] = useState('');
@@ -22,14 +24,31 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
   const [platform, setPlatform] = useState<'PS5' | 'Xbox Series X' | 'PC'>('PS5');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [selectedClubId, setSelectedClubId] = useState('');
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
+
+  const availableClubs = clubs.filter(club =>
+    club.manager.toLowerCase().includes('vacante') ||
+    club.manager.toLowerCase().includes('por inscribir')
+  );
+
+  useEffect(() => {
+    if (!isOpen) return;
+    if (selectedClubId && availableClubs.some(club => club.id === selectedClubId)) return;
+    setSelectedClubId(availableClubs[0]?.id || '');
+  }, [isOpen, selectedClubId, availableClubs]);
 
   if (!isOpen) return null;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!manager.trim()) return;
+    const selectedClub = availableClubs.find(club => club.id === selectedClubId);
+    if (!selectedClub) {
+      setError('Selecciona un club disponible para completar la inscripcion.');
+      return;
+    }
     setError('');
     setSubmitting(true);
 
@@ -46,16 +65,10 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
     }
 
     const newClub: Club = {
-      id: `club-${Date.now()}`,
-      name: `Por Sortear (DT ${manager})`,
-      shortName: manager.substring(0, 3).toUpperCase(),
+      ...selectedClub,
       manager: manager.trim(),
       gamertag: gamertag.trim() || `@${manager.trim()}`,
       platform,
-      logoUrl: FC27_STANDARD_LOGO,
-      budget: 100000000,
-      division: '1ra División',
-      stadium: 'Por Asignar en Draft',
       played: 0,
       won: 0,
       drawn: 0,
@@ -87,6 +100,7 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
     setGamertag('');
     setEmail('');
     setPassword('');
+    setSelectedClubId('');
   };
 
   return (
@@ -117,15 +131,60 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
         {/* Notice Box */}
         <div className="bg-emerald-50 p-4 rounded-xl border border-emerald-200 space-y-1.5 text-xs text-emerald-900 font-tech">
           <div className="flex items-center gap-2 font-bold text-[#00ba68]">
-            <Sparkles className="w-4 h-4 text-[#00ba68]" /> Sorteo Draft de Equipos Oficiales
+            <Sparkles className="w-4 h-4 text-[#00ba68]" /> Inscripcion con eleccion de club
           </div>
           <p>
-            Ingresa tus datos como DT o Manager. El equipo oficial con el que competirás se asignará mediante el <strong>Sorteo Draft en Vivo</strong>.
+            Ingresa tus datos como DT o manager y selecciona ahora el equipo oficial que queres representar. El draft queda solo para jugadores.
           </p>
         </div>
 
         {/* Main Form */}
         <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="block text-xs font-bold uppercase text-slate-700 font-tech mb-1 flex items-center gap-1.5">
+              <Shield className="w-3.5 h-3.5 text-slate-500" /> Club disponible *
+            </label>
+            <select
+              value={selectedClubId}
+              onChange={(e) => setSelectedClubId(e.target.value)}
+              required
+              className="w-full px-3 py-2.5 bg-slate-50 border border-slate-300 rounded-lg text-xs font-semibold text-slate-900 focus:outline-none focus:bg-white focus:border-[#00ba68] transition"
+            >
+              {availableClubs.length === 0 ? (
+                <option value="">No hay clubes disponibles</option>
+              ) : (
+                availableClubs.map(club => (
+                  <option key={club.id} value={club.id}>
+                    {club.name} - {club.platform} - EUR {(club.budget / 1000000).toFixed(1)}M
+                  </option>
+                ))
+              )}
+            </select>
+            {selectedClubId && (
+              <div className="mt-2 flex items-center gap-3 rounded-lg border border-slate-200 bg-slate-50 p-2.5">
+                {(() => {
+                  const selectedClub = availableClubs.find(club => club.id === selectedClubId);
+                  if (!selectedClub) return null;
+                  return (
+                    <>
+                      <ClubLogo
+                        src={selectedClub.logoUrl || selectedClub.badgeUrl}
+                        alt={selectedClub.name}
+                        className="w-9 h-9 rounded-full border border-slate-200 object-cover bg-white"
+                      />
+                      <div className="min-w-0">
+                        <div className="text-xs font-black uppercase text-slate-900 truncate">{selectedClub.name}</div>
+                        <div className="text-[10px] font-mono text-slate-500 truncate">
+                          {selectedClub.division || '1ra Division'} - {selectedClub.stadium || 'Estadio sin definir'}
+                        </div>
+                      </div>
+                    </>
+                  );
+                })()}
+              </div>
+            )}
+          </div>
+
           <div>
             <label className="block text-xs font-bold uppercase text-slate-700 font-tech mb-1 flex items-center gap-1.5">
               <User className="w-3.5 h-3.5 text-slate-500" /> Nombre del DT / Manager *
@@ -215,7 +274,7 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
             </button>
             <button
               type="submit"
-              disabled={submitting}
+              disabled={submitting || availableClubs.length === 0}
               className="fc-button-primary px-7 py-2.5 text-xs font-extrabold uppercase shadow-md hover:shadow-lg transition disabled:opacity-60 disabled:cursor-not-allowed"
             >
               {submitting ? 'Registrando...' : 'Confirmar Inscripción'}
