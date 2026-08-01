@@ -13,9 +13,12 @@ interface SquadBuilderProps {
   onAddPlayer: (player: Player) => void;
   onRemovePlayer: (playerId: string) => void;
   onToggleStarter: (playerId: string) => void;
-  onUpdatePlayerClause?: (playerId: string, newClause: number) => void;
   onUpdatePlayerValue?: (playerId: string, newValue: number) => void;
-  onListPlayerForSale?: (player: Player, askingPrice: number) => void;
+  // Fija/actualiza el Precio de Traspaso: un solo numero que reemplaza a
+  // "Cláusula" + "Vender" por separado. Ponerlo lo lista automaticamente en
+  // el Mercado de Fichajes con ese mismo precio (ver App.tsx handleSetTransferPrice).
+  onSetTransferPrice?: (player: Player, price: number) => void;
+  onRemoveFromMarket?: (playerId: string) => void;
 }
 
 const FORMATIONS = [
@@ -33,16 +36,16 @@ export const SquadBuilder: React.FC<SquadBuilderProps> = ({
   onAddPlayer,
   onRemovePlayer,
   onToggleStarter,
-  onUpdatePlayerClause,
   onUpdatePlayerValue,
-  onListPlayerForSale
+  onSetTransferPrice,
+  onRemoveFromMarket
 }) => {
   const [formation, setFormation] = useState('4-3-3');
   const [showAddPlayerModal, setShowAddPlayerModal] = useState(false);
 
-  // Edit Clause Modal state
-  const [clauseEditPlayer, setClauseEditPlayer] = useState<Player | null>(null);
-  const [newClauseInput, setNewClauseInput] = useState<number>(30000000);
+  // Edit Transfer Price Modal state
+  const [transferPriceEditPlayer, setTransferPriceEditPlayer] = useState<Player | null>(null);
+  const [newTransferPriceInput, setNewTransferPriceInput] = useState<number>(30000000);
 
   // Edit Market Value Modal state
   const [valueEditPlayer, setValueEditPlayer] = useState<Player | null>(null);
@@ -439,28 +442,23 @@ export const SquadBuilder: React.FC<SquadBuilderProps> = ({
                         <span className="text-[9px] font-mono text-slate-600 bg-slate-200 px-1 rounded">
                           {player.position}
                         </span>
-                        {transferItem && (
+                        {player.releaseClause && player.releaseClause > 0 && (
                           <span className="text-[9px] bg-amber-400 text-slate-950 font-display font-black uppercase px-1.5 py-0.5 rounded border border-amber-500 shadow-xs flex items-center gap-1 animate-pulse">
-                            <Tag className="w-2.5 h-2.5 shrink-0" /> EN VENTA
+                            <Tag className="w-2.5 h-2.5 shrink-0" /> FICHABLE
                           </span>
                         )}
                       </div>
                       <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 mt-0.5 text-[10px] font-tech">
                         <span className="text-slate-500 font-semibold">
-                          Valor: <strong className="font-mono text-slate-700">€{((player.value || 0) / 1000000).toFixed(1)}M</strong>
+                          Valor Referencial: <strong className="font-mono text-slate-700">€{((player.value || 0) / 1000000).toFixed(1)}M</strong>
                         </span>
                         {player.releaseClause && player.releaseClause > 0 ? (
                           <span className="text-[#00ba68] font-bold">
-                            Cláusula: <strong className="font-mono">€{(player.releaseClause / 1000000).toFixed(1)}M</strong>
+                            Precio de Traspaso: <strong className="font-mono">€{(player.releaseClause / 1000000).toFixed(1)}M</strong> · visible en el Mercado
                           </span>
                         ) : (
-                          <span className="text-slate-400 font-semibold">
-                            Cláusula: <span className="italic">Sin Cláusula</span>
-                          </span>
-                        )}
-                        {transferItem && (
-                          <span className="text-[10px] text-amber-800 font-extrabold font-mono bg-amber-100 px-1 rounded">
-                            En Mercado
+                          <span className="text-slate-400 font-semibold italic">
+                            No Transferible (ningún club puede ficharlo todavía)
                           </span>
                         )}
                       </div>
@@ -475,39 +473,36 @@ export const SquadBuilder: React.FC<SquadBuilderProps> = ({
                           setNewValueInput(player.value || 25000000);
                         }}
                         className="px-2 py-1 rounded text-[10px] font-extrabold font-tech uppercase bg-slate-100 text-slate-700 hover:bg-slate-200 border border-slate-300 flex items-center gap-1 transition-colors"
-                        title="Modificar valor de mercado de este jugador"
+                        title="Editar el valor de mercado de referencia (informativo, no afecta compras)"
                       >
                         <Edit3 className="w-3 h-3 text-slate-500" /> Valor
                       </button>
                     )}
 
-                    {onUpdatePlayerClause && (
+                    {onSetTransferPrice && (
                       <button
                         onClick={() => {
-                          setClauseEditPlayer(player);
-                          setNewClauseInput(player.releaseClause && player.releaseClause > 0 ? player.releaseClause : 30000000);
+                          setTransferPriceEditPlayer(player);
+                          setNewTransferPriceInput(player.releaseClause && player.releaseClause > 0 ? player.releaseClause : (player.value || 25000000));
                         }}
                         className="px-2 py-1 rounded text-[10px] font-extrabold font-tech uppercase bg-emerald-50 text-emerald-800 hover:bg-emerald-100 border border-emerald-300 flex items-center gap-1 transition-colors"
-                        title="Modificar cláusula de rescisión de este jugador"
+                        title="Fijar el precio por el que cualquier club puede fichar a este jugador (lo lista en el Mercado de Fichajes)"
                       >
-                        <Edit3 className="w-3 h-3 text-emerald-600" /> Cláusula
+                        <Tag className="w-3 h-3 text-emerald-600" /> {player.releaseClause && player.releaseClause > 0 ? 'Editar Precio' : 'Poner Fichable'}
                       </button>
                     )}
 
-                    {onListPlayerForSale && !transferItem && (
+                    {onRemoveFromMarket && player.releaseClause && player.releaseClause > 0 && (
                       <button
                         onClick={() => {
-                          const initialPrice = player.releaseClause && player.releaseClause > 0 ? player.releaseClause : 25000000;
-                          const priceStr = prompt(`Ingrese el precio de venta (€ Euros) para ${player.name}:`, initialPrice.toString());
-                          if (priceStr && Number(priceStr) > 0) {
-                            onListPlayerForSale(player, Number(priceStr));
-                            alert(`¡${player.name} ha sido puesto a la venta en el Mercado de Fichajes por €${(Number(priceStr) / 1000000).toFixed(1)}M!`);
+                          if (confirm(`¿Quitar a ${player.name} del Mercado de Fichajes? Ya no será fichable por otros clubes.`)) {
+                            onRemoveFromMarket(player.id);
                           }
                         }}
-                        className="px-2 py-1 rounded text-[10px] font-extrabold font-tech uppercase bg-amber-50 text-amber-900 hover:bg-amber-100 border border-amber-300 flex items-center gap-1 transition-colors"
-                        title="Poner jugador a la venta en el Mercado de Fichajes"
+                        className="px-2 py-1 rounded text-[10px] font-extrabold font-tech uppercase bg-rose-50 text-rose-700 hover:bg-rose-100 border border-rose-200 flex items-center gap-1 transition-colors"
+                        title="Quitar del Mercado de Fichajes"
                       >
-                        <Tag className="w-3 h-3 text-amber-600" /> Vender
+                        <X className="w-3 h-3" /> Quitar
                       </button>
                     )}
 
@@ -857,25 +852,25 @@ export const SquadBuilder: React.FC<SquadBuilderProps> = ({
         </div>
       )}
 
-      {/* MODAL: Modificar Cláusula de Rescisión de Jugador en Mi Club */}
-      {clauseEditPlayer && (
+      {/* MODAL: Precio de Traspaso (une Cláusula + Vender en un solo paso) */}
+      {transferPriceEditPlayer && (
         <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
           <div className="relative bg-white border border-slate-200 max-w-md w-full p-6 md:p-8 rounded-2xl shadow-2xl space-y-6 text-slate-800 my-8 animate-scale-up">
             {/* Header */}
             <div className="flex justify-between items-center border-b border-slate-100 pb-4">
               <div className="flex items-center gap-3">
                 <div className="w-11 h-11 bg-slate-900 text-[#02f59b] font-display font-black text-xl flex items-center justify-center rounded-xl italic shadow-md border border-slate-800">
-                  <Edit3 className="w-6 h-6 text-[#02f59b]" />
+                  <Tag className="w-6 h-6 text-[#02f59b]" />
                 </div>
                 <div>
                   <h2 className="font-display font-black text-2xl text-slate-900 uppercase italic tracking-wide">
-                    Cláusula de Rescisión
+                    Precio de Traspaso
                   </h2>
                   <p className="text-xs text-slate-500 font-tech">{currentClub.name}</p>
                 </div>
               </div>
-              <button 
-                onClick={() => setClauseEditPlayer(null)} 
+              <button
+                onClick={() => setTransferPriceEditPlayer(null)}
                 className="w-9 h-9 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-900 transition flex items-center justify-center border border-slate-200"
               >
                 <X className="w-5 h-5" />
@@ -885,18 +880,18 @@ export const SquadBuilder: React.FC<SquadBuilderProps> = ({
             {/* Player Banner */}
             <div className="bg-slate-900 p-4 rounded-xl border border-slate-800 flex items-center gap-4 text-white shadow-inner">
               <div className="w-12 h-12 rounded-xl bg-emerald-500/20 text-[#02f59b] font-display font-black text-sm flex items-center justify-center shrink-0 border border-emerald-500">
-                {clauseEditPlayer.position}
+                {transferPriceEditPlayer.position}
               </div>
               <div className="min-w-0 flex-1">
                 <h3 className="font-display font-black text-lg text-white uppercase leading-tight truncate">
-                  {clauseEditPlayer.name}
+                  {transferPriceEditPlayer.name}
                 </h3>
                 <div className="flex flex-wrap items-center gap-2 mt-1">
                   <span className="text-[10px] bg-[#02f59b] text-black font-extrabold px-1.5 py-0.5 rounded font-mono">
-                    {clauseEditPlayer.position}
+                    {transferPriceEditPlayer.position}
                   </span>
                   <span className="text-xs font-mono font-bold text-amber-400">
-                    {clauseEditPlayer.rating} OVR
+                    {transferPriceEditPlayer.rating} OVR
                   </span>
                   <span className="text-[10px] text-slate-400 font-tech">
                     {currentClub.name}
@@ -907,28 +902,28 @@ export const SquadBuilder: React.FC<SquadBuilderProps> = ({
 
             <form onSubmit={(e) => {
               e.preventDefault();
-              if (onUpdatePlayerClause && clauseEditPlayer) {
-                onUpdatePlayerClause(clauseEditPlayer.id, Number(newClauseInput));
-                alert(`¡Cláusula actualizada! La cláusula de rescisión de ${clauseEditPlayer.name} es ahora €${(Number(newClauseInput) / 1000000).toFixed(1)}M.`);
+              if (onSetTransferPrice && transferPriceEditPlayer) {
+                onSetTransferPrice(transferPriceEditPlayer, Number(newTransferPriceInput));
+                alert(`¡Listo! ${transferPriceEditPlayer.name} ya es fichable por cualquier club de la liga pagando €${(Number(newTransferPriceInput) / 1000000).toFixed(1)}M. Aparece en el Mercado de Fichajes.`);
               }
-              setClauseEditPlayer(null);
+              setTransferPriceEditPlayer(null);
             }} className="space-y-4">
 
               <div>
                 <label className="block text-xs font-bold uppercase text-slate-700 font-tech mb-1">
-                  Nueva Cláusula de Rescisión (€ Euros) *
+                  Precio de Traspaso (€ Euros) *
                 </label>
                 <input
                   type="number"
-                  value={newClauseInput}
-                  onChange={(e) => setNewClauseInput(Number(e.target.value))}
+                  value={newTransferPriceInput}
+                  onChange={(e) => setNewTransferPriceInput(Number(e.target.value))}
                   step="1000000"
                   min="1000000"
                   required
                   className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-lg text-sm font-display font-black text-[#00ba68] focus:outline-none focus:bg-white focus:border-[#00ba68] focus:ring-1 focus:ring-[#00ba68] transition"
                 />
                 <span className="text-xs font-display font-bold text-[#00ba68] mt-1 block">
-                  Valor asignado: €{(newClauseInput / 1000000).toFixed(1)}M Millones
+                  Valor asignado: €{(newTransferPriceInput / 1000000).toFixed(1)}M Millones
                 </span>
               </div>
 
@@ -940,9 +935,9 @@ export const SquadBuilder: React.FC<SquadBuilderProps> = ({
                     <button
                       key={val}
                       type="button"
-                      onClick={() => setNewClauseInput(val)}
+                      onClick={() => setNewTransferPriceInput(val)}
                       className={`px-2.5 py-1 rounded text-xs font-mono font-bold border transition-colors ${
-                        newClauseInput === val
+                        newTransferPriceInput === val
                           ? 'bg-[#00ba68] text-white border-emerald-600'
                           : 'bg-slate-100 text-slate-700 hover:bg-slate-200 border-slate-300'
                       }`}
@@ -954,13 +949,15 @@ export const SquadBuilder: React.FC<SquadBuilderProps> = ({
               </div>
 
               <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-xl text-xs text-emerald-900 leading-relaxed font-tech">
-                💡 <strong>Nota del Club:</strong> Esta cláusula de rescisión sólo puede ser configurada por el manager de tu equipo. Si otro club desea fichar a {clauseEditPlayer.name}, deberá depositar esta suma.
+                💡 <strong>Cómo funciona:</strong> apenas guardes, cualquier club de la liga va a poder ver y fichar a{' '}
+                {transferPriceEditPlayer.name} en el Mercado de Fichajes pagando exactamente este monto — no hace
+                falta que negocies ni que aceptes nada, el fichaje se confirma solo.
               </div>
 
               <div className="flex justify-end gap-3 pt-3 border-t border-slate-100">
                 <button
                   type="button"
-                  onClick={() => setClauseEditPlayer(null)}
+                  onClick={() => setTransferPriceEditPlayer(null)}
                   className="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-tech font-bold uppercase rounded-lg transition border border-slate-200"
                 >
                   Cancelar
@@ -969,7 +966,7 @@ export const SquadBuilder: React.FC<SquadBuilderProps> = ({
                   type="submit"
                   className="fc-button-primary px-7 py-2.5 text-xs font-extrabold uppercase shadow-md hover:shadow-lg transition flex items-center gap-1.5"
                 >
-                  <Edit3 className="w-4 h-4" /> Guardar Cláusula
+                  <Tag className="w-4 h-4" /> Guardar y Poner Fichable
                 </button>
               </div>
             </form>

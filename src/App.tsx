@@ -723,21 +723,6 @@ export default function App() {
     ]);
   };
 
-  // Handler: List player for sale
-  const handleListPlayerForSale = (player: Player, price: number) => {
-    const newItem: TransferItem = {
-      id: `tf-${Date.now()}`,
-      playerId: player.id,
-      player,
-      sellerClubId: player.clubId,
-      askingPrice: price,
-      status: 'DISPONIBLE',
-      createdAt: new Date().toLocaleDateString('es-ES')
-    };
-
-    setTransfers(prev => [newItem, ...prev]);
-  };
-
   // Handler: Direct Transfer player between teams
   const handleDirectTransferPlayer = (player: Player, buyerClub: Club, sellerClub: Club, price: number) => {
     // 1. Transfer player to buyer club
@@ -781,11 +766,6 @@ export default function App() {
     ]);
   };
 
-  // Handler: Cancel/Withdraw player from transfer market
-  const handleCancelTransfer = (transferId: string) => {
-    setTransfers(prev => prev.filter(t => t.id !== transferId));
-  };
-
   // Handler: Update/Modify asking price or release clause of a transfer listing
   const handleUpdateTransferClause = (transferId: string, newAskingPrice: number) => {
     setTransfers(prev => prev.map(t => {
@@ -796,21 +776,37 @@ export default function App() {
     }));
   };
 
-  // Handler: Update player's base release clause / value
-  const handleUpdatePlayerClause = (playerId: string, newClause: number) => {
-    setPlayers(prev => prev.map(p => {
-      if (p.id === playerId) {
-        return { ...p, releaseClause: newClause };
+  // Handler: Fijar "Precio de Traspaso" desde Mi Club -- un solo boton que
+  // reemplaza a Cláusula + Vender por separado. Pone/actualiza el
+  // releaseClause del jugador Y crea o actualiza en el mismo paso su listado
+  // en el Mercado de Fichajes, para que ambas cosas nunca queden
+  // desincronizadas (antes eran dos acciones independientes con precios que
+  // podian no coincidir).
+  const handleSetTransferPrice = (player: Player, price: number) => {
+    setPlayers(prev => prev.map(p => p.id === player.id ? { ...p, releaseClause: price } : p));
+    setTransfers(prev => {
+      const existing = prev.find(t => t.playerId === player.id && t.status === 'DISPONIBLE');
+      if (existing) {
+        return prev.map(t => t.id === existing.id ? { ...t, askingPrice: price, player: { ...player, releaseClause: price } } : t);
       }
-      return p;
-    }));
-    // Also update active transfer list if exists
-    setTransfers(prev => prev.map(t => {
-      if (t.playerId === playerId) {
-        return { ...t, askingPrice: newClause };
-      }
-      return t;
-    }));
+      const newItem: TransferItem = {
+        id: `tf-${Date.now()}`,
+        playerId: player.id,
+        player: { ...player, releaseClause: price },
+        sellerClubId: player.clubId,
+        askingPrice: price,
+        status: 'DISPONIBLE',
+        createdAt: new Date().toLocaleDateString('es-ES')
+      };
+      return [newItem, ...prev];
+    });
+  };
+
+  // Handler: Quitar del Mercado (deshace lo anterior: borra la cláusula y el
+  // listado activo, si lo hubiera).
+  const handleRemoveFromMarket = (playerId: string) => {
+    setPlayers(prev => prev.map(p => p.id === playerId ? { ...p, releaseClause: 0 } : p));
+    setTransfers(prev => prev.filter(t => !(t.playerId === playerId && t.status === 'DISPONIBLE')));
   };
 
   // Handler: Update player's market value (Valor de Mercado)
@@ -1150,9 +1146,9 @@ export default function App() {
             onAddPlayer={handleAddPlayer}
             onRemovePlayer={handleRemovePlayer}
             onToggleStarter={handleToggleStarter}
-            onUpdatePlayerClause={handleUpdatePlayerClause}
             onUpdatePlayerValue={handleUpdatePlayerValue}
-            onListPlayerForSale={handleListPlayerForSale}
+            onSetTransferPrice={handleSetTransferPrice}
+            onRemoveFromMarket={handleRemoveFromMarket}
           />
         )}
 
@@ -1163,9 +1159,6 @@ export default function App() {
             transfers={transfers}
             transactions={transactions}
             onBuyPlayer={handleBuyPlayer}
-            onListPlayerForSale={handleListPlayerForSale}
-            onCancelTransfer={handleCancelTransfer}
-            onUpdateTransferClause={handleUpdateTransferClause}
             onDirectTransferPlayer={handleDirectTransferPlayer}
             onSignSofifaPlayer={handleSignSofifaPlayer}
             onPopulateClubWithSofifa={handlePopulateClubWithSofifa}
