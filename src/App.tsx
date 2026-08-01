@@ -230,12 +230,21 @@ export default function App() {
 
   const clubs = recalculateStandings(ensure36FirstDivClubs(rawClubsWithLogos), matches);
 
-  // El club "activo" es el vinculado a la cuenta autenticada, no uno elegido libremente.
-  // Sin fallback a clubs[0]: si el manager todavia no vinculo un club real,
-  // currentClub debe quedar en null (y las pantallas ya piden "Selecciona o
-  // Inscribe un Club"), en vez de mostrar el presupuesto/nombre de un club
-  // ajeno como si fuera el propio.
-  const currentClubId = profile?.club_id ?? '';
+  // El club "activo" de un manager es el vinculado a su cuenta autenticada,
+  // no uno elegido libremente -- un manager no puede hacerse pasar por otro
+  // club. Sin ese fallback a clubs[0], un manager sin club vinculado
+  // correctamente ve "Selecciona o Inscribe un Club" en vez de operar con
+  // el presupuesto/nombre de un club ajeno como si fuera el propio.
+  //
+  // El admin es la excepcion: no gestiona un club propio, asi que necesita
+  // poder elegir "actuar como" cualquier club de la liga (para probar,
+  // corregir o gestionar en su nombre) desde el selector "Mi Club" del
+  // navbar -- ver adminSelectedClubId / handleSelectClubAsAdmin.
+  const [adminSelectedClubId, setAdminSelectedClubId] = useState<string>('');
+  const currentClubId = profile?.club_id ?? (isAdminLoggedIn ? adminSelectedClubId : '');
+  const handleSelectClubAsAdmin = (clubId: string) => {
+    if (isAdminLoggedIn) setAdminSelectedClubId(clubId);
+  };
 
   const [players, setPlayers] = useSupabaseTable<Player>(
     'players',
@@ -968,7 +977,7 @@ export default function App() {
         currentClub={currentClub}
         onOpenRegister={() => setIsRegisterOpen(true)}
         clubs={clubs}
-        onSelectClub={() => { /* el club activo viene de la cuenta autenticada (profile.club_id) */ }}
+        onSelectClub={handleSelectClubAsAdmin}
         isAdmin={isAdminLoggedIn}
         isLoggedIn={!!profile}
         loggedInLabel={profile?.gamertag}
