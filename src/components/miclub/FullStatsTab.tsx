@@ -29,6 +29,7 @@ export const FullStatsTab: React.FC<FullStatsTabProps> = ({ currentClub, players
             <th className="p-3">Jugador</th>
             <th className="p-3">Pos</th>
             <th className="p-3 text-center">OVR</th>
+            <th className="p-3 text-center">PJ</th>
             <th className="p-3 text-center">Goles</th>
             <th className="p-3 text-center">Asist.</th>
             <th className="p-3 text-center">TA</th>
@@ -43,6 +44,7 @@ export const FullStatsTab: React.FC<FullStatsTabProps> = ({ currentClub, players
                 <span className="text-[10px] font-mono bg-slate-200 text-slate-700 px-1.5 py-0.5 rounded">{player.position}</span>
               </td>
               <td className="p-3 text-center font-mono font-bold text-slate-700">{player.rating || '—'}</td>
+              <td className="p-3 text-center">{player.matchesPlayed}</td>
               <td className="p-3 text-center font-display font-black text-emerald-700">{player.goals}</td>
               <td className="p-3 text-center font-display font-black text-blue-700">{player.assists}</td>
               <td className="p-3 text-center">

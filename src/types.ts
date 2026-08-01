@@ -124,7 +124,10 @@ export interface PlayerMatchEvent {
   playerId?: string;
   playerName: string;
   clubId: string;
-  type: 'GOAL' | 'ASSIST' | 'YELLOW_CARD' | 'RED_CARD';
+  // APPEARANCE marca que el jugador estuvo en la alineacion de ese partido:
+  // es lo unico que permite contar partidos jugados (PJ), porque el resto de
+  // los eventos solo registran lo que hizo, no si jugo.
+  type: 'GOAL' | 'ASSIST' | 'YELLOW_CARD' | 'RED_CARD' | 'APPEARANCE';
   count: number;
 }
 
@@ -147,6 +150,8 @@ export interface MatchResult {
   awayYellowCards?: string;
   homeRedCards?: string;
   awayRedCards?: string;
+  homeLineup?: string;
+  awayLineup?: string;
   playerEvents?: PlayerMatchEvent[];
   proofImageUrl?: string;
   penaltyWinnerClubId?: string;

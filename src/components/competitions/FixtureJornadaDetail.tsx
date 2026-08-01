@@ -54,10 +54,25 @@ const appendPlayerToField = (
   }
 };
 
+// En la alineacion solo interesa quien jugo, sin cantidad ni minuto: agregar
+// "(1)" como en goles/asistencias solo ensuciaria la lista.
+const appendPlayerToLineup = (
+  currentText: string,
+  setText: (val: string) => void,
+  playerName: string
+) => {
+  if (!playerName) return;
+  const alreadyListed = currentText
+    .split(',')
+    .some(item => item.trim().toLowerCase() === playerName.trim().toLowerCase());
+  if (alreadyListed) return;
+  setText(currentText.trim() ? `${currentText}, ${playerName}` : playerName);
+};
+
 const parseTextToEvents = (
   text: string,
   clubId: string,
-  eventType: 'GOAL' | 'ASSIST' | 'YELLOW_CARD' | 'RED_CARD'
+  eventType: PlayerMatchEvent['type']
 ): PlayerMatchEvent[] => {
   if (!text || text === '-') return [];
   const events: PlayerMatchEvent[] = [];
@@ -118,6 +133,8 @@ export const FixtureJornadaDetail: React.FC<FixtureJornadaDetailProps> = ({
   const [reportAwayYellowCards, setReportAwayYellowCards] = useState<string>('');
   const [reportHomeRedCards, setReportHomeRedCards] = useState<string>('');
   const [reportAwayRedCards, setReportAwayRedCards] = useState<string>('');
+  const [reportHomeLineup, setReportHomeLineup] = useState<string>('');
+  const [reportAwayLineup, setReportAwayLineup] = useState<string>('');
   const [reportProofImage, setReportProofImage] = useState<string>('');
   const [reportNotes, setReportNotes] = useState<string>('');
   const [reportPenaltyWinnerClubId, setReportPenaltyWinnerClubId] = useState<string>('');
@@ -150,6 +167,8 @@ export const FixtureJornadaDetail: React.FC<FixtureJornadaDetailProps> = ({
     setReportAwayYellowCards(match.awayYellowCards || '');
     setReportHomeRedCards(match.homeRedCards || '');
     setReportAwayRedCards(match.awayRedCards || '');
+    setReportHomeLineup(match.homeLineup || '');
+    setReportAwayLineup(match.awayLineup || '');
     setReportProofImage(match.proofImageUrl || '');
     setReportNotes(match.notes || '');
     setReportPenaltyWinnerClubId(match.penaltyWinnerClubId || '');
@@ -179,7 +198,9 @@ export const FixtureJornadaDetail: React.FC<FixtureJornadaDetailProps> = ({
       ...parseTextToEvents(reportHomeYellowCards, reportHomeClubId, 'YELLOW_CARD'),
       ...parseTextToEvents(reportAwayYellowCards, reportAwayClubId, 'YELLOW_CARD'),
       ...parseTextToEvents(reportHomeRedCards, reportHomeClubId, 'RED_CARD'),
-      ...parseTextToEvents(reportAwayRedCards, reportAwayClubId, 'RED_CARD')
+      ...parseTextToEvents(reportAwayRedCards, reportAwayClubId, 'RED_CARD'),
+      ...parseTextToEvents(reportHomeLineup, reportHomeClubId, 'APPEARANCE'),
+      ...parseTextToEvents(reportAwayLineup, reportAwayClubId, 'APPEARANCE')
     ];
 
     const updated: MatchResult = {
@@ -196,6 +217,8 @@ export const FixtureJornadaDetail: React.FC<FixtureJornadaDetailProps> = ({
       awayYellowCards: reportAwayYellowCards || undefined,
       homeRedCards: reportHomeRedCards || undefined,
       awayRedCards: reportAwayRedCards || undefined,
+      homeLineup: reportHomeLineup || undefined,
+      awayLineup: reportAwayLineup || undefined,
       proofImageUrl: reportProofImage || undefined,
       notes: reportNotes || undefined,
       penaltyWinnerClubId: isDrawNeedingPenalties ? reportPenaltyWinnerClubId : undefined,
@@ -670,6 +693,70 @@ export const FixtureJornadaDetail: React.FC<FixtureJornadaDetailProps> = ({
                 </div>
               </div>
 
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div>
+                  <div className="flex items-center justify-between mb-0.5">
+                    <label className="block text-[11px] font-bold font-tech uppercase text-slate-700">
+                      👥 Alineación (Local)
+                    </label>
+                    {reportHomeSquad.length > 0 && (
+                      <select
+                        onChange={(e) => {
+                          if (e.target.value) {
+                            appendPlayerToLineup(reportHomeLineup, setReportHomeLineup, e.target.value);
+                            e.target.value = '';
+                          }
+                        }}
+                        className="text-[10px] bg-slate-200 text-slate-800 font-bold rounded px-1.5 py-0.5"
+                      >
+                        <option value="">+ Agregar jugador</option>
+                        {reportHomeSquad.map((p, i) => (
+                          <option key={i} value={p.name}>{p.name} ({p.pos})</option>
+                        ))}
+                      </select>
+                    )}
+                  </div>
+                  <input
+                    type="text"
+                    value={reportHomeLineup}
+                    onChange={(e) => setReportHomeLineup(e.target.value)}
+                    placeholder="Quiénes jugaron (para contar partidos jugados)"
+                    className="w-full px-3 py-2.5 bg-white border border-slate-300 rounded-lg text-sm text-slate-900 focus:outline-none focus:border-[#00ba68]"
+                  />
+                </div>
+
+                <div>
+                  <div className="flex items-center justify-between mb-0.5">
+                    <label className="block text-[11px] font-bold font-tech uppercase text-slate-700">
+                      👥 Alineación (Visitante)
+                    </label>
+                    {reportAwaySquad.length > 0 && (
+                      <select
+                        onChange={(e) => {
+                          if (e.target.value) {
+                            appendPlayerToLineup(reportAwayLineup, setReportAwayLineup, e.target.value);
+                            e.target.value = '';
+                          }
+                        }}
+                        className="text-[10px] bg-slate-200 text-slate-800 font-bold rounded px-1.5 py-0.5"
+                      >
+                        <option value="">+ Agregar jugador</option>
+                        {reportAwaySquad.map((p, i) => (
+                          <option key={i} value={p.name}>{p.name} ({p.pos})</option>
+                        ))}
+                      </select>
+                    )}
+                  </div>
+                  <input
+                    type="text"
+                    value={reportAwayLineup}
+                    onChange={(e) => setReportAwayLineup(e.target.value)}
+                    placeholder="Quiénes jugaron (para contar partidos jugados)"
+                    className="w-full px-3 py-2.5 bg-white border border-slate-300 rounded-lg text-sm text-slate-900 focus:outline-none focus:border-[#00ba68]"
+                  />
+                </div>
+              </div>
+
               <div className="flex items-center justify-between gap-2">
                 <button
                   type="button"
@@ -762,6 +849,8 @@ export const FixtureJornadaDetail: React.FC<FixtureJornadaDetailProps> = ({
               {selectedMatch.awayYellowCards && <p><strong className="text-amber-700">T. Amarillas Visitante:</strong> {selectedMatch.awayYellowCards}</p>}
               {selectedMatch.homeRedCards && <p><strong className="text-rose-700">T. Rojas Local:</strong> {selectedMatch.homeRedCards}</p>}
               {selectedMatch.awayRedCards && <p><strong className="text-rose-700">T. Rojas Visitante:</strong> {selectedMatch.awayRedCards}</p>}
+              {selectedMatch.homeLineup && <p><strong className="text-slate-700">Alineación Local:</strong> {selectedMatch.homeLineup}</p>}
+              {selectedMatch.awayLineup && <p><strong className="text-slate-700">Alineación Visitante:</strong> {selectedMatch.awayLineup}</p>}
               {selectedMatch.notes && <p className="text-slate-600 italic mt-2 border-t pt-2">"{selectedMatch.notes}"</p>}
             </div>
 

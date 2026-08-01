@@ -105,7 +105,10 @@ export function computePlayerStatsForCompetition(
   matches
     .filter(m => m.competition === competition && m.status === 'CONFIRMADO')
     .forEach(match => {
-      (match.playerEvents || []).forEach(ev => {
+      // Las alineaciones (APPEARANCE) solo sirven para contar PJ: sin este
+      // filtro, cualquiera que haya sido titular apareceria en la tabla de
+      // goleadores con 0 goles.
+      (match.playerEvents || []).filter(ev => ev.type !== 'APPEARANCE').forEach(ev => {
         const key = ev.playerId || `${ev.playerName}-${ev.clubId}`;
         if (!statsMap[key]) {
           const club = clubs.find(c => c.id === ev.clubId);
@@ -147,6 +150,7 @@ export interface ClubPlayerStatRow {
   name: string;
   position: string;
   rating: number;
+  matchesPlayed: number;
   goals: number;
   assists: number;
   yellowCards: number;
@@ -174,6 +178,7 @@ export function computeClubPlayerStats(
         name: p.name,
         position: p.position,
         rating: p.rating,
+        matchesPlayed: 0,
         goals: 0,
         assists: 0,
         yellowCards: 0,
@@ -184,6 +189,10 @@ export function computeClubPlayerStats(
   matches
     .filter(m => m.status === 'CONFIRMADO')
     .forEach(match => {
+      // PJ se cuenta una vez por partido aunque el acta liste al jugador
+      // repetido en la alineacion.
+      const countedAppearances = new Set<string>();
+
       (match.playerEvents || [])
         .filter(ev => ev.clubId === clubId)
         .forEach(ev => {
@@ -199,6 +208,7 @@ export function computeClubPlayerStats(
               name: ev.playerName,
               position: sofifaPlayer?.position || '—',
               rating: sofifaPlayer?.rating || 0,
+              matchesPlayed: 0,
               goals: 0,
               assists: 0,
               yellowCards: 0,
@@ -206,6 +216,10 @@ export function computeClubPlayerStats(
             };
           }
 
+          if (ev.type === 'APPEARANCE' && !countedAppearances.has(key)) {
+            countedAppearances.add(key);
+            rows[key].matchesPlayed += 1;
+          }
           if (ev.type === 'GOAL') rows[key].goals += ev.count;
           if (ev.type === 'ASSIST') rows[key].assists += ev.count;
           if (ev.type === 'YELLOW_CARD') rows[key].yellowCards += ev.count;
