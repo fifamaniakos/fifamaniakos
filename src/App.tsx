@@ -69,33 +69,31 @@ export default function App() {
 
 
 
-  // Helper to ensure 1ra Division always has 36 clubs
-  const ensure36FirstDivClubs = (loadedClubs: Club[]): Club[] => {
-    const firstDivClubs = loadedClubs.filter(
-      c => !c.division || c.division === '1ra División' || c.division === 'Primera División'
-    );
-    const otherDivClubs = loadedClubs.filter(
-      c => c.division && c.division !== '1ra División' && c.division !== 'Primera División'
-    );
+  // Completa una division con clubes "Equipo N" vacantes hasta llegar al
+  // cupo configurado por el admin, sin tocar los clubes ya existentes.
+  const padDivisionToCount = (
+    divisionClubs: Club[],
+    targetCount: number,
+    idPrefix: string,
+    divisionLabel: '1ra División' | '2da División'
+  ): Club[] => {
+    if (divisionClubs.length >= targetCount) return divisionClubs;
 
-    if (firstDivClubs.length >= 36) {
-      return loadedClubs;
-    }
-
-    const paddedFirstDiv = [...firstDivClubs];
-    const missingCount = 36 - firstDivClubs.length;
+    const padded = [...divisionClubs];
+    const missingCount = targetCount - divisionClubs.length;
+    const slotIdPattern = new RegExp(`^${idPrefix}-(\\d+)$`);
 
     for (let i = 1; i <= missingCount; i++) {
-      // Un slot puede seguir teniendo el id `club-1ra-slot-N` aunque ya se le
-      // haya asignado un club real (draft o edicion admin), que cambia el
-      // nombre a algo que ya no matchea "Equipo N". Sin chequear tambien el
-      // id, este slot se contaba como libre y se regeneraba un duplicado con
-      // el mismo id, mostrando "Equipo N" vacante de nuevo pese a la asignacion.
+      // Un slot puede seguir teniendo su id de slot aunque ya se le haya
+      // asignado un club real (draft o edicion admin), que cambia el nombre
+      // a algo que ya no matchea "Equipo N". Sin chequear tambien el id,
+      // este slot se contaba como libre y se regeneraba un duplicado con el
+      // mismo id, mostrando "Equipo N" vacante de nuevo pese a la asignacion.
       const existingNumSet = new Set(
-        paddedFirstDiv
+        padded
           .flatMap(c => {
             const nameMatch = c.name.match(/^Equipo\s+(\d+)$/i);
-            const idMatch = c.id.match(/^club-1ra-slot-(\d+)$/);
+            const idMatch = c.id.match(slotIdPattern);
             return [
               nameMatch ? parseInt(nameMatch[1], 10) : null,
               idMatch ? parseInt(idMatch[1], 10) : null
@@ -109,8 +107,8 @@ export default function App() {
         nextNum++;
       }
 
-      paddedFirstDiv.push({
-        id: `club-1ra-slot-${nextNum}`,
+      padded.push({
+        id: `${idPrefix}-${nextNum}`,
         name: `Equipo ${nextNum}`,
         shortName: `EQ${nextNum}`,
         manager: 'Por Inscribir (Vacante)',
@@ -118,7 +116,7 @@ export default function App() {
         platform: 'PS5',
         stadium: `Estadio Equipo ${nextNum}`,
         logoUrl: 'https://images.unsplash.com/photo-1508098682722-e99c43a406b2?w=150&auto=format&fit=crop&q=80',
-        division: '1ra División',
+        division: divisionLabel,
         budget: 100000000,
         played: 0,
         won: 0,
@@ -131,7 +129,33 @@ export default function App() {
       });
     }
 
-    return [...paddedFirstDiv, ...otherDivClubs];
+    return padded;
+  };
+
+  // El admin define cuantos equipos tiene cada division (Panel de
+  // Administracion -> Cuentas); por defecto 1ra arranca en 36 y 2da en 0
+  // (sin clubes) hasta que el admin la configure.
+  const ensureDivisionTeamCounts = (
+    loadedClubs: Club[],
+    division1TeamCount: number,
+    division2TeamCount: number
+  ): Club[] => {
+    const div1Clubs = loadedClubs.filter(
+      c => !c.division || c.division === '1ra División' || c.division === 'Primera División'
+    );
+    const div2Clubs = loadedClubs.filter(
+      c => c.division === '2da División' || c.division === 'Segunda División'
+    );
+    const otherDivClubs = loadedClubs.filter(
+      c => c.division
+        && c.division !== '1ra División' && c.division !== 'Primera División'
+        && c.division !== '2da División' && c.division !== 'Segunda División'
+    );
+
+    const paddedDiv1 = padDivisionToCount(div1Clubs, division1TeamCount, 'club-1ra-slot', '1ra División');
+    const paddedDiv2 = padDivisionToCount(div2Clubs, division2TeamCount, 'club-2da-slot', '2da División');
+
+    return [...paddedDiv1, ...paddedDiv2, ...otherDivClubs];
   };
 
   // Helper to recalculate standings for all clubs based on confirmed matches.
@@ -235,7 +259,28 @@ export default function App() {
     clearClubsWriteError();
   };
 
-  const clubs = recalculateStandings(ensure36FirstDivClubs(rawClubsWithSeedData), matches);
+  // Temporada 1 es gratis para todos; desde la Temporada 2 se cobra
+  // suscripcion (ver MonetizationModule/AdminPanel). El numero de temporada
+  // (y la cantidad de equipos por division) vive en la tabla `seasons`
+  // (unica fila, key 'current') para que sea el mismo para todos los
+  // usuarios, no local a cada navegador.
+  const [leagueSettings, setLeagueSettings] = useSupabaseTable<LeagueSettings>(
+    'seasons',
+    [{ id: 'current', currentSeasonNumber: 1 }],
+    (s) => s.id
+  );
+  const currentLeagueSettings = leagueSettings.find(s => s.id === 'current');
+  const currentSeasonNumber = currentLeagueSettings?.currentSeasonNumber ?? 1;
+  const division1TeamCount = currentLeagueSettings?.division1TeamCount ?? 36;
+  const division2TeamCount = currentLeagueSettings?.division2TeamCount ?? 0;
+  const setCurrentSeasonNumber = (n: number) =>
+    setLeagueSettings([{ ...currentLeagueSettings, id: 'current', currentSeasonNumber: n }]);
+  const setDivision1TeamCount = (n: number) =>
+    setLeagueSettings([{ ...currentLeagueSettings, id: 'current', currentSeasonNumber, division1TeamCount: n }]);
+  const setDivision2TeamCount = (n: number) =>
+    setLeagueSettings([{ ...currentLeagueSettings, id: 'current', currentSeasonNumber, division2TeamCount: n }]);
+
+  const clubs = recalculateStandings(ensureDivisionTeamCounts(rawClubsWithSeedData, division1TeamCount, division2TeamCount), matches);
 
   // El club "activo" de un manager es el vinculado a su cuenta autenticada,
   // no uno elegido libremente -- un manager no puede hacerse pasar por otro
@@ -342,18 +387,6 @@ export default function App() {
     INITIAL_TICKER_NEWS,
     (n) => n.id
   );
-
-  // Temporada 1 es gratis para todos; desde la Temporada 2 se cobra
-  // suscripcion (ver MonetizationModule/AdminPanel). El numero de temporada
-  // vive en la tabla `seasons` (unica fila, key 'current') para que sea el
-  // mismo para todos los usuarios, no local a cada navegador.
-  const [leagueSettings, setLeagueSettings] = useSupabaseTable<LeagueSettings>(
-    'seasons',
-    [{ id: 'current', currentSeasonNumber: 1 }],
-    (s) => s.id
-  );
-  const currentSeasonNumber = leagueSettings.find(s => s.id === 'current')?.currentSeasonNumber ?? 1;
-  const setCurrentSeasonNumber = (n: number) => setLeagueSettings([{ id: 'current', currentSeasonNumber: n }]);
 
   const subscriptionRequiredThisSeason = currentSeasonNumber >= 2;
   const hasActiveSubscription = profile?.subscription_status === 'active';
@@ -1223,6 +1256,10 @@ export default function App() {
               onLogoutAdmin={handleLogoutAdmin}
               currentSeasonNumber={currentSeasonNumber}
               onSetCurrentSeasonNumber={setCurrentSeasonNumber}
+              division1TeamCount={division1TeamCount}
+              division2TeamCount={division2TeamCount}
+              onSetDivision1TeamCount={setDivision1TeamCount}
+              onSetDivision2TeamCount={setDivision2TeamCount}
             />
           ) : (
             <div className="fc-card p-8 md:p-12 rounded-2xl border-emerald-300 bg-slate-900 text-white text-center space-y-6 max-w-2xl mx-auto shadow-2xl animate-scale-up">

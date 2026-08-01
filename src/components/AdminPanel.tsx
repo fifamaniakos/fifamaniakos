@@ -59,6 +59,10 @@ interface AdminPanelProps {
   tickerNews: TickerNewsItem[];
   currentSeasonNumber: number;
   onSetCurrentSeasonNumber: (n: number) => void;
+  division1TeamCount: number;
+  division2TeamCount: number;
+  onSetDivision1TeamCount: (n: number) => void;
+  onSetDivision2TeamCount: (n: number) => void;
   onAddTickerNews: (text: string) => void;
   onToggleTickerNews: (id: string) => void;
   onDeleteTickerNews: (id: string) => void;
@@ -106,7 +110,11 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
   onGenerateFixtures,
   onLogoutAdmin,
   currentSeasonNumber,
-  onSetCurrentSeasonNumber
+  onSetCurrentSeasonNumber,
+  division1TeamCount,
+  division2TeamCount,
+  onSetDivision1TeamCount,
+  onSetDivision2TeamCount
 }) => {
   const [adminTab, setAdminTab] = useState<'cartel' | 'clubes' | 'partidos' | 'foro' | 'fichajes' | 'anuncios' | 'cuentas'>('cartel');
 
@@ -1575,6 +1583,39 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                   Suscripción requerida
                 </span>
               )}
+            </div>
+          </div>
+
+          <div className="p-4 bg-sky-50 border border-sky-200 rounded-xl space-y-2">
+            <h3 className="font-display font-bold text-sm text-sky-900 uppercase italic">
+              Cupos por División
+            </h3>
+            <p className="text-[11px] text-sky-800 font-tech leading-relaxed">
+              Cuántos clubes tiene cada división en total. Si hay menos clubes reales inscriptos
+              que el cupo, se completa con "Equipo N" vacantes para que los managers puedan inscribirse.
+              Bajar el número no borra clubes ya cargados, solo deja de agregar vacantes de más.
+            </p>
+            <div className="flex flex-wrap items-center gap-4 pt-1">
+              <div className="flex items-center gap-2">
+                <label className="text-xs font-bold uppercase text-sky-900">1ra División:</label>
+                <input
+                  type="number"
+                  min={0}
+                  value={division1TeamCount}
+                  onChange={(e) => onSetDivision1TeamCount(Math.max(0, parseInt(e.target.value, 10) || 0))}
+                  className="w-16 px-2 py-1 bg-white border border-sky-300 rounded text-xs font-bold text-center"
+                />
+              </div>
+              <div className="flex items-center gap-2">
+                <label className="text-xs font-bold uppercase text-sky-900">2da División:</label>
+                <input
+                  type="number"
+                  min={0}
+                  value={division2TeamCount}
+                  onChange={(e) => onSetDivision2TeamCount(Math.max(0, parseInt(e.target.value, 10) || 0))}
+                  className="w-16 px-2 py-1 bg-white border border-sky-300 rounded text-xs font-bold text-center"
+                />
+              </div>
             </div>
           </div>
 

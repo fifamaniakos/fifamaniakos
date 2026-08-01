@@ -116,6 +116,8 @@ export interface BudgetPackage {
 export interface LeagueSettings {
   id: string;
   currentSeasonNumber: number;
+  division1TeamCount?: number;
+  division2TeamCount?: number;
 }
 
 export interface PlayerMatchEvent {
