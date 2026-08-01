@@ -291,6 +291,10 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
   const [editGamertag, setEditGamertag] = useState<string>('');
   const [editDivision, setEditDivision] = useState<string>('1ra División');
   const [editLogoUrl, setEditLogoUrl] = useState<string>('');
+  const [editStadium, setEditStadium] = useState<string>('');
+  const [editStadiumCity, setEditStadiumCity] = useState<string>('');
+  const [editStadiumCapacity, setEditStadiumCapacity] = useState<number>(0);
+  const [editStadiumPhotoUrl, setEditStadiumPhotoUrl] = useState<string>('');
 
   // Add Match Form State
   const [showAddMatchModal, setShowAddMatchModal] = useState(false);
@@ -403,6 +407,10 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
     setEditGamertag(club.gamertag);
     setEditDivision(club.division || '1ra División');
     setEditLogoUrl(club.logoUrl);
+    setEditStadium(club.stadium || '');
+    setEditStadiumCity(club.stadiumCity || '');
+    setEditStadiumCapacity(club.stadiumCapacity || 0);
+    setEditStadiumPhotoUrl(club.stadiumPhotoUrl || '');
   };
 
   const saveClubEdit = (club: Club) => {
@@ -413,7 +421,11 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
       gamertag: editGamertag,
       budget: editBudget,
       division: editDivision,
-      logoUrl: editLogoUrl || club.logoUrl
+      logoUrl: editLogoUrl || club.logoUrl,
+      stadium: editStadium || club.stadium,
+      stadiumCity: editStadiumCity || undefined,
+      stadiumCapacity: editStadiumCapacity || undefined,
+      stadiumPhotoUrl: editStadiumPhotoUrl || undefined
     });
     setEditingClubId(null);
   };
@@ -852,6 +864,39 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                             className="w-full px-2 py-1 bg-white border border-slate-300 rounded text-[10px] text-slate-600 font-mono"
                             placeholder="URL de imagen (https://...)"
                           />
+                          <div className="pt-1.5 mt-1.5 border-t border-slate-200 space-y-1">
+                            <span className="text-[9px] font-tech font-bold text-slate-400 uppercase block">Estadio</span>
+                            <input
+                              type="text"
+                              value={editStadium}
+                              onChange={(e) => setEditStadium(e.target.value)}
+                              className="w-full px-2 py-1 bg-white border border-slate-300 rounded text-[11px] text-slate-700"
+                              placeholder="Nombre del estadio"
+                            />
+                            <div className="flex gap-1">
+                              <input
+                                type="text"
+                                value={editStadiumCity}
+                                onChange={(e) => setEditStadiumCity(e.target.value)}
+                                className="flex-1 px-2 py-1 bg-white border border-slate-300 rounded text-[11px] text-slate-700"
+                                placeholder="Ciudad"
+                              />
+                              <input
+                                type="number"
+                                value={editStadiumCapacity || ''}
+                                onChange={(e) => setEditStadiumCapacity(Number(e.target.value))}
+                                className="w-24 px-2 py-1 bg-white border border-slate-300 rounded text-[11px] text-slate-700 font-mono"
+                                placeholder="Capacidad"
+                              />
+                            </div>
+                            <input
+                              type="text"
+                              value={editStadiumPhotoUrl}
+                              onChange={(e) => setEditStadiumPhotoUrl(e.target.value)}
+                              className="w-full px-2 py-1 bg-white border border-slate-300 rounded text-[10px] text-slate-600 font-mono"
+                              placeholder="URL de foto del estadio (https://...)"
+                            />
+                          </div>
                         </div>
                       ) : (
                         <div>
