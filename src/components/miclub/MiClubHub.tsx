@@ -245,7 +245,7 @@ export const MiClubHub: React.FC<MiClubHubProps> = ({
         <ScheduleStandingsTab currentClub={currentClub} clubs={clubs} matches={matches} />
       )}
       {activeMiClubTab === 'stats-completas' && (
-        <FullStatsTab currentClub={currentClub} players={players} />
+        <FullStatsTab currentClub={currentClub} players={players} matches={matches} />
       )}
       {activeMiClubTab === 'financiero' && (
         <FinancesTab currentClub={currentClub} transactions={transactions} />

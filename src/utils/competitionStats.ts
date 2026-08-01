@@ -142,6 +142,82 @@ export function computePlayerStatsForCompetition(
   return Object.values(statsMap);
 }
 
+export interface ClubPlayerStatRow {
+  id: string;
+  name: string;
+  position: string;
+  rating: number;
+  goals: number;
+  assists: number;
+  yellowCards: number;
+  redCards: number;
+}
+
+// Estadisticas de los jugadores de un club sumando TODAS las competiciones.
+// Se derivan de los eventos del acta de cada partido confirmado (la misma
+// fuente que las tablas de goleadores/asistencias), no de campos guardados
+// en el jugador: esos nunca se actualizan al reportar un partido, asi que la
+// tabla de "Estadisticas completas" mostraba siempre 0.
+export function computeClubPlayerStats(
+  clubId: string,
+  players: Player[],
+  matches: MatchResult[]
+): ClubPlayerStatRow[] {
+  const rows: Record<string, ClubPlayerStatRow> = {};
+
+  // El plantel entero aparece listado, aunque todavia no tenga eventos.
+  players
+    .filter(p => p.clubId === clubId)
+    .forEach(p => {
+      rows[p.name.trim().toLowerCase()] = {
+        id: p.id,
+        name: p.name,
+        position: p.position,
+        rating: p.rating,
+        goals: 0,
+        assists: 0,
+        yellowCards: 0,
+        redCards: 0
+      };
+    });
+
+  matches
+    .filter(m => m.status === 'CONFIRMADO')
+    .forEach(match => {
+      (match.playerEvents || [])
+        .filter(ev => ev.clubId === clubId)
+        .forEach(ev => {
+          const key = ev.playerName.trim().toLowerCase();
+          if (!key) return;
+
+          if (!rows[key]) {
+            // Un acta puede nombrar a alguien que ya no esta en el plantel
+            // (vendido, o cargado a mano): igual cuenta lo que hizo.
+            const sofifaPlayer = findSofifaPlayerByName(ev.playerName);
+            rows[key] = {
+              id: key,
+              name: ev.playerName,
+              position: sofifaPlayer?.position || '—',
+              rating: sofifaPlayer?.rating || 0,
+              goals: 0,
+              assists: 0,
+              yellowCards: 0,
+              redCards: 0
+            };
+          }
+
+          if (ev.type === 'GOAL') rows[key].goals += ev.count;
+          if (ev.type === 'ASSIST') rows[key].assists += ev.count;
+          if (ev.type === 'YELLOW_CARD') rows[key].yellowCards += ev.count;
+          if (ev.type === 'RED_CARD') rows[key].redCards += ev.count;
+        });
+    });
+
+  return Object.values(rows).sort(
+    (a, b) => b.goals - a.goals || b.assists - a.assists || a.name.localeCompare(b.name)
+  );
+}
+
 export type EuropeanQualificationZone = 'CHAMPIONS' | 'EUROPA' | 'CONFERENCE';
 
 export interface QualificationZoneInfo {

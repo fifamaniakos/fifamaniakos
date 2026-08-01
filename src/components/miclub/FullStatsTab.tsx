@@ -1,16 +1,16 @@
 import React from 'react';
-import { Club, Player } from '../../types';
+import { Club, MatchResult, Player } from '../../types';
+import { computeClubPlayerStats } from '../../utils/competitionStats';
 import { BarChart3 } from 'lucide-react';
 
 interface FullStatsTabProps {
   currentClub: Club;
   players: Player[];
+  matches: MatchResult[];
 }
 
-export const FullStatsTab: React.FC<FullStatsTabProps> = ({ currentClub, players }) => {
-  const clubPlayers = players
-    .filter(p => p.clubId === currentClub.id)
-    .sort((a, b) => (b.goals || 0) - (a.goals || 0));
+export const FullStatsTab: React.FC<FullStatsTabProps> = ({ currentClub, players, matches }) => {
+  const clubPlayers = computeClubPlayerStats(currentClub.id, players, matches);
 
   if (clubPlayers.length === 0) {
     return (
@@ -29,7 +29,6 @@ export const FullStatsTab: React.FC<FullStatsTabProps> = ({ currentClub, players
             <th className="p-3">Jugador</th>
             <th className="p-3">Pos</th>
             <th className="p-3 text-center">OVR</th>
-            <th className="p-3 text-center">PJ</th>
             <th className="p-3 text-center">Goles</th>
             <th className="p-3 text-center">Asist.</th>
             <th className="p-3 text-center">TA</th>
@@ -43,15 +42,14 @@ export const FullStatsTab: React.FC<FullStatsTabProps> = ({ currentClub, players
               <td className="p-3">
                 <span className="text-[10px] font-mono bg-slate-200 text-slate-700 px-1.5 py-0.5 rounded">{player.position}</span>
               </td>
-              <td className="p-3 text-center font-mono font-bold text-slate-700">{player.rating}</td>
-              <td className="p-3 text-center">{player.matchesPlayed || 0}</td>
-              <td className="p-3 text-center font-display font-black text-emerald-700">{player.goals || 0}</td>
-              <td className="p-3 text-center font-display font-black text-blue-700">{player.assists || 0}</td>
+              <td className="p-3 text-center font-mono font-bold text-slate-700">{player.rating || '—'}</td>
+              <td className="p-3 text-center font-display font-black text-emerald-700">{player.goals}</td>
+              <td className="p-3 text-center font-display font-black text-blue-700">{player.assists}</td>
               <td className="p-3 text-center">
-                <span className="font-mono font-bold text-amber-700">{player.yellowCards || 0}</span>
+                <span className="font-mono font-bold text-amber-700">{player.yellowCards}</span>
               </td>
               <td className="p-3 text-center">
-                <span className="font-mono font-bold text-rose-700">{player.redCards || 0}</span>
+                <span className="font-mono font-bold text-rose-700">{player.redCards}</span>
               </td>
             </tr>
           ))}
