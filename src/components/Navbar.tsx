@@ -80,6 +80,13 @@ export const Navbar: React.FC<NavbarProps> = ({
   const isCompeticionesActive = activeTab === 'clasificacion' || activeTab === 'fichajes' || activeTab === 'sorteo' || activeTab === 'competicion-seccion';
 
   const activeNews = tickerNews.filter(n => n.active);
+  const miClubOptions = isAdmin
+    ? clubs
+    : isLoggedIn && currentClub
+      ? [currentClub]
+      : isLoggedIn
+        ? []
+        : clubs;
 
   const handleQuickAddNewsSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -375,9 +382,14 @@ export const Navbar: React.FC<NavbarProps> = ({
                 className="fixed w-64 bg-white border border-slate-200 rounded-xl shadow-2xl z-50 py-2 normal-case tracking-normal font-display text-xs md:text-sm max-h-[70vh] overflow-y-auto divide-y divide-slate-100 p-1.5 animate-in fade-in slide-in-from-top-2 duration-150"
               >
                 <div className="px-2 py-1 text-[10px] font-mono font-bold text-slate-400 uppercase mb-1">
-                  Seleccionar Club Activo ({clubs.length})
+                  Seleccionar Club Activo ({miClubOptions.length})
                 </div>
-                {clubs.map(club => {
+                {miClubOptions.length === 0 && (
+                  <div className="px-2 py-3 text-[11px] text-slate-500 font-tech">
+                    Tu cuenta todavia no tiene un club vinculado.
+                  </div>
+                )}
+                {miClubOptions.map(club => {
                   const isSelected = club.id === currentClub?.id;
                   return (
                     <div
