@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { CompetitionSection, ForumSectionTag } from '../types';
-import { ArrowLeft, Edit3, X, FileText, Scale, Coins, Gavel, Dice5, Briefcase, LucideIcon } from 'lucide-react';
+import { ArrowLeft, Edit3, X, FileText } from 'lucide-react';
 
 interface CompetitionSectionViewProps {
   section: CompetitionSection;
@@ -12,8 +12,7 @@ interface CompetitionSectionViewProps {
 interface SectionMeta {
   badge: string;
   tagline: string;
-  icon: LucideIcon;
-  iconColor: string;
+  image: string;
   badgeColor: string;
   glowColor: string;
   gradient: string;
@@ -24,8 +23,7 @@ const SECTION_META: Record<ForumSectionTag, SectionMeta> = {
   normas: {
     badge: 'REGLAMENTO OFICIAL',
     tagline: 'Las reglas que rigen todas las competiciones de la liga.',
-    icon: Scale,
-    iconColor: 'text-blue-300',
+    image: '/badges/normas.png',
     badgeColor: 'bg-blue-500',
     glowColor: 'bg-blue-500/10',
     gradient: 'from-slate-950 via-blue-950 to-indigo-950',
@@ -34,8 +32,7 @@ const SECTION_META: Record<ForumSectionTag, SectionMeta> = {
   ganancias: {
     badge: 'ECONOMÍA DE LIGA',
     tagline: 'Premios, bonos y ganancias por rendimiento en cada competición.',
-    icon: Coins,
-    iconColor: 'text-amber-300',
+    image: '/badges/ganancias.png',
     badgeColor: 'bg-amber-500',
     glowColor: 'bg-amber-500/10',
     gradient: 'from-slate-950 via-emerald-950 to-slate-900',
@@ -44,8 +41,7 @@ const SECTION_META: Record<ForumSectionTag, SectionMeta> = {
   sanciones: {
     badge: 'DISCIPLINA DEPORTIVA',
     tagline: 'Sanciones y penalizaciones aplicadas por infracciones al reglamento.',
-    icon: Gavel,
-    iconColor: 'text-rose-300',
+    image: '/badges/sanciones.png',
     badgeColor: 'bg-rose-600',
     glowColor: 'bg-rose-500/10',
     gradient: 'from-slate-950 via-rose-950 to-slate-900',
@@ -54,8 +50,7 @@ const SECTION_META: Record<ForumSectionTag, SectionMeta> = {
   apuestas: {
     badge: 'CASA DE APUESTAS',
     tagline: 'Cuotas y modalidades de apuestas deportivas entre managers.',
-    icon: Dice5,
-    iconColor: 'text-purple-300',
+    image: '/badges/apuestas.png',
     badgeColor: 'bg-purple-600',
     glowColor: 'bg-purple-500/10',
     gradient: 'from-slate-950 via-purple-950 to-slate-900',
@@ -64,8 +59,7 @@ const SECTION_META: Record<ForumSectionTag, SectionMeta> = {
   mercado: {
     badge: 'MERCADO OFICIAL',
     tagline: 'Normas y límites para fichajes, ventas y préstamos entre clubes.',
-    icon: Briefcase,
-    iconColor: 'text-emerald-300',
+    image: '/badges/mercado.png',
     badgeColor: 'bg-emerald-600',
     glowColor: 'bg-emerald-500/10',
     gradient: 'from-slate-950 via-emerald-950 to-slate-900',
@@ -84,7 +78,6 @@ export const CompetitionSectionView: React.FC<CompetitionSectionViewProps> = ({
   const [content, setContent] = useState(section.content);
 
   const meta = SECTION_META[section.tag];
-  const Icon = meta.icon;
 
   const startEditing = () => {
     setTitle(section.title);
@@ -113,8 +106,8 @@ export const CompetitionSectionView: React.FC<CompetitionSectionViewProps> = ({
         <div className={`absolute -right-10 -bottom-10 w-64 h-64 ${meta.glowColor} rounded-full blur-3xl pointer-events-none`} />
         <div className="flex flex-col md:flex-row items-center justify-between gap-6 relative z-10">
           <div className="flex items-center gap-4">
-            <div className="w-16 h-16 rounded-2xl bg-white/10 border-2 border-white/20 flex items-center justify-center shrink-0 shadow-inner">
-              <Icon className={`w-9 h-9 ${meta.iconColor}`} />
+            <div className="w-16 h-16 rounded-2xl overflow-hidden bg-white/10 border-2 border-white/20 shrink-0 shadow-inner">
+              <img src={meta.image} alt="" className="w-full h-full object-cover" />
             </div>
             <div>
               <div className="flex items-center gap-2 flex-wrap">

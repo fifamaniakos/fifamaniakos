@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { ForumTopic, ForumCategory, ForumReply, Club, ForumSectionTag } from '../types';
-import { MessageSquare, Plus, Eye, Heart, Pin, Share2, Search, CornerDownRight, Shield, User, Image as ImageIcon, ArrowLeft, Clock, Trash2, X, Edit3, Scale, Coins, Gavel, Dice5, Briefcase, Crown } from 'lucide-react';
+import { MessageSquare, Plus, Eye, Heart, Pin, Share2, Search, CornerDownRight, Shield, User, Image as ImageIcon, ArrowLeft, Clock, Trash2, X, Edit3, Scale, Coins, Gavel, Dice5, Crown } from 'lucide-react';
 import { ImageWithFallback } from './ImageWithFallback';
 import { ClubLogo } from './ClubLogo';
 import { FC27_ADMIN_AVATAR } from '../data/initialData';
@@ -498,8 +498,8 @@ export const ForumModule: React.FC<ForumModuleProps> = ({
               onClick={() => onOpenForumSection ? onOpenForumSection('normas') : setSelectedCategory('Normas competiciones')}
               className="p-3.5 rounded-xl border border-slate-200 bg-white text-slate-800 hover:bg-slate-50 flex items-center gap-2.5 text-left transition-all fc-shimmer-card shadow-sm"
             >
-              <div className="w-9 h-9 rounded-lg bg-blue-100 border border-blue-300 flex items-center justify-center shrink-0">
-                <Scale className="w-4.5 h-4.5 text-blue-600" />
+              <div className="w-9 h-9 rounded-lg overflow-hidden shrink-0 border border-slate-200 bg-slate-50">
+                <img src="/badges/normas.png" alt="" className="w-full h-full object-cover" />
               </div>
               <span className="text-xs font-tech font-bold">Normas competiciones</span>
             </button>
@@ -508,8 +508,8 @@ export const ForumModule: React.FC<ForumModuleProps> = ({
               onClick={() => onOpenForumSection ? onOpenForumSection('ganancias') : setSelectedCategory('Ganancias competiciones')}
               className="p-3.5 rounded-xl border border-slate-200 bg-white text-slate-800 hover:bg-slate-50 flex items-center gap-2.5 text-left transition-all fc-shimmer-card shadow-sm"
             >
-              <div className="w-9 h-9 rounded-lg bg-amber-100 border border-amber-300 flex items-center justify-center shrink-0">
-                <Coins className="w-4.5 h-4.5 text-amber-600" />
+              <div className="w-9 h-9 rounded-lg overflow-hidden shrink-0 border border-slate-200 bg-slate-50">
+                <img src="/badges/ganancias.png" alt="" className="w-full h-full object-cover" />
               </div>
               <span className="text-xs font-tech font-bold">Ganancias competiciones</span>
             </button>
@@ -518,8 +518,8 @@ export const ForumModule: React.FC<ForumModuleProps> = ({
               onClick={() => onOpenForumSection ? onOpenForumSection('sanciones') : setSelectedCategory('Sanciones')}
               className="p-3.5 rounded-xl border border-slate-200 bg-white text-slate-800 hover:bg-slate-50 flex items-center gap-2.5 text-left transition-all fc-shimmer-card shadow-sm"
             >
-              <div className="w-9 h-9 rounded-lg bg-rose-100 border border-rose-300 flex items-center justify-center shrink-0">
-                <Gavel className="w-4.5 h-4.5 text-rose-600" />
+              <div className="w-9 h-9 rounded-lg overflow-hidden shrink-0 border border-slate-200 bg-slate-50">
+                <img src="/badges/sanciones.png" alt="" className="w-full h-full object-cover" />
               </div>
               <span className="text-xs font-tech font-bold">Sanciones</span>
             </button>
@@ -528,8 +528,8 @@ export const ForumModule: React.FC<ForumModuleProps> = ({
               onClick={() => onOpenForumSection ? onOpenForumSection('apuestas') : setSelectedCategory('Apuestas deportivas')}
               className="p-3.5 rounded-xl border border-slate-200 bg-white text-slate-800 hover:bg-slate-50 flex items-center gap-2.5 text-left transition-all fc-shimmer-card shadow-sm"
             >
-              <div className="w-9 h-9 rounded-lg bg-purple-100 border border-purple-300 flex items-center justify-center shrink-0">
-                <Dice5 className="w-4.5 h-4.5 text-purple-600" />
+              <div className="w-9 h-9 rounded-lg overflow-hidden shrink-0 border border-slate-200 bg-slate-50">
+                <img src="/badges/apuestas.png" alt="" className="w-full h-full object-cover" />
               </div>
               <span className="text-xs font-tech font-bold">Apuestas deportivas</span>
             </button>
@@ -538,8 +538,8 @@ export const ForumModule: React.FC<ForumModuleProps> = ({
               onClick={() => onOpenForumSection && onOpenForumSection('mercado')}
               className="p-3.5 rounded-xl border border-slate-200 bg-white text-slate-800 hover:bg-slate-50 flex items-center gap-2.5 text-left transition-all fc-shimmer-card shadow-sm"
             >
-              <div className="w-9 h-9 rounded-lg bg-emerald-100 border border-emerald-300 flex items-center justify-center shrink-0">
-                <Briefcase className="w-4.5 h-4.5 text-emerald-600" />
+              <div className="w-9 h-9 rounded-lg overflow-hidden shrink-0 border border-slate-200 bg-slate-50">
+                <img src="/badges/mercado.png" alt="" className="w-full h-full object-cover" />
               </div>
               <span className="text-xs font-tech font-bold">Mercado de fichajes</span>
             </button>
