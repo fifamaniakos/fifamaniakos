@@ -132,6 +132,32 @@ export default function App() {
     return padded;
   };
 
+  const isVacantClub = (c: Club) => {
+    const manager = (c.manager || '').toLowerCase();
+    return manager.includes('vacante') || manager.includes('por inscribir');
+  };
+
+  // Recorta o completa una division al cupo exacto que definio el admin. Los
+  // clubes con DT real nunca se ocultan (para no romper una cuenta ya
+  // registrada, aunque el admin haya bajado el cupo por debajo de esa
+  // cantidad); el resto del cupo se llena con clubes vacantes existentes
+  // (ordenados por nombre para que el recorte sea estable entre renders) y,
+  // si no alcanzan, se completa con "Equipo N" nuevos.
+  const capDivisionToCount = (
+    divisionClubs: Club[],
+    targetCount: number,
+    idPrefix: string,
+    divisionLabel: '1ra División' | '2da División'
+  ): Club[] => {
+    const claimedClubs = divisionClubs.filter(c => !isVacantClub(c));
+    const vacantClubs = [...divisionClubs.filter(isVacantClub)].sort((a, b) => a.name.localeCompare(b.name));
+
+    const remainingSlots = Math.max(0, targetCount - claimedClubs.length);
+    const result = [...claimedClubs, ...vacantClubs.slice(0, remainingSlots)];
+
+    return padDivisionToCount(result, targetCount, idPrefix, divisionLabel);
+  };
+
   // El admin define cuantos equipos tiene cada division (Panel de
   // Administracion -> Cuentas); por defecto 1ra arranca en 36 y 2da en 0
   // (sin clubes) hasta que el admin la configure.
@@ -152,10 +178,10 @@ export default function App() {
         && c.division !== '2da División' && c.division !== 'Segunda División'
     );
 
-    const paddedDiv1 = padDivisionToCount(div1Clubs, division1TeamCount, 'club-1ra-slot', '1ra División');
-    const paddedDiv2 = padDivisionToCount(div2Clubs, division2TeamCount, 'club-2da-slot', '2da División');
+    const cappedDiv1 = capDivisionToCount(div1Clubs, division1TeamCount, 'club-1ra-slot', '1ra División');
+    const cappedDiv2 = capDivisionToCount(div2Clubs, division2TeamCount, 'club-2da-slot', '2da División');
 
-    return [...paddedDiv1, ...paddedDiv2, ...otherDivClubs];
+    return [...cappedDiv1, ...cappedDiv2, ...otherDivClubs];
   };
 
   // Helper to recalculate standings for all clubs based on confirmed matches.
