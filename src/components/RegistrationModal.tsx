@@ -24,6 +24,7 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
   const [platform, setPlatform] = useState<'PS5' | 'Xbox Series X' | 'PC'>('PS5');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [selectedCountry, setSelectedCountry] = useState('TODOS');
   const [selectedClubId, setSelectedClubId] = useState('');
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
@@ -32,12 +33,22 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
     club.manager.toLowerCase().includes('vacante') ||
     club.manager.toLowerCase().includes('por inscribir')
   );
+  const availableCountries = Array.from(new Set(availableClubs.map(club => club.country || 'Otros'))).sort();
+  const filteredAvailableClubs = selectedCountry === 'TODOS'
+    ? availableClubs
+    : availableClubs.filter(club => (club.country || 'Otros') === selectedCountry);
+  const clubsByCountry: Record<string, Club[]> = filteredAvailableClubs.reduce((groups: Record<string, Club[]>, club) => {
+    const country = club.country || 'Otros';
+    groups[country] = groups[country] ? [...groups[country], club] : [club];
+    return groups;
+  }, {});
+  const groupedCountries = Object.keys(clubsByCountry).sort();
 
   useEffect(() => {
     if (!isOpen) return;
-    if (selectedClubId && availableClubs.some(club => club.id === selectedClubId)) return;
-    setSelectedClubId(availableClubs[0]?.id || '');
-  }, [isOpen, selectedClubId, availableClubs]);
+    if (selectedClubId && filteredAvailableClubs.some(club => club.id === selectedClubId)) return;
+    setSelectedClubId(filteredAvailableClubs[0]?.id || '');
+  }, [isOpen, selectedClubId, filteredAvailableClubs]);
 
   if (!isOpen) return null;
 
@@ -100,6 +111,7 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
     setGamertag('');
     setEmail('');
     setPassword('');
+    setSelectedCountry('TODOS');
     setSelectedClubId('');
   };
 
@@ -142,6 +154,24 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="block text-xs font-bold uppercase text-slate-700 font-tech mb-1 flex items-center gap-1.5">
+              <Shield className="w-3.5 h-3.5 text-slate-500" /> Pais *
+            </label>
+            <select
+              value={selectedCountry}
+              onChange={(e) => setSelectedCountry(e.target.value)}
+              className="w-full px-3 py-2.5 bg-slate-50 border border-slate-300 rounded-lg text-xs font-semibold text-slate-900 focus:outline-none focus:bg-white focus:border-[#00ba68] transition"
+            >
+              <option value="TODOS">Todos los paises ({availableClubs.length})</option>
+              {availableCountries.map(country => (
+                <option key={country} value={country}>
+                  {country} ({availableClubs.filter(club => (club.country || 'Otros') === country).length})
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-xs font-bold uppercase text-slate-700 font-tech mb-1 flex items-center gap-1.5">
               <Shield className="w-3.5 h-3.5 text-slate-500" /> Club disponible *
             </label>
             <select
@@ -150,13 +180,17 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
               required
               className="w-full px-3 py-2.5 bg-slate-50 border border-slate-300 rounded-lg text-xs font-semibold text-slate-900 focus:outline-none focus:bg-white focus:border-[#00ba68] transition"
             >
-              {availableClubs.length === 0 ? (
+              {filteredAvailableClubs.length === 0 ? (
                 <option value="">No hay clubes disponibles</option>
               ) : (
-                availableClubs.map(club => (
-                  <option key={club.id} value={club.id}>
-                    {club.name} - {club.platform} - EUR {(club.budget / 1000000).toFixed(1)}M
-                  </option>
+                groupedCountries.map(country => (
+                  <optgroup key={country} label={`${country} (${clubsByCountry[country].length})`}>
+                    {clubsByCountry[country].map(club => (
+                      <option key={club.id} value={club.id}>
+                        {club.name} - {club.league || club.division} - EUR {(club.budget / 1000000).toFixed(1)}M
+                      </option>
+                    ))}
+                  </optgroup>
                 ))
               )}
             </select>
@@ -175,7 +209,10 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
                       <div className="min-w-0">
                         <div className="text-xs font-black uppercase text-slate-900 truncate">{selectedClub.name}</div>
                         <div className="text-[10px] font-mono text-slate-500 truncate">
-                          {selectedClub.division || '1ra Division'} - {selectedClub.stadium || 'Estadio sin definir'}
+                          {selectedClub.country || 'Pais sin definir'} - {selectedClub.league || selectedClub.division || 'Liga sin definir'}
+                        </div>
+                        <div className="text-[10px] font-mono text-slate-500 truncate">
+                          {selectedClub.stadium || 'Estadio sin definir'}
                         </div>
                       </div>
                     </>

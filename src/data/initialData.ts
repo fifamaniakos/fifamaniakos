@@ -376,6 +376,8 @@ export const INITIAL_CLUBS: Club[] = TOP10_LEAGUE_CLUBS.map((club) => ({
   gamertag: '@Por Inscribir',
   platform: 'PS5',
   stadium: club.stadium,
+  country: club.country,
+  league: club.league,
   logoUrl: club.logoUrl,
   division: club.division,
   budget: club.budget,
