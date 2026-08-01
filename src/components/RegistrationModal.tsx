@@ -105,14 +105,18 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
       form: []
     };
 
-    const registeredId = onRegisterClub(newClub);
-
-    const { error: linkError } = await linkClub(registeredId);
+    // Se vincula el club a la cuenta ANTES de actualizar sus datos: la
+    // politica RLS de update sobre "clubs" exige que el club ya este
+    // vinculado al manager autenticado (current_manager_club_id()), si no
+    // el paso siguiente (onRegisterClub) es rechazado por RLS.
+    const { error: linkError } = await linkClub(selectedClub.id);
     if (linkError) {
       setError(`Cuenta creada, pero no se pudo vincular el club: ${linkError}`);
       setSubmitting(false);
       return;
     }
+
+    onRegisterClub(newClub);
 
     confetti({
       particleCount: 80,
