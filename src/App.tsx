@@ -609,17 +609,35 @@ export default function App() {
   };
 
   const handleGenerateFixtures = (competitionName?: string) => {
+    // Solo juegan los clubes con un DT real. La semilla de clubes (migracion
+    // 009) carga 234 clubes marcados como "1ra Division" para que el usuario
+    // elija uno al inscribirse -- son un catalogo, no participantes. Sin este
+    // filtro el fixture era un todos-contra-todos de 234 equipos (+54.000
+    // partidos): la escritura moria por timeout a mitad, y como los partidos
+    // viejos se borran recien despues de guardar los nuevos, quedaban ambos
+    // mezclados y aparecian clubes repetidos o rivales "Visitante" (partidos
+    // apuntando a clubes que ya no existen).
+    const activeClubs = clubs.filter(c => {
+      const manager = (c.manager || '').toLowerCase();
+      return !manager.includes('vacante') && !manager.includes('por inscribir');
+    });
+
+    if (activeClubs.length < 2) {
+      alert('Se necesitan al menos 2 clubes con DT inscripto para generar el fixture.');
+      return;
+    }
+
     let newMatches: MatchResult[] = [];
     if (competitionName && competitionName !== 'TODAS') {
-      const compClubs = clubs.filter(c => 
+      const compClubs = activeClubs.filter(c =>
         competitionName === '2da División'
           ? (c.division === '2da División' || c.division === 'Segunda División')
           : (!c.division || c.division === '1ra División' || c.division === 'Primera División')
       );
-      const generated = generateFixtureForClubs(compClubs.length >= 2 ? compClubs : clubs, competitionName);
+      const generated = generateFixtureForClubs(compClubs.length >= 2 ? compClubs : activeClubs, competitionName);
       newMatches = [...matches.filter(m => m.competition !== competitionName), ...generated];
     } else {
-      newMatches = generateAllCompetitionsFixtures(clubs);
+      newMatches = generateAllCompetitionsFixtures(activeClubs);
     }
     setMatches(newMatches);
   };
