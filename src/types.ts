@@ -63,7 +63,8 @@ export type ForumSectionTag =
   | 'normas'
   | 'ganancias'
   | 'sanciones'
-  | 'apuestas';
+  | 'apuestas'
+  | 'mercado';
 
 export interface ForumReply {
   id: string;

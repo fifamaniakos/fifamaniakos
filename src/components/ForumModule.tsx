@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { ForumTopic, ForumCategory, ForumReply, Club, ForumSectionTag } from '../types';
-import { MessageSquare, Plus, Eye, Heart, Pin, Share2, Search, CornerDownRight, Shield, User, Image as ImageIcon, ArrowLeft, Clock, Trash2, X, Edit3, Scale, Coins, Gavel, Dice5, Crown } from 'lucide-react';
+import { MessageSquare, Plus, Eye, Heart, Pin, Share2, Search, CornerDownRight, Shield, User, Image as ImageIcon, ArrowLeft, Clock, Trash2, X, Edit3, Scale, Coins, Gavel, Dice5, Briefcase, Crown } from 'lucide-react';
 import { ImageWithFallback } from './ImageWithFallback';
 import { ClubLogo } from './ClubLogo';
 import { FC27_ADMIN_AVATAR } from '../data/initialData';
@@ -493,7 +493,7 @@ export const ForumModule: React.FC<ForumModuleProps> = ({
           </div>
 
           {/* Secciones Oficiales / Reglamento */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
             <button
               onClick={() => onOpenForumSection ? onOpenForumSection('normas') : setSelectedCategory('Normas competiciones')}
               className="p-3.5 rounded-xl border border-slate-200 bg-white text-slate-800 hover:bg-slate-50 flex items-center gap-2.5 text-left transition-all fc-shimmer-card shadow-sm"
@@ -532,6 +532,16 @@ export const ForumModule: React.FC<ForumModuleProps> = ({
                 <Dice5 className="w-4.5 h-4.5 text-purple-600" />
               </div>
               <span className="text-xs font-tech font-bold">Apuestas deportivas</span>
+            </button>
+
+            <button
+              onClick={() => onOpenForumSection && onOpenForumSection('mercado')}
+              className="p-3.5 rounded-xl border border-slate-200 bg-white text-slate-800 hover:bg-slate-50 flex items-center gap-2.5 text-left transition-all fc-shimmer-card shadow-sm"
+            >
+              <div className="w-9 h-9 rounded-lg bg-emerald-100 border border-emerald-300 flex items-center justify-center shrink-0">
+                <Briefcase className="w-4.5 h-4.5 text-emerald-600" />
+              </div>
+              <span className="text-xs font-tech font-bold">Mercado de fichajes</span>
             </button>
           </div>
 

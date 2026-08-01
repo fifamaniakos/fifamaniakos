@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { CompetitionSection, ForumSectionTag } from '../types';
-import { ArrowLeft, Edit3, X, FileText, Scale, Coins, Gavel, Dice5, LucideIcon } from 'lucide-react';
+import { ArrowLeft, Edit3, X, FileText, Scale, Coins, Gavel, Dice5, Briefcase, LucideIcon } from 'lucide-react';
 
 interface CompetitionSectionViewProps {
   section: CompetitionSection;
@@ -60,6 +60,16 @@ const SECTION_META: Record<ForumSectionTag, SectionMeta> = {
     glowColor: 'bg-purple-500/10',
     gradient: 'from-slate-950 via-purple-950 to-slate-900',
     border: 'border-purple-500/40'
+  },
+  mercado: {
+    badge: 'MERCADO OFICIAL',
+    tagline: 'Normas y límites para fichajes, ventas y préstamos entre clubes.',
+    icon: Briefcase,
+    iconColor: 'text-emerald-300',
+    badgeColor: 'bg-emerald-600',
+    glowColor: 'bg-emerald-500/10',
+    gradient: 'from-slate-950 via-emerald-950 to-slate-900',
+    border: 'border-emerald-500/40'
   }
 };
 

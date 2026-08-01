@@ -1234,6 +1234,37 @@ export const INITIAL_COMPETITION_SECTIONS: CompetitionSection[] = [
 * El resultado válido para el cobro de apuestas es el marcador ingresado oficialmente en la plataforma.
 * En caso de suspensión o W.O., la apuesta queda **anulada** y se reintegra el saldo a ambos competidores.`,
     updatedAt: new Date().toLocaleDateString()
+  },
+  {
+    tag: 'mercado',
+    title: 'Reglamento del Mercado de Fichajes',
+    content: `### 💼 REGLAMENTO OFICIAL DEL MERCADO DE FICHAJES
+
+---
+
+### 📅 1. VENTANAS DE TRANSFERENCIA
+* **Mercado Abierto**: Las operaciones de compra, venta y préstamo de jugadores solo pueden realizarse durante las ventanas de mercado habilitadas por la administración.
+* **Mercado Cerrado**: Fuera de las fechas habilitadas, ningún club podrá incorporar ni ceder jugadores bajo ningún concepto.
+
+---
+
+### 💰 2. PRESUPUESTO Y NEGOCIACIONES
+* **Presupuesto Virtual**: Toda operación se realiza exclusivamente con el presupuesto virtual asignado a cada club.
+* **Acuerdo entre Managers**: Toda transferencia debe ser acordada entre ambos DTs y confirmada ante la administración antes de hacerse efectiva.
+* **Registro Obligatorio**: Ninguna transferencia es válida hasta ser registrada oficialmente en la plataforma por la administración.
+
+---
+
+### 🔁 3. LÍMITES POR CLUB
+* **Fichajes por Ventana**: Máximo de **3 incorporaciones** por club en cada ventana de mercado.
+* **Tope de Cracks Elite**: Ninguna plantilla podrá superar el tope máximo de **3 Cracks Top Elite (+86 OVR)**, incluyendo los fichajes realizados en el mercado.
+
+---
+
+### 🚫 4. PROHIBICIONES
+* **Fichajes Fantasma**: Queda prohibido simular operaciones o inflar precios entre clubes aliados para evadir el control de presupuesto.
+* **Incumplimiento**: Toda operación irregular detectada será anulada y podrá derivar en sanción económica o deportiva para los clubes involucrados.`,
+    updatedAt: new Date().toLocaleDateString()
   }
 ];
 
