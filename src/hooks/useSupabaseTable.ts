@@ -3,6 +3,25 @@ import { supabase } from '../lib/supabaseClient';
 
 type Updater<T> = T[] | ((prev: T[]) => T[]);
 
+const WRITE_BATCH_SIZE = 75;
+
+function chunk<T>(items: T[], size: number): T[][] {
+  const chunks: T[][] = [];
+  for (let index = 0; index < items.length; index += size) {
+    chunks.push(items.slice(index, index + size));
+  }
+  return chunks;
+}
+
+function formatWriteError(table: string, action: 'guardar' | 'eliminar', message: string) {
+  const isTimeout = message.toLowerCase().includes('statement timeout');
+  const hint = isTimeout
+    ? 'La operacion era grande y Supabase la corto por timeout. Intenta nuevamente; se guardara en lotes mas chicos.'
+    : 'Puede que no tengas permiso para modificar estos datos.';
+
+  return `No se pudo ${action} en ${table}: ${message}. ${hint}`;
+}
+
 export function useSupabaseTable<T>(
   table: string,
   initialData: T[],
@@ -84,36 +103,40 @@ export function useSupabaseTable<T>(
         });
         const toDeleteKeys = [...prevByKey.keys()].filter((key) => !nextKeys.has(key));
 
-        if (toUpsert.length > 0) {
-          supabase
-            .from(table)
-            .upsert(toUpsert.map((item) => ({ key: getKey(item), data: item })))
-            .then(({ error }) => {
+        const persistChanges = async () => {
+          for (const batch of chunk(toUpsert, WRITE_BATCH_SIZE)) {
+            const { error } = await supabase
+              .from(table)
+              .upsert(batch.map((item) => ({ key: getKey(item), data: item })));
+
+            if (error) {
+              throw new Error(error.message);
+            }
+          }
+
+          for (const batch of chunk(toDeleteKeys, WRITE_BATCH_SIZE)) {
+            const { error } = await supabase
+              .from(table)
+              .delete()
+              .in('key', batch);
+
+            if (error) {
+              throw new Error(error.message);
+            }
+          }
+        };
+
+        if (toUpsert.length > 0 || toDeleteKeys.length > 0) {
+          persistChanges()
+            .catch((error) => {
+              const message = error instanceof Error ? error.message : String(error);
+              const action = toUpsert.length > 0 ? 'guardar' : 'eliminar';
+              console.error(`[useSupabaseTable] ${action} ${table} failed:`, message);
               if (error) {
-                console.error(`[useSupabaseTable] upsert ${table} failed:`, error.message);
                 // Sin esto el cambio quedaba visible localmente aunque el
                 // servidor lo hubiera rechazado (ej: RLS), haciendo que un
                 // fallo de permisos pareciera "no pasa nada".
-                setWriteError(
-                  `No se pudo guardar en ${table}: ${error.message}. ` +
-                  `Puede que no tengas permiso para modificar estos datos.`
-                );
-                refetch();
-              }
-            });
-        }
-        if (toDeleteKeys.length > 0) {
-          supabase
-            .from(table)
-            .delete()
-            .in('key', toDeleteKeys)
-            .then(({ error }) => {
-              if (error) {
-                console.error(`[useSupabaseTable] delete ${table} failed:`, error.message);
-                setWriteError(
-                  `No se pudo eliminar en ${table}: ${error.message}. ` +
-                  `Puede que no tengas permiso para modificar estos datos.`
-                );
+                setWriteError(formatWriteError(table, action, message));
                 refetch();
               }
             });
