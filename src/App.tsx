@@ -813,6 +813,16 @@ export default function App() {
     }));
   };
 
+  // Handler: Update player's market value (Valor de Mercado)
+  const handleUpdatePlayerValue = (playerId: string, newValue: number) => {
+    setPlayers(prev => prev.map(p => {
+      if (p.id === playerId) {
+        return { ...p, value: newValue };
+      }
+      return p;
+    }));
+  };
+
   // Handler: Sign player from Free Agent Database
   const handleSignSofifaPlayer = (playerPreset: SoFifaPlayerPreset, buyerClub: Club, price: number) => {
     if (!canUseGatedFeature) {
@@ -1140,6 +1150,7 @@ export default function App() {
             onRemovePlayer={handleRemovePlayer}
             onToggleStarter={handleToggleStarter}
             onUpdatePlayerClause={handleUpdatePlayerClause}
+            onUpdatePlayerValue={handleUpdatePlayerValue}
             onListPlayerForSale={handleListPlayerForSale}
           />
         )}

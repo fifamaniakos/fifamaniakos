@@ -135,7 +135,11 @@ export const TransferMarket: React.FC<TransferMarketProps> = ({
   const openDirectBuyModal = (player: Player) => {
     setSelectedPlayerForDirectBuy(player);
     setDirectBuyerClubId(currentClub.id);
-    setDirectTransferPrice(player.value || 25000000);
+    // Si el jugador tiene cláusula de rescisión, esa es la referencia de
+    // precio (garantiza el traspaso); si no, se parte del valor de mercado.
+    setDirectTransferPrice(
+      player.releaseClause && player.releaseClause > 0 ? player.releaseClause : (player.value || 25000000)
+    );
   };
 
   const handleConfirmDirectBuy = (e: React.FormEvent) => {

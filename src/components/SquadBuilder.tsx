@@ -14,6 +14,7 @@ interface SquadBuilderProps {
   onRemovePlayer: (playerId: string) => void;
   onToggleStarter: (playerId: string) => void;
   onUpdatePlayerClause?: (playerId: string, newClause: number) => void;
+  onUpdatePlayerValue?: (playerId: string, newValue: number) => void;
   onListPlayerForSale?: (player: Player, askingPrice: number) => void;
 }
 
@@ -33,6 +34,7 @@ export const SquadBuilder: React.FC<SquadBuilderProps> = ({
   onRemovePlayer,
   onToggleStarter,
   onUpdatePlayerClause,
+  onUpdatePlayerValue,
   onListPlayerForSale
 }) => {
   const [formation, setFormation] = useState('4-3-3');
@@ -41,6 +43,10 @@ export const SquadBuilder: React.FC<SquadBuilderProps> = ({
   // Edit Clause Modal state
   const [clauseEditPlayer, setClauseEditPlayer] = useState<Player | null>(null);
   const [newClauseInput, setNewClauseInput] = useState<number>(30000000);
+
+  // Edit Market Value Modal state
+  const [valueEditPlayer, setValueEditPlayer] = useState<Player | null>(null);
+  const [newValueInput, setNewValueInput] = useState<number>(25000000);
 
   // SoFIFA Player preset state
   const [sofifaClubSearch, setSofifaClubSearch] = useState<string>('');
@@ -440,6 +446,9 @@ export const SquadBuilder: React.FC<SquadBuilderProps> = ({
                         )}
                       </div>
                       <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 mt-0.5 text-[10px] font-tech">
+                        <span className="text-slate-500 font-semibold">
+                          Valor: <strong className="font-mono text-slate-700">€{((player.value || 0) / 1000000).toFixed(1)}M</strong>
+                        </span>
                         {player.releaseClause && player.releaseClause > 0 ? (
                           <span className="text-[#00ba68] font-bold">
                             Cláusula: <strong className="font-mono">€{(player.releaseClause / 1000000).toFixed(1)}M</strong>
@@ -459,6 +468,19 @@ export const SquadBuilder: React.FC<SquadBuilderProps> = ({
                   </div>
 
                   <div className="flex items-center gap-1.5 shrink-0 flex-wrap">
+                    {onUpdatePlayerValue && (
+                      <button
+                        onClick={() => {
+                          setValueEditPlayer(player);
+                          setNewValueInput(player.value || 25000000);
+                        }}
+                        className="px-2 py-1 rounded text-[10px] font-extrabold font-tech uppercase bg-slate-100 text-slate-700 hover:bg-slate-200 border border-slate-300 flex items-center gap-1 transition-colors"
+                        title="Modificar valor de mercado de este jugador"
+                      >
+                        <Edit3 className="w-3 h-3 text-slate-500" /> Valor
+                      </button>
+                    )}
+
                     {onUpdatePlayerClause && (
                       <button
                         onClick={() => {
@@ -948,6 +970,122 @@ export const SquadBuilder: React.FC<SquadBuilderProps> = ({
                   className="fc-button-primary px-7 py-2.5 text-xs font-extrabold uppercase shadow-md hover:shadow-lg transition flex items-center gap-1.5"
                 >
                   <Edit3 className="w-4 h-4" /> Guardar Cláusula
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL: Modificar Valor de Mercado de Jugador en Mi Club */}
+      {valueEditPlayer && (
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
+          <div className="relative bg-white border border-slate-200 max-w-md w-full p-6 md:p-8 rounded-2xl shadow-2xl space-y-6 text-slate-800 my-8 animate-scale-up">
+            {/* Header */}
+            <div className="flex justify-between items-center border-b border-slate-100 pb-4">
+              <div className="flex items-center gap-3">
+                <div className="w-11 h-11 bg-slate-900 text-[#02f59b] font-display font-black text-xl flex items-center justify-center rounded-xl italic shadow-md border border-slate-800">
+                  <Edit3 className="w-6 h-6 text-[#02f59b]" />
+                </div>
+                <div>
+                  <h2 className="font-display font-black text-2xl text-slate-900 uppercase italic tracking-wide">
+                    Valor de Mercado
+                  </h2>
+                  <p className="text-xs text-slate-500 font-tech">{currentClub.name}</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setValueEditPlayer(null)}
+                className="w-9 h-9 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-900 transition flex items-center justify-center border border-slate-200"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Player Banner */}
+            <div className="bg-slate-900 p-4 rounded-xl border border-slate-800 flex items-center gap-4 text-white shadow-inner">
+              <div className="w-12 h-12 rounded-xl bg-emerald-500/20 text-[#02f59b] font-display font-black text-sm flex items-center justify-center shrink-0 border border-emerald-500">
+                {valueEditPlayer.position}
+              </div>
+              <div className="min-w-0 flex-1">
+                <h3 className="font-display font-black text-lg text-white uppercase leading-tight truncate">
+                  {valueEditPlayer.name}
+                </h3>
+                <div className="flex flex-wrap items-center gap-2 mt-1">
+                  <span className="text-[10px] bg-[#02f59b] text-black font-extrabold px-1.5 py-0.5 rounded font-mono">
+                    {valueEditPlayer.position}
+                  </span>
+                  <span className="text-xs font-mono font-bold text-amber-400">
+                    {valueEditPlayer.rating} OVR
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <form onSubmit={(e) => {
+              e.preventDefault();
+              if (onUpdatePlayerValue && valueEditPlayer) {
+                onUpdatePlayerValue(valueEditPlayer.id, Number(newValueInput));
+                alert(`¡Valor actualizado! El valor de mercado de ${valueEditPlayer.name} es ahora €${(Number(newValueInput) / 1000000).toFixed(1)}M.`);
+              }
+              setValueEditPlayer(null);
+            }} className="space-y-4">
+
+              <div>
+                <label className="block text-xs font-bold uppercase text-slate-700 font-tech mb-1">
+                  Nuevo Valor de Mercado (€ Euros) *
+                </label>
+                <input
+                  type="number"
+                  value={newValueInput}
+                  onChange={(e) => setNewValueInput(Number(e.target.value))}
+                  step="1000000"
+                  min="1000000"
+                  required
+                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-lg text-sm font-display font-black text-[#00ba68] focus:outline-none focus:bg-white focus:border-[#00ba68] focus:ring-1 focus:ring-[#00ba68] transition"
+                />
+                <span className="text-xs font-display font-bold text-[#00ba68] mt-1 block">
+                  Valor asignado: €{(newValueInput / 1000000).toFixed(1)}M Millones
+                </span>
+              </div>
+
+              <div className="space-y-1.5">
+                <span className="text-[10px] font-tech font-bold uppercase text-slate-500 block">Valores Rápidos:</span>
+                <div className="flex flex-wrap gap-1.5">
+                  {[10000000, 25000000, 50000000, 80000000, 120000000, 180000000].map(val => (
+                    <button
+                      key={val}
+                      type="button"
+                      onClick={() => setNewValueInput(val)}
+                      className={`px-2.5 py-1 rounded text-xs font-mono font-bold border transition-colors ${
+                        newValueInput === val
+                          ? 'bg-[#00ba68] text-white border-emerald-600'
+                          : 'bg-slate-100 text-slate-700 hover:bg-slate-200 border-slate-300'
+                      }`}
+                    >
+                      €{val / 1000000}M
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-700 leading-relaxed font-tech">
+                💡 <strong>Nota:</strong> Este es el precio de referencia que se usa como oferta por defecto cuando otro club quiere fichar a {valueEditPlayer.name} directamente (fuera de una cláusula). No afecta la cláusula de rescisión.
+              </div>
+
+              <div className="flex justify-end gap-3 pt-3 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={() => setValueEditPlayer(null)}
+                  className="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-tech font-bold uppercase rounded-lg transition border border-slate-200"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  className="fc-button-primary px-7 py-2.5 text-xs font-extrabold uppercase shadow-md hover:shadow-lg transition flex items-center gap-1.5"
+                >
+                  <Edit3 className="w-4 h-4" /> Guardar Valor
                 </button>
               </div>
             </form>
