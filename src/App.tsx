@@ -231,7 +231,11 @@ export default function App() {
   const clubs = recalculateStandings(ensure36FirstDivClubs(rawClubsWithLogos), matches);
 
   // El club "activo" es el vinculado a la cuenta autenticada, no uno elegido libremente.
-  const currentClubId = profile?.club_id ?? clubs[0]?.id ?? '';
+  // Sin fallback a clubs[0]: si el manager todavia no vinculo un club real,
+  // currentClub debe quedar en null (y las pantallas ya piden "Selecciona o
+  // Inscribe un Club"), en vez de mostrar el presupuesto/nombre de un club
+  // ajeno como si fuera el propio.
+  const currentClubId = profile?.club_id ?? '';
 
   const [players, setPlayers] = useSupabaseTable<Player>(
     'players',
@@ -342,7 +346,7 @@ export default function App() {
     'A partir de la Temporada 2, esta función requiere una suscripción activa (USD 8/mes). ' +
     'Contactá al administrador de la liga para activarla.';
 
-  const currentClub = clubs.find(c => c.id === currentClubId) || clubs[0] || null;
+  const currentClub = clubs.find(c => c.id === currentClubId) || null;
 
   // Admin Handlers
   const { signOut } = useAuth();

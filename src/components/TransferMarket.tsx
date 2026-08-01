@@ -229,33 +229,37 @@ export const TransferMarket: React.FC<TransferMarketProps> = ({
 
   return (
     <div className="space-y-6">
-      {/* Banner unico: identidad del club + pestañas + explicacion de como
-          funciona el mercado. Antes habia un segundo banner separado (el de
-          la Base de Datos) apilado justo abajo repitiendo informacion. */}
-      <div className="fc-card p-6 rounded-2xl border-slate-200 space-y-5 shadow-xl">
-        <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+      {/* Banner unico, mismo lenguaje visual que las secciones del Foro
+          (CompetitionSectionView): banda oscura con badge + titulo + tagline,
+          y pestañas a la derecha. Antes habia un segundo banner separado (el
+          de la Base de Datos) apilado justo abajo repitiendo informacion. */}
+      <div className="fc-card p-6 md:p-8 rounded-2xl border-emerald-500/40 bg-gradient-to-r from-slate-950 via-emerald-950 to-slate-900 text-white shadow-2xl relative overflow-hidden">
+        <div className="absolute -right-10 -bottom-10 w-64 h-64 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="flex flex-col md:flex-row items-center justify-between gap-6 relative z-10">
           <div className="flex items-center gap-4">
-            <div className="w-14 h-14 bg-gradient-to-br from-[#02f59b] to-[#00a362] rounded-2xl flex items-center justify-center text-black shadow-md shrink-0">
-              <Wallet className="w-8 h-8" />
+            <div className="w-16 h-16 rounded-2xl bg-white/10 border-2 border-white/20 flex items-center justify-center shrink-0 shadow-inner">
+              <Wallet className="w-9 h-9 text-emerald-300" />
             </div>
             <div>
-              <span className="text-xs font-tech font-bold uppercase text-slate-500">Mercado de Fichajes</span>
-              <h1 className="font-display font-black text-2xl text-slate-900">
+              <span className="px-2.5 py-0.5 bg-emerald-500 text-white text-[10px] font-tech font-extrabold uppercase rounded tracking-wider">
+                MERCADO DE FICHAJES
+              </span>
+              <h1 className="font-display font-black text-2xl md:text-3xl text-white uppercase italic tracking-wide mt-1">
                 {currentClub.name}
               </h1>
-              <span className="text-[11px] text-slate-500 font-mono">
+              <p className="text-xs text-slate-300 font-tech">
                 Manager: @{currentClub.manager}
-              </span>
+              </p>
             </div>
           </div>
 
           <div className="flex items-center gap-2 flex-wrap justify-center">
             <button
               onClick={() => setActiveSubTab('libres')}
-              className={`px-4 py-2.5 rounded-xl font-display font-extrabold text-xs uppercase transition-all flex items-center gap-2 ${
+              className={`px-4 py-2.5 rounded-xl font-display font-extrabold text-xs uppercase transition-all flex items-center gap-2 border ${
                 activeSubTab === 'libres'
-                  ? 'bg-[#00ba68] text-white shadow-md scale-105'
-                  : 'bg-slate-100 text-slate-700 hover:bg-slate-200 border border-slate-200'
+                  ? 'bg-[#00ba68] text-white border-[#00ba68] shadow-md scale-105'
+                  : 'bg-white/10 text-white border-white/20 hover:bg-white/20'
               }`}
             >
               <Users className="w-4 h-4" /> Jugadores Libres / Base de Datos
@@ -263,25 +267,25 @@ export const TransferMarket: React.FC<TransferMarketProps> = ({
 
             <button
               onClick={() => setActiveSubTab('comprar')}
-              className={`px-4 py-2.5 rounded-xl font-display font-extrabold text-xs uppercase transition-all flex items-center gap-2 ${
+              className={`px-4 py-2.5 rounded-xl font-display font-extrabold text-xs uppercase transition-all flex items-center gap-2 border ${
                 activeSubTab === 'comprar'
-                  ? 'bg-[#00ba68] text-white shadow-md scale-105'
-                  : 'bg-slate-100 text-slate-700 hover:bg-slate-200 border border-slate-200'
+                  ? 'bg-[#00ba68] text-white border-[#00ba68] shadow-md scale-105'
+                  : 'bg-white/10 text-white border-white/20 hover:bg-white/20'
               }`}
             >
               <ShoppingBag className="w-4 h-4" /> Traspasos de la Liga
             </button>
           </div>
         </div>
+      </div>
 
-        {/* Explicacion de como funciona, siempre visible arriba de las 2 pestañas */}
-        <div className="p-3.5 bg-emerald-50 border border-emerald-200 rounded-xl text-[11px] text-emerald-900 font-tech leading-relaxed">
-          💡 <strong>Cómo funciona:</strong> si un jugador tiene <strong>Precio de Traspaso</strong> fijado por su
-          club (se configura desde Mi Club), lo podés fichar ya mismo pagando exactamente ese monto en{' '}
-          <strong>Traspasos de la Liga</strong>. Si no lo tiene, podés hacerle una <strong>Oferta Especial</strong>{' '}
-          (requiere que el otro manager esté de acuerdo). Los jugadores de <strong>Jugadores Libres / Base de
-          Datos</strong> no tienen club todavía: los fichás directo pagando el valor que se muestra.
-        </div>
+      {/* Explicacion de como funciona el mercado, siempre visible */}
+      <div className="fc-card p-4 md:p-5 rounded-2xl border-emerald-200 bg-emerald-50 text-[11px] text-emerald-900 font-tech leading-relaxed">
+        💡 <strong>Cómo funciona:</strong> si un jugador tiene <strong>Precio de Traspaso</strong> fijado por su
+        club (se configura desde Mi Club), lo podés fichar ya mismo pagando exactamente ese monto en{' '}
+        <strong>Traspasos de la Liga</strong>. Si no lo tiene, podés hacerle una <strong>Oferta Especial</strong>{' '}
+        (requiere que el otro manager esté de acuerdo). Los jugadores de <strong>Jugadores Libres / Base de
+        Datos</strong> no tienen club todavía: los fichás directo pagando el valor que se muestra.
       </div>
 
       {/* Para poner un jugador en venta / fijarle precio de traspaso, se
