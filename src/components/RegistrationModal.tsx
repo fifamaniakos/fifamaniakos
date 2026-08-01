@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Club } from '../types';
-import { Sparkles, X, Gamepad2, User, UserPlus, Mail, Lock, Shield } from 'lucide-react';
+import { Sparkles, X, Gamepad2, User, UserPlus, Mail, Lock, Shield, ChevronDown } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { useAuth } from '../contexts/AuthContext';
 import { ClubLogo } from './ClubLogo';
@@ -28,6 +28,8 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
   const [selectedClubId, setSelectedClubId] = useState('');
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [isClubDropdownOpen, setClubDropdownOpen] = useState(false);
+  const clubDropdownRef = useRef<HTMLDivElement>(null);
 
   const availableClubs = clubs.filter(club =>
     club.manager.toLowerCase().includes('vacante') ||
@@ -50,7 +52,20 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
     setSelectedClubId(filteredAvailableClubs[0]?.id || '');
   }, [isOpen, selectedClubId, filteredAvailableClubs]);
 
+  useEffect(() => {
+    if (!isClubDropdownOpen) return;
+    const handleClickOutside = (e: MouseEvent) => {
+      if (clubDropdownRef.current && !clubDropdownRef.current.contains(e.target as Node)) {
+        setClubDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [isClubDropdownOpen]);
+
   if (!isOpen) return null;
+
+  const selectedClub = availableClubs.find(club => club.id === selectedClubId);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -170,54 +185,58 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
             </select>
           </div>
 
-          <div>
+          <div ref={clubDropdownRef} className="relative">
             <label className="block text-xs font-bold uppercase text-slate-700 font-tech mb-1 flex items-center gap-1.5">
               <Shield className="w-3.5 h-3.5 text-slate-500" /> Club disponible *
             </label>
-            <select
-              value={selectedClubId}
-              onChange={(e) => setSelectedClubId(e.target.value)}
-              required
-              className="w-full px-3 py-2.5 bg-slate-50 border border-slate-300 rounded-lg text-xs font-semibold text-slate-900 focus:outline-none focus:bg-white focus:border-[#00ba68] transition"
+            <button
+              type="button"
+              disabled={filteredAvailableClubs.length === 0}
+              onClick={() => setClubDropdownOpen(open => !open)}
+              className="w-full flex items-center gap-2.5 px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-xs font-semibold text-slate-900 focus:outline-none focus:bg-white focus:border-[#00ba68] transition disabled:opacity-60 disabled:cursor-not-allowed"
             >
-              {filteredAvailableClubs.length === 0 ? (
-                <option value="">No hay clubes disponibles</option>
+              {selectedClub ? (
+                <>
+                  <ClubLogo
+                    src={selectedClub.logoUrl}
+                    alt={selectedClub.name}
+                    className="w-7 h-7 rounded-full border border-slate-200 object-cover bg-white shrink-0"
+                  />
+                  <span className="truncate">{selectedClub.name}</span>
+                </>
               ) : (
-                groupedCountries.map(country => (
-                  <optgroup key={country} label={`${country} (${clubsByCountry[country].length})`}>
-                    {clubsByCountry[country].map(club => (
-                      <option key={club.id} value={club.id}>
-                        {club.name} - {club.league || club.division}
-                      </option>
-                    ))}
-                  </optgroup>
-                ))
+                <span className="text-slate-400">No hay clubes disponibles</span>
               )}
-            </select>
-            {selectedClubId && (
-              <div className="mt-2 flex items-center gap-3 rounded-lg border border-slate-200 bg-slate-50 p-2.5">
-                {(() => {
-                  const selectedClub = availableClubs.find(club => club.id === selectedClubId);
-                  if (!selectedClub) return null;
-                  return (
-                    <>
-                      <ClubLogo
-                        src={selectedClub.logoUrl || selectedClub.badgeUrl}
-                        alt={selectedClub.name}
-                        className="w-9 h-9 rounded-full border border-slate-200 object-cover bg-white"
-                      />
-                      <div className="min-w-0">
-                        <div className="text-xs font-black uppercase text-slate-900 truncate">{selectedClub.name}</div>
-                        <div className="text-[10px] font-mono text-slate-500 truncate">
-                          {selectedClub.country || 'Pais sin definir'} - {selectedClub.league || selectedClub.division || 'Liga sin definir'}
-                        </div>
-                        <div className="text-[10px] font-mono text-slate-500 truncate">
-                          {selectedClub.stadium || 'Estadio sin definir'}
-                        </div>
-                      </div>
-                    </>
-                  );
-                })()}
+              <ChevronDown className={`w-4 h-4 text-slate-400 ml-auto shrink-0 transition-transform ${isClubDropdownOpen ? 'rotate-180' : ''}`} />
+            </button>
+
+            {isClubDropdownOpen && filteredAvailableClubs.length > 0 && (
+              <div className="absolute z-10 mt-1 w-full max-h-64 overflow-y-auto bg-white border border-slate-200 rounded-lg shadow-xl py-1">
+                {groupedCountries.map(country => (
+                  <div key={country}>
+                    <div className="px-3 py-1 text-[10px] font-bold uppercase text-slate-400 font-tech bg-slate-50 sticky top-0">
+                      {country} ({clubsByCountry[country].length})
+                    </div>
+                    {clubsByCountry[country].map(club => (
+                      <button
+                        key={club.id}
+                        type="button"
+                        onClick={() => {
+                          setSelectedClubId(club.id);
+                          setClubDropdownOpen(false);
+                        }}
+                        className={`w-full flex items-center gap-2.5 px-3 py-2 text-xs font-semibold text-left hover:bg-emerald-50 transition ${club.id === selectedClubId ? 'bg-emerald-50 text-[#00873f]' : 'text-slate-800'}`}
+                      >
+                        <ClubLogo
+                          src={club.logoUrl}
+                          alt={club.name}
+                          className="w-7 h-7 rounded-full border border-slate-200 object-cover bg-white shrink-0"
+                        />
+                        <span className="truncate">{club.name}</span>
+                      </button>
+                    ))}
+                  </div>
+                ))}
               </div>
             )}
           </div>
