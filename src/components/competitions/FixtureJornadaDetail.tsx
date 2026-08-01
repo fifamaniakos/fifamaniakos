@@ -152,6 +152,12 @@ export const FixtureJornadaDetail: React.FC<FixtureJornadaDetailProps> = ({
   const reportHomeSquad = getClubPlayersList(reportHomeClub, players);
   const reportAwaySquad = getClubPlayersList(reportAwayClub, players);
 
+  const defaultLineupForClub = (clubId: string) =>
+    players
+      .filter(p => p.clubId === clubId && p.isStarter)
+      .map(p => p.name)
+      .join(', ');
+
   const openReportModalForMatch = (match: MatchResult, e?: React.MouseEvent) => {
     if (e) e.stopPropagation();
     setReportingMatch(match);
@@ -167,8 +173,11 @@ export const FixtureJornadaDetail: React.FC<FixtureJornadaDetailProps> = ({
     setReportAwayYellowCards(match.awayYellowCards || '');
     setReportHomeRedCards(match.homeRedCards || '');
     setReportAwayRedCards(match.awayRedCards || '');
-    setReportHomeLineup(match.homeLineup || '');
-    setReportAwayLineup(match.awayLineup || '');
+    // La alineacion arranca con los 11 titulares que el DT ya dejo armados en
+    // Mi Club -> Alineaciones: cargarla a mano en cada partido seria un plomo,
+    // y sin ella no hay forma de contar PJ.
+    setReportHomeLineup(match.homeLineup || defaultLineupForClub(match.homeClubId));
+    setReportAwayLineup(match.awayLineup || defaultLineupForClub(match.awayClubId));
     setReportProofImage(match.proofImageUrl || '');
     setReportNotes(match.notes || '');
     setReportPenaltyWinnerClubId(match.penaltyWinnerClubId || '');
@@ -720,7 +729,7 @@ export const FixtureJornadaDetail: React.FC<FixtureJornadaDetailProps> = ({
                     type="text"
                     value={reportHomeLineup}
                     onChange={(e) => setReportHomeLineup(e.target.value)}
-                    placeholder="Quiénes jugaron (para contar partidos jugados)"
+                    placeholder="Se completa con tus 11 titulares — editá si hubo cambios"
                     className="w-full px-3 py-2.5 bg-white border border-slate-300 rounded-lg text-sm text-slate-900 focus:outline-none focus:border-[#00ba68]"
                   />
                 </div>
@@ -751,7 +760,7 @@ export const FixtureJornadaDetail: React.FC<FixtureJornadaDetailProps> = ({
                     type="text"
                     value={reportAwayLineup}
                     onChange={(e) => setReportAwayLineup(e.target.value)}
-                    placeholder="Quiénes jugaron (para contar partidos jugados)"
+                    placeholder="Se completa con tus 11 titulares — editá si hubo cambios"
                     className="w-full px-3 py-2.5 bg-white border border-slate-300 rounded-lg text-sm text-slate-900 focus:outline-none focus:border-[#00ba68]"
                   />
                 </div>
