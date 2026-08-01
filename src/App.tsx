@@ -1084,7 +1084,7 @@ export default function App() {
 
         {activeTab === 'sorteo' && (
           <DraftLotteryModule
-            registeredClubs={clubs}
+            registeredClubs={isAdminLoggedIn ? clubs : clubs.filter(c => c.id === profile?.club_id)}
             isAdmin={isAdminLoggedIn}
             onAssignDraftPlayer={(clubId, playerPreset) => {
               const newPlayer: Player = {
