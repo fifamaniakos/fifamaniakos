@@ -125,7 +125,8 @@ export const FixtureJornadaDetail: React.FC<FixtureJornadaDetailProps> = ({
   const [formError, setFormError] = useState<string>('');
   const [successResult, setSuccessResult] = useState<{ homeGoals: number; awayGoals: number } | null>(null);
 
-  const jornadaMatches = matches;
+  const [onlyMyMatch, setOnlyMyMatch] = useState(false);
+  const jornadaMatches = onlyMyMatch ? matches.filter(isOwnMatch) : matches;
   const isKnockoutMatch = !!reportingMatch?.phase && reportingMatch.phase !== 'GRUPOS';
   const isDrawNeedingPenalties = isKnockoutMatch && reportHomeGoals === reportAwayGoals;
 
@@ -224,9 +225,9 @@ export const FixtureJornadaDetail: React.FC<FixtureJornadaDetailProps> = ({
         <ArrowLeft className="w-4 h-4" /> Volver a Jornadas
       </button>
 
-      <div className="bg-slate-900 text-white p-4 rounded-xl border border-slate-800 shadow-md flex items-center gap-3">
+      <div className="bg-slate-900 text-white p-4 rounded-xl border border-slate-800 shadow-md flex items-center gap-3 flex-wrap">
         <CompetitionLogo competition={competition} size="md" />
-        <div>
+        <div className="flex-1">
           <span className="text-[10px] font-bold uppercase font-tech text-[#02f59b] block">
             {competition}
           </span>
@@ -234,11 +235,27 @@ export const FixtureJornadaDetail: React.FC<FixtureJornadaDetailProps> = ({
             {roundLabel}
           </h2>
         </div>
+
+        {!isAdmin && !!currentClubId && (
+          <button
+            type="button"
+            onClick={() => setOnlyMyMatch(v => !v)}
+            className={`px-3 py-1.5 rounded-lg text-[11px] font-tech font-extrabold uppercase transition-colors shrink-0 ${
+              onlyMyMatch
+                ? 'bg-[#00ba68] text-white'
+                : 'bg-white/10 text-slate-200 hover:bg-white/20'
+            }`}
+          >
+            {onlyMyMatch ? '✓ Solo mi partido' : 'Solo mi partido'}
+          </button>
+        )}
       </div>
 
       {jornadaMatches.length === 0 ? (
         <div className="fc-card p-10 text-center space-y-3 border-dashed border-slate-300 bg-white">
-          <p className="text-xs font-tech font-bold text-slate-600">No hay partidos cargados para esta ronda.</p>
+          <p className="text-xs font-tech font-bold text-slate-600">
+            {onlyMyMatch ? 'Tu club no tiene un partido en esta jornada.' : 'No hay partidos cargados para esta ronda.'}
+          </p>
         </div>
       ) : (
         jornadaMatches.map(match => {
