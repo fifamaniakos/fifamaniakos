@@ -1,4 +1,4 @@
-import { Club, MatchPhase, MatchResult } from '../types';
+import { Club, MatchPhase, MatchResult, Sponsor, SponsorObjective } from '../types';
 import { computeCupStandings } from './competitionStats';
 
 // Las divisiones se resuelven por tabla de posiciones; el resto de las
@@ -157,4 +157,96 @@ export function bestAssistsProgress(
     current: clubBest,
     target: threshold
   };
+}
+
+export interface ContractLine extends ObjectiveProgress {
+  objectiveId: string;
+  label: string;
+  amount: number; // en euros; 0 si no se cumplio
+}
+
+export interface ContractEvaluation {
+  lines: ContractLine[];
+  totalAmount: number;
+}
+
+const booleanProgress = (met: boolean): ObjectiveProgress => ({
+  met,
+  current: met ? 1 : 0,
+  target: 1
+});
+
+export function evaluateObjective(
+  clubId: string,
+  clubs: Club[],
+  matches: MatchResult[],
+  objective: SponsorObjective
+): ObjectiveProgress {
+  switch (objective.kind) {
+    case 'CHAMPION':
+      return booleanProgress(
+        !!objective.competition && isChampionOf(clubId, clubs, matches, objective.competition)
+      );
+
+    case 'RUNNER_UP':
+      return booleanProgress(
+        !!objective.competition && isRunnerUpOf(clubId, clubs, matches, objective.competition)
+      );
+
+    case 'REACH_PHASE':
+      return booleanProgress(
+        !!objective.competition &&
+          !!objective.phase &&
+          reachedPhase(clubId, matches, objective.competition, objective.phase)
+      );
+
+    case 'LEAGUE_WINS': {
+      const target = objective.threshold ?? 0;
+      const current = countLeagueWins(clubId, clubs, matches);
+      return { met: current >= target, current, target };
+    }
+
+    case 'TOP_SCORER':
+      if (!objective.competition) return booleanProgress(false);
+      return topScorerProgress(clubId, matches, objective.competition, objective.threshold ?? 0);
+
+    case 'ASSISTS_THRESHOLD':
+      return bestAssistsProgress(clubId, matches, objective.competition, objective.threshold ?? 0);
+
+    default:
+      return booleanProgress(false);
+  }
+}
+
+export function evaluateContract(
+  clubId: string,
+  clubs: Club[],
+  matches: MatchResult[],
+  objectives: SponsorObjective[]
+): ContractEvaluation {
+  const lines: ContractLine[] = objectives.map(objective => {
+    const progress = evaluateObjective(clubId, clubs, matches, objective);
+    return {
+      ...progress,
+      objectiveId: objective.id,
+      label: objective.label,
+      amount: progress.met ? objective.rewardMillions * 1_000_000 : 0
+    };
+  });
+
+  return {
+    lines,
+    totalAmount: lines.reduce((sum, line) => sum + line.amount, 0)
+  };
+}
+
+export function eligibleSponsors(club: Club, sponsors: Sponsor[]): Sponsor[] {
+  // requirementMaxPosition queda deliberadamente sin evaluar: la app no guarda
+  // historial por temporada (MatchResult no tiene seasonNumber), asi que no hay
+  // forma de saber en que puesto termino el club la temporada pasada.
+  return sponsors.filter(sponsor => {
+    if (!sponsor.active) return false;
+    if (sponsor.requirementDivision && sponsor.requirementDivision !== club.division) return false;
+    return true;
+  });
 }

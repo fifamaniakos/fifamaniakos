@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { Club, MatchResult } from '../types';
-import { isChampionOf, isRunnerUpOf, reachedPhase, countLeagueWins, topScorerProgress, bestAssistsProgress } from './sponsorEngine';
+import { Club, MatchResult, Sponsor, SponsorObjective } from '../types';
+import { isChampionOf, isRunnerUpOf, reachedPhase, countLeagueWins, topScorerProgress, bestAssistsProgress, evaluateObjective, evaluateContract, eligibleSponsors } from './sponsorEngine';
 
 export const club = (id: string, division = '1ra División'): Club => ({
   id,
@@ -256,5 +256,84 @@ describe('bestAssistsProgress', () => {
     // 9 + 9 no cuenta como 18: son competiciones distintas.
     expect(bestAssistsProgress('a', matches, undefined, 10).met).toBe(false);
     expect(bestAssistsProgress('a', matches, undefined, 10).current).toBe(9);
+  });
+});
+
+const objective = (over: Partial<SponsorObjective>): SponsorObjective => ({
+  id: 'o1',
+  sponsorId: 's1',
+  kind: 'LEAGUE_WINS',
+  rewardMillions: 10,
+  label: 'test',
+  ...over
+});
+
+describe('evaluateObjective', () => {
+  const clubs = [club('a'), club('b')];
+
+  it('LEAGUE_WINS reporta progreso parcial', () => {
+    const matches = [
+      match({ competition: '1ra División', homeClubId: 'a', awayClubId: 'b', homeGoals: 1, awayGoals: 0 })
+    ];
+    const obj = objective({ kind: 'LEAGUE_WINS', threshold: 20 });
+    expect(evaluateObjective('a', clubs, matches, obj)).toEqual({ met: false, current: 1, target: 20 });
+  });
+
+  it('CHAMPION reporta 1/1 cuando se cumple', () => {
+    const matches = [
+      match({ competition: '1ra División', homeClubId: 'a', awayClubId: 'b', homeGoals: 1, awayGoals: 0 })
+    ];
+    const obj = objective({ kind: 'CHAMPION', competition: '1ra División' });
+    expect(evaluateObjective('a', clubs, matches, obj)).toEqual({ met: true, current: 1, target: 1 });
+  });
+
+  it('una competicion que no existe todavia no se cumple ni rompe', () => {
+    const obj = objective({ kind: 'CHAMPION', competition: 'Mundial de Clubes' });
+    expect(evaluateObjective('a', clubs, [], obj)).toEqual({ met: false, current: 0, target: 1 });
+  });
+
+  it('REACH_PHASE sin phase definida no se cumple', () => {
+    const obj = objective({ kind: 'REACH_PHASE', competition: 'UEFA Champions League' });
+    expect(evaluateObjective('a', clubs, [], obj).met).toBe(false);
+  });
+});
+
+describe('evaluateContract', () => {
+  const clubs = [club('a'), club('b')];
+
+  it('devuelve una linea por objetivo con su premio en euros', () => {
+    const matches = [
+      match({ competition: '1ra División', homeClubId: 'a', awayClubId: 'b', homeGoals: 1, awayGoals: 0 })
+    ];
+    const objectives = [
+      objective({ id: 'o1', kind: 'CHAMPION', competition: '1ra División', rewardMillions: 20 }),
+      objective({ id: 'o2', kind: 'LEAGUE_WINS', threshold: 20, rewardMillions: 15 })
+    ];
+    const result = evaluateContract('a', clubs, matches, objectives);
+
+    expect(result.lines).toHaveLength(2);
+    expect(result.lines[0]).toMatchObject({ objectiveId: 'o1', met: true, amount: 20_000_000 });
+    expect(result.lines[1]).toMatchObject({ objectiveId: 'o2', met: false, amount: 0 });
+    expect(result.totalAmount).toBe(20_000_000);
+  });
+});
+
+describe('eligibleSponsors', () => {
+  const sponsors: Sponsor[] = [
+    { id: 's1', name: 'adidas', logoUrl: '', tier: 1, requirementDivision: '1ra División', active: true },
+    { id: 's2', name: 'Samsung', logoUrl: '', tier: 5, active: true },
+    { id: 's3', name: 'Vieja', logoUrl: '', tier: 3, active: false }
+  ];
+
+  it('un club de 1ra puede firmar con todas las activas', () => {
+    expect(eligibleSponsors(club('a', '1ra División'), sponsors).map(s => s.id)).toEqual(['s1', 's2']);
+  });
+
+  it('un club de 2da no puede firmar con las que exigen 1ra', () => {
+    expect(eligibleSponsors(club('a', '2da División'), sponsors).map(s => s.id)).toEqual(['s2']);
+  });
+
+  it('nunca devuelve marcas inactivas', () => {
+    expect(eligibleSponsors(club('a'), sponsors).some(s => s.id === 's3')).toBe(false);
   });
 });
