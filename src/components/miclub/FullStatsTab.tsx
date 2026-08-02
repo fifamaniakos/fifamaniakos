@@ -218,7 +218,7 @@ export const FullStatsTab: React.FC<FullStatsTabProps> = ({ currentClub, players
           </div>
 
           {/* Positional Filter Buttons */}
-          <div className="flex items-center gap-1.5 bg-slate-100 p-1 rounded-xl w-full sm:w-auto overflow-x-auto">
+          <div className="flex flex-wrap items-center gap-1.5 bg-slate-100 p-1 rounded-xl w-full sm:w-auto">
             {(['ALL', 'POR', 'DEF', 'MED', 'DEL'] as const).map(pos => (
               <button
                 key={pos}

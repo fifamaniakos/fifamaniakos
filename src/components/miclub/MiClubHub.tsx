@@ -119,7 +119,7 @@ export const MiClubHub: React.FC<MiClubHubProps> = ({
         </div>
       </div>
 
-      <div className="flex items-center gap-1.5 overflow-x-auto pb-2 bg-white p-2 rounded-2xl border border-slate-200 shadow-sm">
+      <div className="flex flex-wrap items-center gap-1.5 bg-white p-2 rounded-2xl border border-slate-200 shadow-sm">
         {TABS.map(tab => {
           const Icon = tab.icon;
           return (

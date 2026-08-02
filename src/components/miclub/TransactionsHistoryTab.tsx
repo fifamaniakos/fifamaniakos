@@ -88,7 +88,7 @@ export const TransactionsHistoryTab: React.FC<TransactionsHistoryTabProps> = ({ 
           </div>
 
           {/* Filter Pills */}
-          <div className="flex items-center gap-1.5 bg-slate-100 p-1 rounded-xl w-full sm:w-auto overflow-x-auto">
+          <div className="flex flex-wrap items-center gap-1.5 bg-slate-100 p-1 rounded-xl w-full sm:w-auto">
             <button
               onClick={() => setTypeFilter('ALL')}
               className={`px-3 py-1.5 rounded-lg text-[11px] font-tech font-bold uppercase transition-all ${
