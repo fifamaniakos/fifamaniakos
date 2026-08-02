@@ -32,7 +32,7 @@ registrado en el Historial de Transacciones de Mi Club.
 | `logoUrl` | text | |
 | `tier` | int | 1 = más exigente y mejor pago, 5 = más accesible |
 | `requirementDivision` | text \| null | División mínima para poder firmar (ej. `1ra División`) |
-| `requirementMaxPosition` | int \| null | Posición máxima en la temporada anterior (ej. 4 = top 4) |
+| `requirementMaxPosition` | int \| null | Posición máxima en la temporada anterior (ej. 4 = top 4). **Definido pero sin implementar:** `MatchResult` no tiene `seasonNumber`, así que la app no conserva historial por temporada y no hay forma de calcular la posición anterior. La elegibilidad usa solo `requirementDivision`. |
 | `active` | bool | |
 
 Un club califica para una marca si cumple **ambos** requisitos no nulos. Los
@@ -147,6 +147,31 @@ Cada pago liquidado produce:
 
 Los tres pasos van en la misma transacción de base de datos (RPC de Supabase),
 igual que el patrón ya usado en `011_financial_transfer_rpc.sql`.
+
+## Decisiones tomadas durante la implementación
+
+Estas se decidieron después de escribir la spec original, revisando el código:
+
+- **Contratos y pagos son privados por club.** Cada manager ve solo lo suyo; el
+  admin ve todo. Es el mismo criterio que ya usaba la tabla `transactions`.
+- **El manager solo puede FIRMAR su contrato, nunca modificarlo ni borrarlo.**
+  El bloqueo de "temporada ya arrancada" es una regla de pantalla, y una
+  pantalla no es un permiso: con permiso de UPDATE, un manager podía jugar toda
+  la temporada, ver qué ganó, y recién entonces cambiar a la marca que mejor le
+  pagaba por ese título. Corregir un contrato mal firmado es tarea del admin.
+- **La RPC de liquidación no recibe montos del cliente.** Recibe solo
+  identificadores (club, temporada, objetivo) y lee el premio y el concepto
+  desde la base, rechazando objetivos que no pertenezcan a la marca que ese club
+  contrató. Esto cierra la clase entera de ataques, no solo el caso conocido.
+- **Umbrales:** un objetivo con `threshold: 30` se cumple con **30 exactos**
+  (comparación `>=`). Las etiquetas dicen "+30 goles"; si se quiere que digan lo
+  mismo que hace el sistema, hay que cambiar el texto, no la lógica.
+- **Empate perfecto en la tabla de liga:** si dos clubes empatan en puntos,
+  diferencia de gol y goles a favor, **no se corona a ninguno**. El orden que
+  devuelve la tabla en ese caso depende del orden de llegada de los partidos, y
+  preferimos no pagar antes que pagarle al club equivocado.
+- **Finales duplicadas:** si hay más de un partido cargado como `FINAL` en la
+  misma competición, vale el de `createdAt` más reciente.
 
 ## Alcance conocido / limitaciones
 
