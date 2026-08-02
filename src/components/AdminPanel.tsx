@@ -165,6 +165,23 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
     apply(parsed);
   };
 
+  // Mismo problema que los cupos: escribir la temporada en cada tecla
+  // publicaba estados intermedios a Supabase. Pasar de 1 a 12 guardaba la
+  // temporada 1 y despues la 12, y cada valor >= 2 activa el muro de
+  // suscripcion para TODOS los managers conectados por Realtime.
+  const [seasonDraft, setSeasonDraft] = useState(String(currentSeasonNumber));
+  useEffect(() => setSeasonDraft(String(currentSeasonNumber)), [currentSeasonNumber]);
+
+  const commitSeasonNumber = () => {
+    const parsed = parseInt(seasonDraft, 10);
+    if (Number.isNaN(parsed) || parsed < 1) {
+      setSeasonDraft(String(currentSeasonNumber));
+      return;
+    }
+    if (parsed === currentSeasonNumber) return;
+    onSetCurrentSeasonNumber(parsed);
+  };
+
   const [managers, setManagers] = useState<ManagerRow[]>([]);
   const [managersLoaded, setManagersLoaded] = useState(false);
   const [managerActionError, setManagerActionError] = useState<string | null>(null);
@@ -1632,8 +1649,12 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
               <input
                 type="number"
                 min={1}
-                value={currentSeasonNumber}
-                onChange={(e) => onSetCurrentSeasonNumber(Math.max(1, parseInt(e.target.value, 10) || 1))}
+                value={seasonDraft}
+                onChange={(e) => setSeasonDraft(e.target.value)}
+                onBlur={commitSeasonNumber}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') (e.target as HTMLInputElement).blur();
+                }}
                 className="w-16 px-2 py-1 bg-white border border-emerald-300 rounded text-xs font-bold text-center"
               />
               {currentSeasonNumber >= 2 && (
