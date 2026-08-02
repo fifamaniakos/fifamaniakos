@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { ClubLogo } from '../ClubLogo';
-import { Player, Club, FinancialTransaction, TransferItem, MatchResult } from '../../types';
-import { Shield, PlayCircle, BarChart3, Users2, Landmark, CalendarDays, BarChart4, Wallet, FileText } from 'lucide-react';
+import { Player, Club, FinancialTransaction, TransferItem, MatchResult, Sponsor, SponsorObjective, ClubSponsorContract } from '../../types';
+import { Shield, PlayCircle, BarChart3, Users2, Landmark, CalendarDays, BarChart4, Wallet, FileText, Handshake } from 'lucide-react';
 import { RecentGamesTab } from './RecentGamesTab';
 import { TeamStatsTab } from './TeamStatsTab';
 import { LineupTab } from './LineupTab';
@@ -10,6 +10,7 @@ import { ScheduleStandingsTab } from './ScheduleStandingsTab';
 import { FullStatsTab } from './FullStatsTab';
 import { FinancesTab } from './FinancesTab';
 import { TransactionsHistoryTab } from './TransactionsHistoryTab';
+import { SponsorTab } from './SponsorTab';
 
 interface MiClubHubProps {
   currentClub: Club | null;
@@ -23,9 +24,14 @@ interface MiClubHubProps {
   onUpdatePlayerValue?: (playerId: string, newValue: number) => void;
   onSetTransferPrice?: (player: Player, price: number) => void;
   onRemoveFromMarket?: (playerId: string) => void;
+  sponsors?: Sponsor[];
+  sponsorObjectives?: SponsorObjective[];
+  sponsorContracts?: ClubSponsorContract[];
+  currentSeasonNumber?: number;
+  onSignSponsor?: (sponsorId: string) => void;
 }
 
-type MiClubTab = 'recientes' | 'stats-equipo' | 'alineaciones' | 'estadio' | 'calendario' | 'stats-completas' | 'financiero' | 'transacciones';
+type MiClubTab = 'recientes' | 'stats-equipo' | 'alineaciones' | 'estadio' | 'calendario' | 'stats-completas' | 'financiero' | 'transacciones' | 'patrocinador';
 
 const TABS: { id: MiClubTab; label: string; icon: React.ElementType }[] = [
   { id: 'recientes', label: 'Juegos Recientes', icon: PlayCircle },
@@ -35,7 +41,8 @@ const TABS: { id: MiClubTab; label: string; icon: React.ElementType }[] = [
   { id: 'calendario', label: 'Calendario y Clasificacion', icon: CalendarDays },
   { id: 'stats-completas', label: 'Estadisticas Completas', icon: BarChart4 },
   { id: 'financiero', label: 'Estado Financiero', icon: Wallet },
-  { id: 'transacciones', label: 'Historial de Transacciones', icon: FileText }
+  { id: 'transacciones', label: 'Historial de Transacciones', icon: FileText },
+  { id: 'patrocinador', label: 'Patrocinador', icon: Handshake }
 ];
 
 export const MiClubHub: React.FC<MiClubHubProps> = ({
@@ -49,7 +56,12 @@ export const MiClubHub: React.FC<MiClubHubProps> = ({
   onToggleStarter,
   onUpdatePlayerValue,
   onSetTransferPrice,
-  onRemoveFromMarket
+  onRemoveFromMarket,
+  sponsors = [],
+  sponsorObjectives = [],
+  sponsorContracts = [],
+  currentSeasonNumber = 1,
+  onSignSponsor
 }) => {
   const [activeMiClubTab, setActiveMiClubTab] = useState<MiClubTab>('recientes');
 
@@ -158,6 +170,18 @@ export const MiClubHub: React.FC<MiClubHubProps> = ({
       )}
       {activeMiClubTab === 'transacciones' && (
         <TransactionsHistoryTab currentClub={currentClub} transactions={transactions} />
+      )}
+      {activeMiClubTab === 'patrocinador' && (
+        <SponsorTab
+          currentClub={currentClub}
+          clubs={clubs}
+          matches={matches}
+          sponsors={sponsors}
+          sponsorObjectives={sponsorObjectives}
+          sponsorContracts={sponsorContracts}
+          currentSeasonNumber={currentSeasonNumber}
+          onSignSponsor={onSignSponsor ?? (() => {})}
+        />
       )}
     </div>
   );

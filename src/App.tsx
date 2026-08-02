@@ -900,6 +900,25 @@ export default function App() {
     setTransfers(prev => prev.filter(t => !(t.playerId === playerId && t.status === 'DISPONIBLE')));
   };
 
+  const handleSignSponsor = (sponsorId: string) => {
+    if (!currentClubId) return;
+    const contractId = `contract-${currentClubId}-${currentSeasonNumber}`;
+    setSponsorContracts(prev => [
+      ...prev.filter(c => c.id !== contractId),
+      {
+        id: contractId,
+        clubId: currentClubId,
+        sponsorId,
+        seasonNumber: currentSeasonNumber,
+        signedAt: new Date().toISOString()
+      }
+    ]);
+  };
+
+  const handleUpdateSponsorObjective = (objective: SponsorObjective) => {
+    setSponsorObjectives(prev => prev.map(o => (o.id === objective.id ? objective : o)));
+  };
+
   // Handler: Update player's market value (Valor de Mercado)
   const handleUpdatePlayerValue = (playerId: string, newValue: number) => {
     setPlayers(prev => prev.map(p => {
@@ -1208,6 +1227,11 @@ export default function App() {
             onUpdatePlayerValue={handleUpdatePlayerValue}
             onSetTransferPrice={handleSetTransferPrice}
             onRemoveFromMarket={handleRemoveFromMarket}
+            sponsors={sponsors}
+            sponsorObjectives={sponsorObjectives}
+            sponsorContracts={sponsorContracts}
+            currentSeasonNumber={currentSeasonNumber}
+            onSignSponsor={handleSignSponsor}
           />
         )}
 
@@ -1257,6 +1281,11 @@ export default function App() {
               division2TeamCount={division2TeamCount}
               onSetDivision1TeamCount={setDivision1TeamCount}
               onSetDivision2TeamCount={setDivision2TeamCount}
+              sponsors={sponsors}
+              sponsorObjectives={sponsorObjectives}
+              sponsorContracts={sponsorContracts}
+              sponsorPayouts={sponsorPayouts}
+              onUpdateSponsorObjective={handleUpdateSponsorObjective}
             />
           ) : (
             <div className="fc-card p-8 md:p-12 rounded-2xl border-emerald-300 bg-slate-900 text-white text-center space-y-6 max-w-2xl mx-auto shadow-2xl animate-scale-up">
