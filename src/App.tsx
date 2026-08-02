@@ -17,7 +17,12 @@ import { SofifaPlayersExplorer } from './components/SofifaPlayersExplorer';
 import { DraftLotteryModule } from './components/DraftLotteryModule';
 import { CompetitionSectionView } from './components/CompetitionSectionView';
 import { MonetizationModule } from './components/MonetizationModule';
-import { generateAllCompetitionsFixtures, generateFixtureForClubs } from './utils/fixtureGenerator';
+import {
+  generateAllCompetitionsFixtures,
+  generateFixtureForClubs,
+  isFixtureInSyncWithParticipants
+} from './utils/fixtureGenerator';
+import { buildLeagueClubs, isDivision1Club, isDivision2Club } from './utils/leagueParticipants';
 import { generatePendingKnockoutMatches } from './utils/bracketGenerator';
 import { useSupabaseTable } from './hooks/useSupabaseTable';
 import { useAuth } from './contexts/AuthContext';
@@ -75,113 +80,10 @@ export default function App() {
 
 
 
-  // Completa una division con clubes "Equipo N" vacantes hasta llegar al
-  // cupo configurado por el admin, sin tocar los clubes ya existentes.
-  const padDivisionToCount = (
-    divisionClubs: Club[],
-    targetCount: number,
-    idPrefix: string,
-    divisionLabel: '1ra División' | '2da División'
-  ): Club[] => {
-    if (divisionClubs.length >= targetCount) return divisionClubs;
-
-    const padded = [...divisionClubs];
-    const missingCount = targetCount - divisionClubs.length;
-    const slotIdPattern = new RegExp(`^${idPrefix}-(\\d+)$`);
-
-    for (let i = 1; i <= missingCount; i++) {
-      // Un slot puede seguir teniendo su id de slot aunque ya se le haya
-      // asignado un club real (draft o edicion admin), que cambia el nombre
-      // a algo que ya no matchea "Equipo N". Sin chequear tambien el id,
-      // este slot se contaba como libre y se regeneraba un duplicado con el
-      // mismo id, mostrando "Equipo N" vacante de nuevo pese a la asignacion.
-      const existingNumSet = new Set(
-        padded
-          .flatMap(c => {
-            const nameMatch = c.name.match(/^Equipo\s+(\d+)$/i);
-            const idMatch = c.id.match(slotIdPattern);
-            return [
-              nameMatch ? parseInt(nameMatch[1], 10) : null,
-              idMatch ? parseInt(idMatch[1], 10) : null
-            ];
-          })
-          .filter((n): n is number => n !== null)
-      );
-
-      let nextNum = 1;
-      while (existingNumSet.has(nextNum)) {
-        nextNum++;
-      }
-
-      padded.push({
-        id: `${idPrefix}-${nextNum}`,
-        name: `Equipo ${nextNum}`,
-        shortName: `EQ${nextNum}`,
-        manager: 'Por Inscribir (Vacante)',
-        gamertag: 'Pendiente',
-        platform: 'PS5',
-        stadium: `Estadio Equipo ${nextNum}`,
-        logoUrl: 'https://images.unsplash.com/photo-1508098682722-e99c43a406b2?w=150&auto=format&fit=crop&q=80',
-        division: divisionLabel,
-        budget: 100000000,
-        played: 0,
-        won: 0,
-        drawn: 0,
-        lost: 0,
-        goalsFor: 0,
-        goalsAgainst: 0,
-        points: 0,
-        form: []
-      });
-    }
-
-    return padded;
-  };
-
-  const isVacantClub = (c: Club) => {
-    const manager = (c.manager || '').toLowerCase();
-    return manager.includes('vacante') || manager.includes('por inscribir');
-  };
-
-  // Arma la lista de participantes de una division: los clubes que ya tienen
-  // DT, mas lugares vacios genericos ("Equipo N") hasta llegar al cupo.
-  //
-  // Los clubes vacantes que vienen de la semilla (migracion 009, 234 clubes)
-  // NO entran aca: son un catalogo para que el usuario elija uno al
-  // inscribirse, no equipos jugando. Cuando se rellenaba el cupo con ellos,
-  // la liga terminaba con entradas casi identicas del catalogo (ej: "Bayern
-  // Munich" junto al "FC Bayern München" ya reclamado) y parecian duplicados.
-  const buildDivisionParticipants = (
-    divisionClubs: Club[],
-    targetCount: number,
-    idPrefix: string,
-    divisionLabel: '1ra División' | '2da División'
-  ): Club[] => {
-    const claimedClubs = divisionClubs.filter(c => !isVacantClub(c));
-    return padDivisionToCount(claimedClubs, targetCount, idPrefix, divisionLabel);
-  };
-
-  // El admin define cuantos equipos tiene cada division (Panel de
-  // Administracion -> Cuentas); por defecto 1ra arranca en 36 y 2da en 0
-  // (sin clubes) hasta que el admin la configure.
-  const buildLeagueClubs = (
-    loadedClubs: Club[],
-    division1TeamCount: number,
-    division2TeamCount: number
-  ): Club[] => {
-    const div1Clubs = loadedClubs.filter(
-      c => !c.division || c.division === '1ra División' || c.division === 'Primera División'
-    );
-    const div2Clubs = loadedClubs.filter(
-      c => c.division === '2da División' || c.division === 'Segunda División'
-    );
-
-    return [
-      ...buildDivisionParticipants(div1Clubs, division1TeamCount, 'club-1ra-slot', '1ra División'),
-      ...buildDivisionParticipants(div2Clubs, division2TeamCount, 'club-2da-slot', '2da División')
-    ];
-  };
-
+  // La logica de participantes por division vive en
+  // utils/leagueParticipants.ts (ver leagueParticipants.test.ts): estaba
+  // inline aca y no se podia testear, y el bug de "cupo 20 -> 70 jornadas"
+  // venia de que esa funcion solo rellenaba y nunca recortaba.
   // Helper to recalculate standings for all clubs based on confirmed matches.
   // Puramente derivado a partir de `matches` (la fuente de verdad) — nunca se
   // persiste de vuelta en `clubs`, porque un manager solo tiene permiso RLS
@@ -271,7 +173,7 @@ export default function App() {
     };
   });
 
-  const [matches, setMatches, , matchesWriteError, clearMatchesWriteError] = useSupabaseTable<MatchResult>(
+  const [matches, setMatches, matchesLoaded, matchesWriteError, clearMatchesWriteError] = useSupabaseTable<MatchResult>(
     'matches',
     INITIAL_MATCHES,
     (m) => m.id
@@ -288,7 +190,7 @@ export default function App() {
   // (y la cantidad de equipos por division) vive en la tabla `seasons`
   // (unica fila, key 'current') para que sea el mismo para todos los
   // usuarios, no local a cada navegador.
-  const [leagueSettings, setLeagueSettings] = useSupabaseTable<LeagueSettings>(
+  const [leagueSettings, setLeagueSettings, leagueSettingsLoaded] = useSupabaseTable<LeagueSettings>(
     'seasons',
     [{ id: 'current', currentSeasonNumber: 1 }],
     (s) => s.id
@@ -709,17 +611,18 @@ export default function App() {
     // opciones para elegir al inscribirse, no equipos jugando. Armar el
     // fixture con todos ellos generaba +54.000 partidos que morian por
     // timeout al guardarse, dejando partidos viejos y nuevos mezclados.
+    const isSingleCompetition = Boolean(competitionName) && competitionName !== 'TODAS';
     if (leagueClubs.length < 2) {
       if (!silent) alert('Se necesitan al menos 2 clubes para generar el fixture.');
-      return;
+      // Con una competicion puntual se sigue: hay que poder dejarla vacia
+      // cuando el cupo baja a 0/1, o quedan jornadas huerfanas para siempre.
+      if (!isSingleCompetition) return;
     }
 
     let newMatches: MatchResult[] = [];
     if (competitionName && competitionName !== 'TODAS') {
-      const compClubs = leagueClubs.filter(c =>
-        competitionName === '2da División'
-          ? (c.division === '2da División' || c.division === 'Segunda División')
-          : (!c.division || c.division === '1ra División' || c.division === 'Primera División')
+      const compClubs = leagueClubs.filter(
+        competitionName === '2da División' ? isDivision2Club : isDivision1Club
       );
       if (compClubs.length < 2) {
         newMatches = matches.filter(m => m.competition !== competitionName);
@@ -733,20 +636,35 @@ export default function App() {
     setMatches(newMatches);
   };
 
-  // Si el admin cambia el cupo de una division (Panel de Administracion ->
-  // Cuentas), el fixture de esa division se rearma solo -- sin esto, cambiar
-  // de 36 a 20 equipos dejaba la cantidad de jornadas vieja hasta que
-  // alguien tocara "Generar Fixtures" a mano.
-  const prevDivisionCountsRef = React.useRef<{ div1: number; div2: number } | null>(null);
+  // Reconciliacion del fixture con el cupo de cada division.
+  //
+  // Antes esto se disparaba SOLO al detectar "el cupo cambio" (comparando
+  // contra un ref). Si ese momento no se observaba -- el admin no estaba
+  // logueado cuando se guardo el cupo, el efecto salia antes por el guard de
+  // admin sin registrar el valor previo, o la escritura de partidos fallo --
+  // el fixture viejo quedaba para siempre: cupo 20 en la pantalla y 70
+  // jornadas (36 equipos) en el fixture, sin nada que los volviera a alinear.
+  //
+  // Ahora se compara el estado real: si las jornadas guardadas no son las que
+  // corresponden a la cantidad de participantes, se regenera. Es idempotente,
+  // asi que no hay loop: despues de regenerar la condicion queda satisfecha.
   useEffect(() => {
     if (!isAdminLoggedIn) return;
-    const prev = prevDivisionCountsRef.current;
-    prevDivisionCountsRef.current = { div1: division1TeamCount, div2: division2TeamCount };
-    if (!prev) return; // no regenerar en el primer render, solo ante un cambio real
+    // Sin esperar la carga real se compararia contra INITIAL_MATCHES (el
+    // fallback local) y se reescribiria el fixture de la base al pedo.
+    if (!matchesLoaded || !leagueSettingsLoaded) return;
 
-    if (prev.div1 !== division1TeamCount) handleGenerateFixtures('1ra División', true);
-    if (prev.div2 !== division2TeamCount) handleGenerateFixtures('2da División', true);
-  }, [division1TeamCount, division2TeamCount, isAdminLoggedIn]);
+    const div1Count = leagueClubs.filter(isDivision1Club).length;
+    const div2Count = leagueClubs.filter(isDivision2Club).length;
+
+    if (!isFixtureInSyncWithParticipants(matches, '1ra División', div1Count)) {
+      handleGenerateFixtures('1ra División', true);
+      return;
+    }
+    if (!isFixtureInSyncWithParticipants(matches, '2da División', div2Count)) {
+      handleGenerateFixtures('2da División', true);
+    }
+  }, [matches, leagueClubs, matchesLoaded, leagueSettingsLoaded, isAdminLoggedIn]);
 
   // Generar partidos de eliminatorias es una operacion de nivel admin (crea
   // partidos entre clubes que no son necesariamente el propio) — si corriera

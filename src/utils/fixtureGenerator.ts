@@ -82,6 +82,41 @@ export function generateFixtureForClubs(
 }
 
 /**
+ * Cantidad de jornadas que DEBE tener el fixture de una liga con `teamCount`
+ * equipos. Con impares se agrega un BYE, por eso se redondea a par.
+ */
+export function expectedMatchdayCount(teamCount: number, includeReturnLeg: boolean = true): number {
+  if (teamCount < 2) return 0;
+  const evenCount = teamCount % 2 === 0 ? teamCount : teamCount + 1;
+  const rounds = evenCount - 1;
+  return includeReturnLeg ? rounds * 2 : rounds;
+}
+
+/**
+ * ¿El fixture guardado se corresponde con la cantidad actual de participantes?
+ *
+ * El cupo de una división y su fixture se pueden desincronizar: el fixture se
+ * regeneraba solo como efecto puntual de "el cupo cambió", así que si ese
+ * efecto no corría (admin que no estaba logueado en ese momento, cupo ya
+ * guardado en la base pero fixture viejo, escritura fallida) quedaba para
+ * siempre el fixture anterior. Con 36 equipos son 70 jornadas y con 20 son 38:
+ * comparar jornadas esperadas vs. reales permite reconciliar en vez de confiar
+ * en haber visto el cambio.
+ */
+export function isFixtureInSyncWithParticipants(
+  matches: MatchResult[],
+  competition: string,
+  teamCount: number,
+  includeReturnLeg: boolean = true
+): boolean {
+  const groupMatches = matches.filter(
+    m => m.competition === competition && (!m.phase || m.phase === 'GRUPOS')
+  );
+  const matchdays = new Set(groupMatches.map(m => m.matchday));
+  return matchdays.size === expectedMatchdayCount(teamCount, includeReturnLeg);
+}
+
+/**
  * Genera automáticamente el fixture de las ligas domésticas:
  * - 1ra División
  * - 2da División
