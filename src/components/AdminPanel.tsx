@@ -2,12 +2,17 @@ import React, { useState, useEffect } from 'react';
 import { Modal } from './Modal';
 import { supabase } from '../lib/supabaseClient';
 import { ClubLogo } from './ClubLogo';
+import { SponsorsAdminSection } from './admin/SponsorsAdminSection';
 import {
   Club,
   MatchResult,
   ForumTopic,
   TransferItem,
-  TickerNewsItem
+  TickerNewsItem,
+  Sponsor,
+  SponsorObjective,
+  ClubSponsorContract,
+  SponsorPayout
 } from '../types';
 import {
   ShieldAlert,
@@ -30,7 +35,8 @@ import {
   ToggleRight,
   Sparkles,
   Globe,
-  Users
+  Users,
+  Handshake
 } from 'lucide-react';
 import { 
   SOFIFA_CLUBS, 
@@ -82,6 +88,11 @@ interface AdminPanelProps {
   onUpdateTransferClause?: (transferId: string, newAskingPrice: number) => void;
   onGenerateFixtures?: (competitionName?: string) => void;
   onLogoutAdmin: () => void;
+  sponsors: Sponsor[];
+  sponsorObjectives: SponsorObjective[];
+  sponsorContracts: ClubSponsorContract[];
+  sponsorPayouts: SponsorPayout[];
+  onUpdateSponsorObjective: (objective: SponsorObjective) => void;
 }
 
 export const AdminPanel: React.FC<AdminPanelProps> = ({
@@ -114,9 +125,14 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
   division1TeamCount,
   division2TeamCount,
   onSetDivision1TeamCount,
-  onSetDivision2TeamCount
+  onSetDivision2TeamCount,
+  sponsors,
+  sponsorObjectives,
+  sponsorContracts,
+  sponsorPayouts,
+  onUpdateSponsorObjective
 }) => {
-  const [adminTab, setAdminTab] = useState<'cartel' | 'clubes' | 'partidos' | 'foro' | 'fichajes' | 'anuncios' | 'cuentas'>('cartel');
+  const [adminTab, setAdminTab] = useState<'cartel' | 'clubes' | 'partidos' | 'foro' | 'fichajes' | 'anuncios' | 'cuentas' | 'patrocinadores'>('cartel');
 
   const [managers, setManagers] = useState<ManagerRow[]>([]);
   const [managersLoaded, setManagersLoaded] = useState(false);
@@ -627,6 +643,17 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
           }`}
         >
           <Users className="w-4 h-4" /> Cuentas ({managers.length})
+        </button>
+
+        <button
+          onClick={() => setAdminTab('patrocinadores')}
+          className={`px-4 py-2.5 rounded-t-xl text-xs font-bold uppercase font-tech flex items-center gap-2 transition-all ${
+            adminTab === 'patrocinadores'
+              ? 'bg-[#00ba68] text-white shadow-md'
+              : 'bg-slate-200 text-slate-700 hover:bg-slate-300'
+          }`}
+        >
+          <Handshake className="w-4 h-4" /> Patrocinadores ({sponsorContracts.length})
         </button>
       </div>
 
@@ -1714,6 +1741,20 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
             </div>
           )}
         </div>
+      )}
+
+      {/* TAB: PATROCINADORES */}
+      {adminTab === 'patrocinadores' && (
+        <SponsorsAdminSection
+          clubs={clubs}
+          matches={matches}
+          sponsors={sponsors}
+          sponsorObjectives={sponsorObjectives}
+          sponsorContracts={sponsorContracts}
+          sponsorPayouts={sponsorPayouts}
+          currentSeasonNumber={currentSeasonNumber}
+          onUpdateObjective={onUpdateSponsorObjective}
+        />
       )}
 
       {/* Modal: Inscribir Nuevo Club (Admin) */}
