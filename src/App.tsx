@@ -38,7 +38,11 @@ import {
   FinancialTransaction,
   ForumReply,
   TickerNewsItem,
-  LeagueSettings
+  LeagueSettings,
+  Sponsor,
+  SponsorObjective,
+  ClubSponsorContract,
+  SponsorPayout
 } from './types';
 
 import {
@@ -54,6 +58,7 @@ import {
   FC27_ADMIN_AVATAR
 } from './data/initialData';
 import { SOFIFA_PLAYERS, SOFIFA_CLUBS, SoFifaPlayerPreset } from './data/sofifaData';
+import { INITIAL_SPONSORS, INITIAL_SPONSOR_OBJECTIVES } from './data/sponsorsData';
 
 import { Trophy, MessageSquare, Shield, DollarSign, PlusCircle, Sparkles, RefreshCw, ShieldCheck } from 'lucide-react';
 
@@ -414,6 +419,30 @@ export default function App() {
     'ticker_news',
     INITIAL_TICKER_NEWS,
     (n) => n.id
+  );
+
+  const [sponsors, setSponsors] = useSupabaseTable<Sponsor>(
+    'sponsors',
+    INITIAL_SPONSORS,
+    (s) => s.id
+  );
+
+  const [sponsorObjectives, setSponsorObjectives] = useSupabaseTable<SponsorObjective>(
+    'sponsor_objectives',
+    INITIAL_SPONSOR_OBJECTIVES,
+    (o) => o.id
+  );
+
+  const [sponsorContracts, setSponsorContracts] = useSupabaseTable<ClubSponsorContract>(
+    'club_sponsor_contracts',
+    [],
+    (c) => c.id
+  );
+
+  const [sponsorPayouts] = useSupabaseTable<SponsorPayout>(
+    'sponsor_payouts',
+    [],
+    (p) => p.id
   );
 
   const subscriptionRequiredThisSeason = currentSeasonNumber >= 2;
