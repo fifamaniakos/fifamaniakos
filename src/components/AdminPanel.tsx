@@ -134,6 +134,37 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
 }) => {
   const [adminTab, setAdminTab] = useState<'cartel' | 'clubes' | 'partidos' | 'foro' | 'fichajes' | 'anuncios' | 'cuentas' | 'patrocinadores'>('cartel');
 
+  // Los cupos por division se editan en un estado local y recien se confirman
+  // al salir del campo o al apretar Enter. Con un onChange directo, pasar de 36
+  // a 20 disparaba tres cambios: el campo vacio (que parseInt lee como 0), el
+  // "2" intermedio y recien despues el 20. Cada uno regeneraba y reescribia el
+  // fixture entero contra Supabase, y el paso por 0 llegaba a borrar todos los
+  // partidos de la division porque con menos de 2 clubes no hay fixture posible.
+  const [div1Draft, setDiv1Draft] = useState(String(division1TeamCount));
+  const [div2Draft, setDiv2Draft] = useState(String(division2TeamCount));
+
+  // Si el cupo cambia desde afuera (otro admin, via Realtime) el campo se
+  // sincroniza, salvo que lo estes editando en este momento.
+  useEffect(() => setDiv1Draft(String(division1TeamCount)), [division1TeamCount]);
+  useEffect(() => setDiv2Draft(String(division2TeamCount)), [division2TeamCount]);
+
+  const commitDivisionCount = (
+    draft: string,
+    current: number,
+    apply: (n: number) => void,
+    resetDraft: (value: string) => void
+  ) => {
+    const parsed = parseInt(draft, 10);
+    // Campo vacio o basura: se descarta la edicion en vez de interpretarla como
+    // cupo 0, que borraria el fixture de la division.
+    if (Number.isNaN(parsed) || parsed < 0) {
+      resetDraft(String(current));
+      return;
+    }
+    if (parsed === current) return;
+    apply(parsed);
+  };
+
   const [managers, setManagers] = useState<ManagerRow[]>([]);
   const [managersLoaded, setManagersLoaded] = useState(false);
   const [managerActionError, setManagerActionError] = useState<string | null>(null);
@@ -1628,8 +1659,14 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                 <input
                   type="number"
                   min={0}
-                  value={division1TeamCount}
-                  onChange={(e) => onSetDivision1TeamCount(Math.max(0, parseInt(e.target.value, 10) || 0))}
+                  value={div1Draft}
+                  onChange={(e) => setDiv1Draft(e.target.value)}
+                  onBlur={() =>
+                    commitDivisionCount(div1Draft, division1TeamCount, onSetDivision1TeamCount, setDiv1Draft)
+                  }
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') (e.target as HTMLInputElement).blur();
+                  }}
                   className="w-16 px-2 py-1 bg-white border border-sky-300 rounded text-xs font-bold text-center"
                 />
               </div>
@@ -1638,12 +1675,21 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                 <input
                   type="number"
                   min={0}
-                  value={division2TeamCount}
-                  onChange={(e) => onSetDivision2TeamCount(Math.max(0, parseInt(e.target.value, 10) || 0))}
+                  value={div2Draft}
+                  onChange={(e) => setDiv2Draft(e.target.value)}
+                  onBlur={() =>
+                    commitDivisionCount(div2Draft, division2TeamCount, onSetDivision2TeamCount, setDiv2Draft)
+                  }
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') (e.target as HTMLInputElement).blur();
+                  }}
                   className="w-16 px-2 py-1 bg-white border border-sky-300 rounded text-xs font-bold text-center"
                 />
               </div>
             </div>
+            <p className="text-[11px] text-sky-900 font-tech font-bold pt-1">
+              Apretá Enter o hacé clic afuera para confirmar: ahí se regeneran las jornadas de esa división.
+            </p>
           </div>
 
           {managerActionError && (
