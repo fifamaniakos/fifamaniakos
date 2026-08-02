@@ -93,6 +93,14 @@ describe('isRunnerUpOf', () => {
     expect(isRunnerUpOf('a', clubs, matches, '1ra División')).toBe(true);
     expect(isRunnerUpOf('b', clubs, matches, '1ra División')).toBe(false);
   });
+
+  it('en copa, si la FINAL termino empatada usa penaltyWinnerClubId para definir el subcampeon', () => {
+    const matches = [
+      match({ competition: 'UEFA Champions League', phase: 'FINAL', homeClubId: 'a', awayClubId: 'b', homeGoals: 1, awayGoals: 1, penaltyWinnerClubId: 'b' })
+    ];
+    expect(isRunnerUpOf('a', clubs, matches, 'UEFA Champions League')).toBe(true);
+    expect(isRunnerUpOf('b', clubs, matches, 'UEFA Champions League')).toBe(false);
+  });
 });
 
 describe('reachedPhase', () => {
@@ -169,6 +177,14 @@ describe('countLeagueWins', () => {
   it('devuelve 0 si el club no existe', () => {
     expect(countLeagueWins('zzz', clubs, [])).toBe(0);
   });
+
+  it('ignora partidos no CONFIRMADO', () => {
+    const matches = [
+      match({ competition: '1ra División', homeClubId: 'a', awayClubId: 'b', homeGoals: 1, awayGoals: 0, status: 'PENDIENTE' }),
+      match({ competition: '1ra División', homeClubId: 'a', awayClubId: 'b', homeGoals: 2, awayGoals: 0, status: 'RECHAZADO' })
+    ];
+    expect(countLeagueWins('a', clubs, matches)).toBe(0);
+  });
 });
 
 const goal = (playerName: string, clubId: string, count: number) => ({
@@ -231,6 +247,13 @@ describe('topScorerProgress', () => {
     ];
     expect(topScorerProgress('a', matches, '1ra División', 0).current).toBe(0);
   });
+
+  it('ignora partidos no CONFIRMADO', () => {
+    const matches = [
+      match({ competition: '1ra División', playerEvents: [goal('Haaland', 'a', 31)], status: 'PENDIENTE' })
+    ];
+    expect(topScorerProgress('a', matches, '1ra División', 30)).toEqual({ met: false, current: 0, target: 30 });
+  });
 });
 
 describe('bestAssistsProgress', () => {
@@ -256,6 +279,13 @@ describe('bestAssistsProgress', () => {
     // 9 + 9 no cuenta como 18: son competiciones distintas.
     expect(bestAssistsProgress('a', matches, undefined, 10).met).toBe(false);
     expect(bestAssistsProgress('a', matches, undefined, 10).current).toBe(9);
+  });
+
+  it('ignora partidos no CONFIRMADO', () => {
+    const matches = [
+      match({ competition: '1ra División', playerEvents: [assist('De Bruyne', 'a', 31)], status: 'PENDIENTE' })
+    ];
+    expect(bestAssistsProgress('a', matches, '1ra División', 30)).toEqual({ met: false, current: 0, target: 30 });
   });
 });
 
@@ -294,6 +324,21 @@ describe('evaluateObjective', () => {
 
   it('REACH_PHASE sin phase definida no se cumple', () => {
     const obj = objective({ kind: 'REACH_PHASE', competition: 'UEFA Champions League' });
+    expect(evaluateObjective('a', clubs, [], obj).met).toBe(false);
+  });
+
+  it('REACH_PHASE en una competicion que no existe todavia no se cumple ni rompe', () => {
+    const obj = objective({ kind: 'REACH_PHASE', competition: 'Mundial de Clubes', phase: 'CUARTOS' });
+    expect(evaluateObjective('a', clubs, [], obj).met).toBe(false);
+  });
+
+  it('TOP_SCORER en una competicion que no existe todavia no se cumple ni rompe', () => {
+    const obj = objective({ kind: 'TOP_SCORER', competition: 'Mundial de Clubes', threshold: 10 });
+    expect(evaluateObjective('a', clubs, [], obj).met).toBe(false);
+  });
+
+  it('ASSISTS_THRESHOLD en una competicion que no existe todavia no se cumple ni rompe', () => {
+    const obj = objective({ kind: 'ASSISTS_THRESHOLD', competition: 'Mundial de Clubes', threshold: 10 });
     expect(evaluateObjective('a', clubs, [], obj).met).toBe(false);
   });
 });
@@ -335,5 +380,12 @@ describe('eligibleSponsors', () => {
 
   it('nunca devuelve marcas inactivas', () => {
     expect(eligibleSponsors(club('a'), sponsors).some(s => s.id === 's3')).toBe(false);
+  });
+
+  it('devuelve marcas con requirementMaxPosition porque todavia no hay historial por temporada', () => {
+    const sponsorsWithMaxPosition: Sponsor[] = [
+      { id: 's4', name: 'MaxPos', logoUrl: '', tier: 2, requirementDivision: '1ra División', requirementMaxPosition: 4, active: true }
+    ];
+    expect(eligibleSponsors(club('a', '1ra División'), sponsorsWithMaxPosition).map(s => s.id)).toEqual(['s4']);
   });
 });
