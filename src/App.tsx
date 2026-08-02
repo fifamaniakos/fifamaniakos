@@ -23,6 +23,8 @@ import {
   isFixtureInSyncWithParticipants
 } from './utils/fixtureGenerator';
 import { buildLeagueClubs, isDivision1Club, isDivision2Club } from './utils/leagueParticipants';
+import { recalculateStandings } from './utils/standings';
+import { computeMatchPrizeEffect } from './utils/matchPrize';
 import { generatePendingKnockoutMatches } from './utils/bracketGenerator';
 import { useSupabaseTable } from './hooks/useSupabaseTable';
 import { useAuth } from './contexts/AuthContext';
@@ -84,66 +86,9 @@ export default function App() {
   // utils/leagueParticipants.ts (ver leagueParticipants.test.ts): estaba
   // inline aca y no se podia testear, y el bug de "cupo 20 -> 70 jornadas"
   // venia de que esa funcion solo rellenaba y nunca recortaba.
-  // Helper to recalculate standings for all clubs based on confirmed matches.
-  // Puramente derivado a partir de `matches` (la fuente de verdad) — nunca se
-  // persiste de vuelta en `clubs`, porque un manager solo tiene permiso RLS
-  // para actualizar su propio club, no la fila de sus rivales.
-  const recalculateStandings = (clubsList: Club[], matchesList: MatchResult[]): Club[] => {
-    const confirmedMatches = matchesList.filter(m => m.status === 'CONFIRMADO');
-
-    return clubsList.map(club => {
-      const clubMatches = confirmedMatches.filter(
-        m => m.homeClubId === club.id || m.awayClubId === club.id
-      );
-
-      let played = 0;
-      let won = 0;
-      let drawn = 0;
-      let lost = 0;
-      let goalsFor = 0;
-      let goalsAgainst = 0;
-      let points = 0;
-      const form: ('W' | 'D' | 'L')[] = [];
-
-      // Reverse so newest matches come first for form calculation
-      const sortedMatches = [...clubMatches].reverse();
-
-      sortedMatches.forEach(m => {
-        played += 1;
-        const isHome = m.homeClubId === club.id;
-        const myGoals = isHome ? m.homeGoals : m.awayGoals;
-        const oppGoals = isHome ? m.awayGoals : m.homeGoals;
-
-        goalsFor += myGoals;
-        goalsAgainst += oppGoals;
-
-        if (myGoals > oppGoals) {
-          won += 1;
-          points += 3;
-          if (form.length < 5) form.push('W');
-        } else if (myGoals === oppGoals) {
-          drawn += 1;
-          points += 1;
-          if (form.length < 5) form.push('D');
-        } else {
-          lost += 1;
-          if (form.length < 5) form.push('L');
-        }
-      });
-
-      return {
-        ...club,
-        played,
-        won,
-        drawn,
-        lost,
-        goalsFor,
-        goalsAgainst,
-        points,
-        form
-      };
-    });
-  };
+  // El calculo de la tabla vive en utils/standings.ts (ver standings.test.ts):
+  // estaba inline aca y sumaba TODOS los partidos confirmados, incluidas las
+  // copas europeas, a la tabla de la liga.
 
   // Estado sincronizado con Supabase (Postgres + Realtime) en vez de localStorage.
   const [rawClubs, setClubs, clubsLoaded, clubsWriteError, clearClubsWriteError, refetchClubs] = useSupabaseTable<Club>(
@@ -690,35 +635,28 @@ export default function App() {
       : [newMatch, ...prev]
     );
 
-    // Record Prize Transaction & award budget if win and confirmed
-    if (newMatch.status === 'CONFIRMADO') {
-      if (newMatch.homeGoals > newMatch.awayGoals) {
-        setClubs(prev => prev.map(c => c.id === newMatch.homeClubId ? { ...c, budget: c.budget + 3000000 } : c));
-        setTransactions(prev => [
-          {
-            id: `tx-${Date.now()}`,
-            clubId: newMatch.homeClubId,
-            type: 'INGRESO',
-            concept: `Premio Victoria Jornada ${newMatch.matchday}`,
-            amount: 3000000,
-            date: new Date().toLocaleDateString('es-ES')
-          },
-          ...prev
-        ]);
-      } else if (newMatch.awayGoals > newMatch.homeGoals) {
-        setClubs(prev => prev.map(c => c.id === newMatch.awayClubId ? { ...c, budget: c.budget + 3000000 } : c));
-        setTransactions(prev => [
-          {
-            id: `tx-${Date.now()}`,
-            clubId: newMatch.awayClubId,
-            type: 'INGRESO',
-            concept: `Premio Victoria Jornada ${newMatch.matchday}`,
-            amount: 3000000,
-            date: new Date().toLocaleDateString('es-ES')
-          },
-          ...prev
-        ]);
-      }
+    // El premio por victoria se paga una sola vez por partido (ver
+    // utils/matchPrize.ts): el id de la transaccion se deriva del id del
+    // partido, asi que re-guardar el acta no vuelve a acreditar 3M.
+    const prizeEffect = computeMatchPrizeEffect(
+      newMatch,
+      transactions,
+      new Date().toLocaleDateString('es-ES')
+    );
+
+    const deltaEntries = Object.entries(prizeEffect.budgetDeltas);
+    if (deltaEntries.length > 0) {
+      setClubs(prev => prev.map(c => {
+        const delta = prizeEffect.budgetDeltas[c.id];
+        return delta ? { ...c, budget: c.budget + delta } : c;
+      }));
+    }
+
+    if (prizeEffect.removeTransactionIds.length > 0 || prizeEffect.addTransaction) {
+      setTransactions(prev => {
+        const kept = prev.filter(t => !prizeEffect.removeTransactionIds.includes(t.id));
+        return prizeEffect.addTransaction ? [prizeEffect.addTransaction, ...kept] : kept;
+      });
     }
   };
 
