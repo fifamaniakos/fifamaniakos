@@ -12,21 +12,57 @@ const confirmedMatches = (matches: MatchResult[], competition: string) =>
 
 /** Devuelve [ganadorId, perdedorId] de la final de una copa, o null si no se jugo. */
 function finalResult(matches: MatchResult[], competition: string): [string, string] | null {
-  const final = confirmedMatches(matches, competition).find(m => m.phase === 'FINAL');
-  if (!final) return null;
+  const finals = confirmedMatches(matches, competition).filter(m => m.phase === 'FINAL');
+  if (finals.length === 0) return null;
+
+  // Si hay mas de una FINAL confirmada (ida y vuelta, o una correccion cargada
+  // como partido nuevo en vez de editar el original) usamos la mas reciente:
+  // es la que representa el estado real, no la primera que llego al array.
+  const final = finals.reduce((latest, m) => (m.createdAt > latest.createdAt ? m : latest));
 
   if (final.homeGoals > final.awayGoals) return [final.homeClubId, final.awayClubId];
   if (final.awayGoals > final.homeGoals) return [final.awayClubId, final.homeClubId];
 
-  // Empate: solo hay campeon si se cargo quien gano por penales.
+  // Empate: solo hay campeon si se cargo quien gano por penales, y solo si ese
+  // id realmente jugo la final. Un id que no es ni local ni visitante es un
+  // dato corrupto: no corona a nadie en vez de coronar a un tercero invalido.
   if (!final.penaltyWinnerClubId) return null;
+  if (final.penaltyWinnerClubId !== final.homeClubId && final.penaltyWinnerClubId !== final.awayClubId) {
+    return null;
+  }
   const loser = final.penaltyWinnerClubId === final.homeClubId ? final.awayClubId : final.homeClubId;
   return [final.penaltyWinnerClubId, loser];
 }
 
+// Empate perfecto: mismos puntos, misma diferencia de gol y mismos goles a
+// favor. computeCupStandings desempata igual pero el orden que le da a estos
+// dos clubes depende de en que orden llegaron sus partidos, es decir, es
+// arbitrario. Preferimos no pagarle a nadie y que el admin lo resuelva a mano
+// antes que acreditar el premio de campeon/subcampeon al que gano la carrera
+// de quien-llego-primero-al-array.
+function isTiedWithNeighbor(
+  standings: ReturnType<typeof computeCupStandings>,
+  index: number,
+  neighborIndex: number
+): boolean {
+  const row = standings[index];
+  const neighbor = standings[neighborIndex];
+  if (!row || !neighbor) return false;
+  const diff = row.goalsFor - row.goalsAgainst;
+  const neighborDiff = neighbor.goalsFor - neighbor.goalsAgainst;
+  return row.points === neighbor.points && diff === neighborDiff && row.goalsFor === neighbor.goalsFor;
+}
+
 function positionInLeague(clubId: string, clubs: Club[], matches: MatchResult[], competition: string): number {
   const standings = computeCupStandings(clubs, matches, competition);
-  return standings.findIndex(row => row.clubId === clubId);
+  const index = standings.findIndex(row => row.clubId === clubId);
+  if (index === -1) return -1;
+
+  if (isTiedWithNeighbor(standings, index, index - 1) || isTiedWithNeighbor(standings, index, index + 1)) {
+    return -1;
+  }
+
+  return index;
 }
 
 export function isChampionOf(clubId: string, clubs: Club[], matches: MatchResult[], competition: string): boolean {
@@ -68,6 +104,12 @@ export function reachedPhase(
 export function countLeagueWins(clubId: string, clubs: Club[], matches: MatchResult[]): number {
   const club = clubs.find(c => c.id === clubId);
   if (!club) return 0;
+
+  // club.division tiene que ser una division de liga conocida para usarla
+  // como nombre de competicion. Si no lo es (typo, club movido de division,
+  // dato corrupto) este 0 significa "division desconocida", no "cero
+  // victorias": evitamos contar partidos de una competicion que no es liga.
+  if (!isLeague(club.division)) return 0;
 
   return confirmedMatches(matches, club.division).filter(m => {
     if (m.homeClubId === clubId) return m.homeGoals > m.awayGoals;

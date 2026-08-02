@@ -64,6 +64,19 @@ describe('isChampionOf', () => {
     expect(isChampionOf('a', clubs, matches, '1ra División')).toBe(false);
   });
 
+  it('en liga, si hay empate perfecto (puntos, diferencia y goles a favor) entre el primero y el segundo, ninguno es campeon', () => {
+    // 'a' y 'b' quedan con las mismas victorias, la misma diferencia de gol y
+    // los mismos goles a favor: el orden entre ellos en la tabla es accidental
+    // (depende del orden de llegada de los partidos), asi que no se paga.
+    const matches = [
+      match({ competition: '1ra División', homeClubId: 'a', awayClubId: 'c', homeGoals: 2, awayGoals: 0 }),
+      match({ competition: '1ra División', homeClubId: 'b', awayClubId: 'c', homeGoals: 2, awayGoals: 0 })
+    ];
+    const threeClubs = [club('a'), club('b'), club('c')];
+    expect(isChampionOf('a', threeClubs, matches, '1ra División')).toBe(false);
+    expect(isChampionOf('b', threeClubs, matches, '1ra División')).toBe(false);
+  });
+
   it('ignora partidos no confirmados', () => {
     const matches = [
       match({ competition: 'UEFA Champions League', phase: 'FINAL', homeClubId: 'a', awayClubId: 'b', homeGoals: 2, awayGoals: 1, status: 'PENDIENTE' })
@@ -73,6 +86,26 @@ describe('isChampionOf', () => {
 
   it('devuelve false si la competicion no existe', () => {
     expect(isChampionOf('a', clubs, [], 'Mundial de Clubes')).toBe(false);
+  });
+
+  it('si hay dos FINALES confirmadas, usa la de createdAt mas alto (la mas reciente)', () => {
+    const matches = [
+      match({ competition: 'UEFA Champions League', phase: 'FINAL', homeClubId: 'a', awayClubId: 'b', homeGoals: 2, awayGoals: 0, createdAt: '01/01/2026' }),
+      match({ competition: 'UEFA Champions League', phase: 'FINAL', homeClubId: 'a', awayClubId: 'b', homeGoals: 0, awayGoals: 3, createdAt: '05/01/2026' })
+    ];
+    expect(isChampionOf('b', clubs, matches, 'UEFA Champions League')).toBe(true);
+    expect(isChampionOf('a', clubs, matches, 'UEFA Champions League')).toBe(false);
+  });
+
+  it('si la FINAL empato y el ganador por penales no jugo la final, no hay campeon (ni el club invalido)', () => {
+    const clubsConIntruso = [...clubs, club('club-que-no-jugo')];
+    const matches = [
+      match({ competition: 'UEFA Champions League', phase: 'FINAL', homeClubId: 'a', awayClubId: 'b', homeGoals: 1, awayGoals: 1, penaltyWinnerClubId: 'club-que-no-jugo' })
+    ];
+    expect(() => isChampionOf('a', clubsConIntruso, matches, 'UEFA Champions League')).not.toThrow();
+    expect(isChampionOf('a', clubsConIntruso, matches, 'UEFA Champions League')).toBe(false);
+    expect(isChampionOf('b', clubsConIntruso, matches, 'UEFA Champions League')).toBe(false);
+    expect(isChampionOf('club-que-no-jugo', clubsConIntruso, matches, 'UEFA Champions League')).toBe(false);
   });
 });
 
@@ -184,6 +217,14 @@ describe('countLeagueWins', () => {
       match({ competition: '1ra División', homeClubId: 'a', awayClubId: 'b', homeGoals: 2, awayGoals: 0, status: 'RECHAZADO' })
     ];
     expect(countLeagueWins('a', clubs, matches)).toBe(0);
+  });
+
+  it('devuelve 0 si la division del club no es una division de liga conocida (division desconocida, no cero victorias)', () => {
+    const clubTercera = [club('a', 'Tercera División')];
+    const matches = [
+      match({ competition: 'Tercera División', homeClubId: 'a', awayClubId: 'b', homeGoals: 1, awayGoals: 0 })
+    ];
+    expect(countLeagueWins('a', clubTercera, matches)).toBe(0);
   });
 });
 
@@ -371,7 +412,11 @@ describe('eligibleSponsors', () => {
   ];
 
   it('un club de 1ra puede firmar con todas las activas', () => {
-    expect(eligibleSponsors(club('a', '1ra División'), sponsors).map(s => s.id)).toEqual(['s1', 's2']);
+    // No afirmamos el orden: es un detalle de implementacion, no una regla de
+    // negocio. Un reordenamiento del seed no deberia romper este test.
+    const result = eligibleSponsors(club('a', '1ra División'), sponsors);
+    expect(result).toHaveLength(2);
+    expect(result.map(s => s.id)).toEqual(expect.arrayContaining(['s1', 's2']));
   });
 
   it('un club de 2da no puede firmar con las que exigen 1ra', () => {
