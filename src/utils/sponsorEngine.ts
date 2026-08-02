@@ -75,3 +75,86 @@ export function countLeagueWins(clubId: string, clubs: Club[], matches: MatchRes
     return false;
   }).length;
 }
+
+export interface ObjectiveProgress {
+  met: boolean;
+  current: number;
+  target: number;
+}
+
+/**
+ * Suma un tipo de evento por jugador dentro de una competicion.
+ * La clave es playerId cuando existe; si no, nombre + club, igual que hace
+ * computePlayerStatsForCompetition, porque las actas permiten cargar jugadores
+ * que no estan en la plantilla.
+ */
+function totalsByPlayer(
+  matches: MatchResult[],
+  competition: string,
+  type: 'GOAL' | 'ASSIST'
+): { key: string; clubId: string; total: number }[] {
+  const totals = new Map<string, { key: string; clubId: string; total: number }>();
+
+  confirmedMatches(matches, competition).forEach(m => {
+    (m.playerEvents || []).forEach(ev => {
+      if (ev.type !== type) return;
+      const key = ev.playerId || `${ev.playerName}-${ev.clubId}`;
+      const existing = totals.get(key);
+      if (existing) {
+        existing.total += ev.count;
+      } else {
+        totals.set(key, { key, clubId: ev.clubId, total: ev.count });
+      }
+    });
+  });
+
+  return [...totals.values()];
+}
+
+const competitionsIn = (matches: MatchResult[]): string[] =>
+  [...new Set(matches.map(m => m.competition).filter((c): c is string => !!c))];
+
+export function topScorerProgress(
+  clubId: string,
+  matches: MatchResult[],
+  competition: string,
+  threshold: number
+): ObjectiveProgress {
+  const totals = totalsByPlayer(matches, competition, 'GOAL');
+  const best = totals.reduce((max, row) => Math.max(max, row.total), 0);
+  const clubBest = totals
+    .filter(row => row.clubId === clubId)
+    .reduce((max, row) => Math.max(max, row.total), 0);
+
+  // Empate en el maximo: cumplen todos los clubes empatados (Botin de Oro
+  // compartido). Por eso se compara con >= y no con identidad de jugador.
+  const isTopScorer = clubBest > 0 && clubBest >= best;
+
+  return {
+    met: isTopScorer && clubBest >= threshold,
+    current: clubBest,
+    target: threshold
+  };
+}
+
+export function bestAssistsProgress(
+  clubId: string,
+  matches: MatchResult[],
+  competition: string | undefined,
+  threshold: number
+): ObjectiveProgress {
+  // "un solo jugador en una sola competicion": nunca se suman competiciones
+  // distintas, se toma el mejor total individual de cada una por separado.
+  const competitions = competition ? [competition] : competitionsIn(matches);
+
+  const clubBest = competitions.reduce((max, comp) => {
+    const totals = totalsByPlayer(matches, comp, 'ASSIST').filter(row => row.clubId === clubId);
+    return totals.reduce((inner, row) => Math.max(inner, row.total), max);
+  }, 0);
+
+  return {
+    met: clubBest >= threshold && clubBest > 0,
+    current: clubBest,
+    target: threshold
+  };
+}

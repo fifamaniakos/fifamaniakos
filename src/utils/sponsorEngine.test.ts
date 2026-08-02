@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { Club, MatchResult } from '../types';
-import { isChampionOf, isRunnerUpOf, reachedPhase, countLeagueWins } from './sponsorEngine';
+import { isChampionOf, isRunnerUpOf, reachedPhase, countLeagueWins, topScorerProgress, bestAssistsProgress } from './sponsorEngine';
 
 export const club = (id: string, division = '1ra División'): Club => ({
   id,
@@ -168,5 +168,93 @@ describe('countLeagueWins', () => {
 
   it('devuelve 0 si el club no existe', () => {
     expect(countLeagueWins('zzz', clubs, [])).toBe(0);
+  });
+});
+
+const goal = (playerName: string, clubId: string, count: number) => ({
+  playerName,
+  clubId,
+  type: 'GOAL' as const,
+  count
+});
+
+const assist = (playerName: string, clubId: string, count: number) => ({
+  playerName,
+  clubId,
+  type: 'ASSIST' as const,
+  count
+});
+
+describe('topScorerProgress', () => {
+  it('el club del maximo goleador cumple si supera el umbral', () => {
+    const matches = [
+      match({ competition: '1ra División', playerEvents: [goal('Haaland', 'a', 31), goal('Mbappe', 'b', 20)] })
+    ];
+    expect(topScorerProgress('a', matches, '1ra División', 30)).toEqual({ met: true, current: 31, target: 30 });
+    expect(topScorerProgress('b', matches, '1ra División', 30).met).toBe(false);
+  });
+
+  it('ser pichichi sin llegar al umbral NO cumple', () => {
+    const matches = [
+      match({ competition: '1ra División', playerEvents: [goal('Haaland', 'a', 28)] })
+    ];
+    expect(topScorerProgress('a', matches, '1ra División', 30).met).toBe(false);
+  });
+
+  it('con umbral 0 alcanza con ser el maximo goleador', () => {
+    const matches = [
+      match({ competition: 'UEFA Champions League', playerEvents: [goal('Haaland', 'a', 5), goal('Mbappe', 'b', 3)] })
+    ];
+    expect(topScorerProgress('a', matches, 'UEFA Champions League', 0).met).toBe(true);
+    expect(topScorerProgress('b', matches, 'UEFA Champions League', 0).met).toBe(false);
+  });
+
+  it('si hay empate en el maximo, cumplen todos los clubes empatados', () => {
+    const matches = [
+      match({ competition: '1ra División', playerEvents: [goal('Haaland', 'a', 30), goal('Mbappe', 'b', 30)] })
+    ];
+    expect(topScorerProgress('a', matches, '1ra División', 30).met).toBe(true);
+    expect(topScorerProgress('b', matches, '1ra División', 30).met).toBe(true);
+  });
+
+  it('suma goles del mismo jugador en varios partidos', () => {
+    const matches = [
+      match({ competition: '1ra División', playerEvents: [goal('Haaland', 'a', 2)] }),
+      match({ competition: '1ra División', playerEvents: [goal('Haaland', 'a', 3)] })
+    ];
+    expect(topScorerProgress('a', matches, '1ra División', 0).current).toBe(5);
+  });
+
+  it('no mezcla competiciones', () => {
+    const matches = [
+      match({ competition: 'UEFA Champions League', playerEvents: [goal('Haaland', 'a', 10)] })
+    ];
+    expect(topScorerProgress('a', matches, '1ra División', 0).current).toBe(0);
+  });
+});
+
+describe('bestAssistsProgress', () => {
+  it('cumple si un jugador supera el umbral, sin ser el maximo', () => {
+    const matches = [
+      match({ competition: '1ra División', playerEvents: [assist('De Bruyne', 'a', 31), assist('Rodri', 'b', 40)] })
+    ];
+    expect(bestAssistsProgress('a', matches, '1ra División', 30)).toEqual({ met: true, current: 31, target: 30 });
+  });
+
+  it('no suma asistencias de dos jugadores distintos del mismo club', () => {
+    const matches = [
+      match({ competition: '1ra División', playerEvents: [assist('De Bruyne', 'a', 20), assist('Foden', 'a', 20)] })
+    ];
+    expect(bestAssistsProgress('a', matches, '1ra División', 30).met).toBe(false);
+  });
+
+  it('sin competicion, toma el mejor total de una sola competicion', () => {
+    const matches = [
+      match({ competition: '1ra División', playerEvents: [assist('De Bruyne', 'a', 9)] }),
+      match({ competition: 'UEFA Champions League', playerEvents: [assist('De Bruyne', 'a', 9)] })
+    ];
+    // 9 + 9 no cuenta como 18: son competiciones distintas.
+    expect(bestAssistsProgress('a', matches, undefined, 10).met).toBe(false);
+    expect(bestAssistsProgress('a', matches, undefined, 10).current).toBe(9);
   });
 });
