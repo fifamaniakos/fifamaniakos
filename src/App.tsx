@@ -22,6 +22,7 @@ import { generatePendingKnockoutMatches } from './utils/bracketGenerator';
 import { useSupabaseTable } from './hooks/useSupabaseTable';
 import { useAuth } from './contexts/AuthContext';
 import { GET_OFFICIAL_SQUAD_BY_CLUB_NAME } from './data/officialCurrentSquads';
+import { supabase } from './lib/supabaseClient';
 
 
 
@@ -238,7 +239,7 @@ export default function App() {
   };
 
   // Estado sincronizado con Supabase (Postgres + Realtime) en vez de localStorage.
-  const [rawClubs, setClubs, clubsLoaded, clubsWriteError, clearClubsWriteError] = useSupabaseTable<Club>(
+  const [rawClubs, setClubs, clubsLoaded, clubsWriteError, clearClubsWriteError, refetchClubs] = useSupabaseTable<Club>(
     'clubs',
     INITIAL_CLUBS,
     (c) => c.id
@@ -325,7 +326,7 @@ export default function App() {
     if (isAdminLoggedIn) setAdminSelectedClubId(clubId);
   };
 
-  const [players, setPlayers] = useSupabaseTable<Player>(
+  const [players, setPlayers, , , , refetchPlayers] = useSupabaseTable<Player>(
     'players',
     INITIAL_PLAYERS,
     (p) => p.id
@@ -397,13 +398,13 @@ export default function App() {
     localStorage.setItem('fc27_tienda_explanation', tiendaExplanation);
   }, [tiendaExplanation]);
 
-  const [transfers, setTransfers] = useSupabaseTable<TransferItem>(
+  const [transfers, setTransfers, , , , refetchTransfers] = useSupabaseTable<TransferItem>(
     'transfers',
     INITIAL_TRANSFERS,
     (t) => t.id
   );
 
-  const [transactions, setTransactions] = useSupabaseTable<FinancialTransaction>(
+  const [transactions, setTransactions, , , , refetchTransactions] = useSupabaseTable<FinancialTransaction>(
     'transactions',
     INITIAL_TRANSACTIONS,
     (t) => t.id
@@ -795,101 +796,41 @@ export default function App() {
   };
 
   // Handler: Buy player on Transfer Market
-  const handleBuyPlayer = (transfer: TransferItem, buyerClub: Club) => {
+  const handleBuyPlayer = async (transfer: TransferItem, buyerClub: Club) => {
     if (!canUseGatedFeature) {
       alert(SUBSCRIPTION_REQUIRED_MESSAGE);
-      return;
+      return false;
     }
-    // 1. Mark transfer as VENDIDO
-    setTransfers(prev => prev.map(t => {
-      if (t.id === transfer.id) {
-        return { ...t, status: 'VENDIDO', buyerClubId: buyerClub.id };
-      }
-      return t;
-    }));
 
-    // 2. Transfer player to new club
-    setPlayers(prev => prev.map(p => {
-      if (p.id === transfer.player.id) {
-        return { ...p, clubId: buyerClub.id, isStarter: false };
-      }
-      return p;
-    }));
+    const { error } = await supabase.rpc('complete_market_transfer', {
+      p_transfer_id: transfer.id,
+      p_buyer_club_id: buyerClub.id
+    });
 
-    // 3. Update budgets of both clubs
-    setClubs(prev => prev.map(c => {
-      if (c.id === buyerClub.id) {
-        return { ...c, budget: c.budget - transfer.askingPrice };
-      }
-      if (c.id === transfer.sellerClubId) {
-        return { ...c, budget: c.budget + transfer.askingPrice };
-      }
-      return c;
-    }));
+    if (error) {
+      alert(`No se pudo completar el fichaje: ${error.message}`);
+      return false;
+    }
 
-    // 4. Log transactions for both
-    setTransactions(prev => [
-      {
-        id: `tx-${Date.now()}-1`,
-        clubId: buyerClub.id,
-        type: 'GASTO',
-        concept: `Fichaje de ${transfer.player.name}`,
-        amount: transfer.askingPrice,
-        date: new Date().toLocaleDateString('es-ES')
-      },
-      {
-        id: `tx-${Date.now()}-2`,
-        clubId: transfer.sellerClubId,
-        type: 'INGRESO',
-        concept: `Venta de ${transfer.player.name}`,
-        amount: transfer.askingPrice,
-        date: new Date().toLocaleDateString('es-ES')
-      },
-      ...prev
-    ]);
+    await Promise.all([refetchTransfers(), refetchPlayers(), refetchClubs(), refetchTransactions()]);
+    return true;
   };
 
   // Handler: Direct Transfer player between teams
-  const handleDirectTransferPlayer = (player: Player, buyerClub: Club, sellerClub: Club, price: number) => {
-    // 1. Transfer player to buyer club
-    setPlayers(prev => prev.map(p => {
-      if (p.id === player.id) {
-        return { ...p, clubId: buyerClub.id, isStarter: false };
-      }
-      return p;
-    }));
+  const handleDirectTransferPlayer = async (player: Player, buyerClub: Club, sellerClub: Club, price: number) => {
+    const { error } = await supabase.rpc('complete_direct_transfer', {
+      p_player_id: player.id,
+      p_buyer_club_id: buyerClub.id,
+      p_price: price
+    });
 
-    // 2. Update budgets of both clubs
-    setClubs(prev => prev.map(c => {
-      if (c.id === buyerClub.id) {
-        return { ...c, budget: c.budget - price };
-      }
-      if (c.id === sellerClub.id) {
-        return { ...c, budget: c.budget + price };
-      }
-      return c;
-    }));
+    if (error) {
+      alert(`No se pudo completar la transferencia: ${error.message}`);
+      return false;
+    }
 
-    // 3. Log financial transactions
-    setTransactions(prev => [
-      {
-        id: `tx-${Date.now()}-1`,
-        clubId: buyerClub.id,
-        type: 'GASTO',
-        concept: `Fichaje directo de ${player.name} (${sellerClub.name})`,
-        amount: price,
-        date: new Date().toLocaleDateString('es-ES')
-      },
-      {
-        id: `tx-${Date.now()}-2`,
-        clubId: sellerClub.id,
-        type: 'INGRESO',
-        concept: `Venta directa de ${player.name} a ${buyerClub.name}`,
-        amount: price,
-        date: new Date().toLocaleDateString('es-ES')
-      },
-      ...prev
-    ]);
+    await Promise.all([refetchPlayers(), refetchClubs(), refetchTransactions()]);
+    return true;
   };
 
   // Handler: Update/Modify asking price or release clause of a transfer listing

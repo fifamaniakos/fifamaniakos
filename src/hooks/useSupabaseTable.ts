@@ -150,5 +150,5 @@ export function useSupabaseTable<T>(
 
   const clearWriteError = useCallback(() => setWriteError(null), []);
 
-  return [data, setData, loaded, writeError, clearWriteError] as const;
+  return [data, setData, loaded, writeError, clearWriteError, refetch] as const;
 }

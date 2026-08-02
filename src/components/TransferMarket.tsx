@@ -11,8 +11,8 @@ interface TransferMarketProps {
   clubs: Club[];
   transfers: TransferItem[];
   transactions: FinancialTransaction[];
-  onBuyPlayer: (transfer: TransferItem, buyerClub: Club) => void;
-  onDirectTransferPlayer: (player: Player, buyerClub: Club, sellerClub: Club, price: number) => void;
+  onBuyPlayer: (transfer: TransferItem, buyerClub: Club) => boolean | Promise<boolean>;
+  onDirectTransferPlayer: (player: Player, buyerClub: Club, sellerClub: Club, price: number) => boolean | Promise<boolean>;
   onSignSofifaPlayer?: (playerPreset: SoFifaPlayerPreset, buyerClub: Club, price: number) => void;
   onPopulateClubWithSofifa?: (targetClub: Club) => void;
   players: Player[];
@@ -133,7 +133,7 @@ export const TransferMarket: React.FC<TransferMarketProps> = ({
     );
   };
 
-  const handleConfirmDirectBuy = (e: React.FormEvent) => {
+  const handleConfirmDirectBuy = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedPlayerForDirectBuy) return;
 
@@ -155,7 +155,8 @@ export const TransferMarket: React.FC<TransferMarketProps> = ({
       return;
     }
 
-    onDirectTransferPlayer(selectedPlayerForDirectBuy, buyerClub, sellerClub, Number(directTransferPrice));
+    const completed = await onDirectTransferPlayer(selectedPlayerForDirectBuy, buyerClub, sellerClub, Number(directTransferPrice));
+    if (!completed) return;
 
     confetti({
       particleCount: 75,
@@ -177,7 +178,7 @@ export const TransferMarket: React.FC<TransferMarketProps> = ({
     setMarketBuyerClubId(defaultBuyer);
   };
 
-  const handleConfirmMarketBuy = (e: React.FormEvent) => {
+  const handleConfirmMarketBuy = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedMarketTransfer) return;
 
@@ -197,7 +198,8 @@ export const TransferMarket: React.FC<TransferMarketProps> = ({
       return;
     }
 
-    onBuyPlayer(selectedMarketTransfer, buyerClub);
+    const completed = await onBuyPlayer(selectedMarketTransfer, buyerClub);
+    if (!completed) return;
 
     confetti({
       particleCount: 80,
