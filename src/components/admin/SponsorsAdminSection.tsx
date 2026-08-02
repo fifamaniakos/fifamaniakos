@@ -87,12 +87,13 @@ export const SponsorsAdminSection: React.FC<SponsorsAdminSectionProps> = ({
     const errors: string[] = [];
 
     for (const row of preview) {
+      // Solo se mandan identificadores: el monto y el concepto los resuelve la
+      // RPC leyendo el contrato y la clausula de la base. Si el cliente pudiera
+      // mandar el monto, quien tuviera la consola abierta elegiria cuanto cobrar.
       const { data, error } = await supabase.rpc('settle_sponsor_payout', {
         p_club_id: row.clubId,
         p_season_number: currentSeasonNumber,
-        p_objective_id: row.objectiveId,
-        p_amount: row.amount,
-        p_concept: `Bonus ${row.sponsorName} - ${row.label}`
+        p_objective_id: row.objectiveId
       });
 
       if (error) {
