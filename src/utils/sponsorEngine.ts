@@ -44,3 +44,23 @@ export function isRunnerUpOf(clubId: string, clubs: Club[], matches: MatchResult
   const result = finalResult(matches, competition);
   return result !== null && result[1] === clubId;
 }
+
+// Orden de avance en una eliminatoria. Llegar a la final implica haber pasado
+// cuartos, asi que un objetivo de "4tos" se cumple tambien siendo campeon.
+const PHASE_ORDER: MatchPhase[] = ['GRUPOS', 'OCTAVOS', 'CUARTOS', 'SEMIFINAL', 'FINAL'];
+
+export function reachedPhase(
+  clubId: string,
+  matches: MatchResult[],
+  competition: string,
+  phase: MatchPhase
+): boolean {
+  const targetIndex = PHASE_ORDER.indexOf(phase);
+  if (targetIndex === -1) return false;
+
+  return confirmedMatches(matches, competition).some(m => {
+    if (m.homeClubId !== clubId && m.awayClubId !== clubId) return false;
+    if (!m.phase) return false;
+    return PHASE_ORDER.indexOf(m.phase) >= targetIndex;
+  });
+}

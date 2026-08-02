@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { Club, MatchResult } from '../types';
-import { isChampionOf, isRunnerUpOf } from './sponsorEngine';
+import { isChampionOf, isRunnerUpOf, reachedPhase } from './sponsorEngine';
 
 export const club = (id: string, division = '1ra División'): Club => ({
   id,
@@ -92,5 +92,42 @@ describe('isRunnerUpOf', () => {
     ];
     expect(isRunnerUpOf('a', clubs, matches, '1ra División')).toBe(true);
     expect(isRunnerUpOf('b', clubs, matches, '1ra División')).toBe(false);
+  });
+});
+
+describe('reachedPhase', () => {
+  it('se cumple si el club jugo esa fase', () => {
+    const matches = [
+      match({ competition: 'UEFA Champions League', phase: 'CUARTOS', homeClubId: 'a', awayClubId: 'b' })
+    ];
+    expect(reachedPhase('a', matches, 'UEFA Champions League', 'CUARTOS')).toBe(true);
+  });
+
+  it('se cumple si el club llego a una fase POSTERIOR', () => {
+    const matches = [
+      match({ competition: 'UEFA Champions League', phase: 'FINAL', homeClubId: 'a', awayClubId: 'b' })
+    ];
+    expect(reachedPhase('a', matches, 'UEFA Champions League', 'CUARTOS')).toBe(true);
+  });
+
+  it('no se cumple si solo llego a una fase ANTERIOR', () => {
+    const matches = [
+      match({ competition: 'UEFA Champions League', phase: 'OCTAVOS', homeClubId: 'a', awayClubId: 'b' })
+    ];
+    expect(reachedPhase('a', matches, 'UEFA Champions League', 'CUARTOS')).toBe(false);
+  });
+
+  it('no cuenta partidos de otro club', () => {
+    const matches = [
+      match({ competition: 'UEFA Champions League', phase: 'FINAL', homeClubId: 'b', awayClubId: 'c' })
+    ];
+    expect(reachedPhase('a', matches, 'UEFA Champions League', 'CUARTOS')).toBe(false);
+  });
+
+  it('ignora partidos no confirmados', () => {
+    const matches = [
+      match({ competition: 'UEFA Champions League', phase: 'FINAL', homeClubId: 'a', awayClubId: 'b', status: 'RECHAZADO' })
+    ];
+    expect(reachedPhase('a', matches, 'UEFA Champions League', 'CUARTOS')).toBe(false);
   });
 });
