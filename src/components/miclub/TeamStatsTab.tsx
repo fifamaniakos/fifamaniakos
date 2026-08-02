@@ -1,6 +1,6 @@
 import React from 'react';
 import { Club, Player } from '../../types';
-import { Trophy, TrendingUp, TrendingDown, Minus } from 'lucide-react';
+import { Trophy, TrendingUp, TrendingDown, Minus, Shield, Swords, Target, Activity, Zap, Star, ShieldAlert, Award } from 'lucide-react';
 
 interface TeamStatsTabProps {
   currentClub: Club;
@@ -11,66 +11,202 @@ export const TeamStatsTab: React.FC<TeamStatsTabProps> = ({ currentClub, players
   const starters = players.filter(p => p.clubId === currentClub.id && p.isStarter);
   const avgRating = starters.length > 0
     ? Math.round(starters.reduce((acc, p) => acc + p.rating, 0) / starters.length)
-    : 0;
-  const goalDifference = currentClub.goalsFor - currentClub.goalsAgainst;
+    : (players.length > 0 ? Math.round(players.reduce((acc, p) => acc + p.rating, 0) / players.length) : 0);
 
-  const stats: { label: string; value: string | number; accent?: string }[] = [
-    { label: 'Partidos Jugados', value: currentClub.played },
-    { label: 'Ganados', value: currentClub.won, accent: 'text-emerald-700' },
-    { label: 'Empatados', value: currentClub.drawn, accent: 'text-slate-700' },
-    { label: 'Perdidos', value: currentClub.lost, accent: 'text-rose-700' },
-    { label: 'Goles a Favor', value: currentClub.goalsFor },
-    { label: 'Goles en Contra', value: currentClub.goalsAgainst },
-    { label: 'Diferencia de Gol', value: goalDifference > 0 ? `+${goalDifference}` : goalDifference, accent: goalDifference >= 0 ? 'text-emerald-700' : 'text-rose-700' },
-    { label: 'Puntos', value: currentClub.points, accent: 'text-[#00ba68]' }
+  const goalDifference = currentClub.goalsFor - currentClub.goalsAgainst;
+  const played = currentClub.played || 0;
+  const winRate = played > 0 ? Math.round((currentClub.won / played) * 100) : 0;
+  const avgGoalsFor = played > 0 ? (currentClub.goalsFor / played).toFixed(1) : '0.0';
+  const avgGoalsAgainst = played > 0 ? (currentClub.goalsAgainst / played).toFixed(1) : '0.0';
+
+  const statsList = [
+    { label: 'Partidos Jugados', value: currentClub.played, icon: Activity, color: 'text-blue-600', bg: 'bg-blue-50 border-blue-200' },
+    { label: 'Victorias', value: currentClub.won, icon: TrendingUp, color: 'text-emerald-600', bg: 'bg-emerald-50 border-emerald-200' },
+    { label: 'Empates', value: currentClub.drawn, icon: Minus, color: 'text-slate-600', bg: 'bg-slate-50 border-slate-200' },
+    { label: 'Derrotas', value: currentClub.lost, icon: TrendingDown, color: 'text-rose-600', bg: 'bg-rose-50 border-rose-200' },
+    { label: 'Goles a Favor', value: currentClub.goalsFor, icon: Target, color: 'text-emerald-700', bg: 'bg-emerald-50/70 border-emerald-200' },
+    { label: 'Goles en Contra', value: currentClub.goalsAgainst, icon: ShieldAlert, color: 'text-rose-700', bg: 'bg-rose-50/70 border-rose-200' },
+    {
+      label: 'Diferencia de Gol',
+      value: goalDifference > 0 ? `+${goalDifference}` : goalDifference,
+      icon: Swords,
+      color: goalDifference >= 0 ? 'text-emerald-600' : 'text-rose-600',
+      bg: goalDifference >= 0 ? 'bg-emerald-50/50 border-emerald-200' : 'bg-rose-50/50 border-rose-200'
+    },
+    { label: 'Puntos Totales', value: currentClub.points, icon: Trophy, color: 'text-[#00ba68]', bg: 'bg-emerald-100/50 border-emerald-300' }
   ];
 
   const formIcon = { W: TrendingUp, D: Minus, L: TrendingDown };
   const formStyle = {
-    W: 'bg-emerald-500 text-white',
-    D: 'bg-slate-400 text-white',
-    L: 'bg-rose-500 text-white'
+    W: 'bg-gradient-to-br from-emerald-400 to-emerald-600 text-white shadow-emerald-500/30',
+    D: 'bg-gradient-to-br from-slate-400 to-slate-600 text-white shadow-slate-500/30',
+    L: 'bg-gradient-to-br from-rose-400 to-rose-600 text-white shadow-rose-500/30'
   };
+
+  const formLabels = { W: 'Victoria', D: 'Empate', L: 'Derrota' };
 
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        {stats.map(stat => (
-          <div key={stat.label} className="fc-card p-4 rounded-2xl border-slate-200 text-center">
-            <span className="text-[10px] font-tech uppercase text-slate-500 block mb-1">{stat.label}</span>
-            <span className={`font-display font-black text-2xl ${stat.accent || 'text-slate-900'}`}>{stat.value}</span>
+      {/* Hero Performance Overview */}
+      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 p-6 md:p-8 text-white shadow-2xl border border-slate-800">
+        <div className="absolute top-0 right-0 w-80 h-80 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none" />
+
+        <div className="relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
+          {/* Main Info */}
+          <div className="lg:col-span-7 space-y-3">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/20 border border-indigo-500/30 text-indigo-300 text-xs font-tech font-bold uppercase tracking-wider">
+              <Zap className="w-3.5 h-3.5 text-amber-400 animate-pulse" /> Rendimiento de Temporada
+            </div>
+            <h2 className="font-display font-black text-2xl md:text-3xl text-white tracking-tight uppercase italic flex items-center gap-3">
+              Estadísticas de Equipo <span className="text-emerald-400 font-normal text-lg non-italic font-sans">| {currentClub.name}</span>
+            </h2>
+            <p className="text-xs text-slate-300 font-tech">
+              Métricas globales del club en la liga actual, efectividad ofensiva/defensiva y racha competitiva.
+            </p>
           </div>
-        ))}
+
+          {/* Key Metrics Widgets */}
+          <div className="lg:col-span-5 grid grid-cols-2 gap-3">
+            {/* Win Rate Circular Widget */}
+            <div className="bg-slate-950/60 backdrop-blur-xl p-4 rounded-2xl border border-slate-700/60 flex flex-col items-center justify-center text-center shadow-inner">
+              <div className="relative w-16 h-16 flex items-center justify-center mb-1">
+                <svg className="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
+                  <path
+                    className="text-slate-800"
+                    strokeWidth="3.5"
+                    stroke="currentColor"
+                    fill="none"
+                    d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                  />
+                  <path
+                    className="text-emerald-400 transition-all duration-700"
+                    strokeDasharray={`${winRate}, 100`}
+                    strokeWidth="3.5"
+                    strokeLinecap="round"
+                    stroke="currentColor"
+                    fill="none"
+                    d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                  />
+                </svg>
+                <span className="absolute font-display font-black text-sm text-emerald-400">{winRate}%</span>
+              </div>
+              <span className="text-[10px] font-bold font-tech uppercase text-slate-400">Efectividad</span>
+            </div>
+
+            {/* OVR Rating Widget */}
+            <div className="bg-slate-950/60 backdrop-blur-xl p-4 rounded-2xl border border-slate-700/60 flex flex-col items-center justify-center text-center shadow-inner">
+              <div className="w-10 h-10 rounded-xl bg-amber-500/20 border border-amber-500/30 text-amber-400 flex items-center justify-center mb-1">
+                <Star className="w-5 h-5 fill-amber-400 text-amber-400" />
+              </div>
+              <span className="font-display font-black text-2xl text-amber-300">{avgRating} OVR</span>
+              <span className="text-[10px] font-bold font-tech uppercase text-slate-400">Media Titular</span>
+            </div>
+          </div>
+        </div>
       </div>
 
-      <div className="fc-card p-5 rounded-2xl border-slate-200 space-y-3">
-        <h3 className="font-display font-bold text-sm uppercase text-slate-800 flex items-center gap-1.5">
-          <Trophy className="w-4 h-4 text-amber-500" /> Racha Reciente
-        </h3>
-        {currentClub.form.length > 0 ? (
-          <div className="flex items-center gap-2">
+      {/* Goal Efficiency Comparison Bar */}
+      <div className="fc-card p-6 rounded-3xl border border-slate-200 bg-white shadow-xl space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
+          <h3 className="font-display font-extrabold text-slate-900 text-sm uppercase italic flex items-center gap-2">
+            <Swords className="w-4 h-4 text-emerald-600" /> Balance Ofensivo vs Defensivo
+          </h3>
+          <div className="flex items-center gap-4 text-xs font-tech">
+            <span className="text-emerald-700 font-bold">Promedio GF: {avgGoalsFor} / pjo</span>
+            <span className="text-rose-700 font-bold">Promedio GC: {avgGoalsAgainst} / pjo</span>
+          </div>
+        </div>
+
+        <div className="space-y-2">
+          <div className="flex items-center justify-between text-xs font-tech font-bold text-slate-700">
+            <span className="text-emerald-700 flex items-center gap-1">
+              ⚽ Goles a Favor ({currentClub.goalsFor})
+            </span>
+            <span className="text-rose-700 flex items-center gap-1">
+              🛡️ Goles en Contra ({currentClub.goalsAgainst})
+            </span>
+          </div>
+
+          <div className="w-full h-4 bg-slate-100 rounded-full overflow-hidden p-0.5 border border-slate-200 flex">
+            <div
+              className="h-full bg-gradient-to-r from-emerald-400 to-emerald-600 rounded-l-full transition-all duration-500"
+              style={{
+                width: `${
+                  currentClub.goalsFor + currentClub.goalsAgainst > 0
+                    ? (currentClub.goalsFor / (currentClub.goalsFor + currentClub.goalsAgainst)) * 100
+                    : 50
+                }%`
+              }}
+            />
+            <div
+              className="h-full bg-gradient-to-r from-rose-500 to-rose-600 rounded-r-full transition-all duration-500"
+              style={{
+                width: `${
+                  currentClub.goalsFor + currentClub.goalsAgainst > 0
+                    ? (currentClub.goalsAgainst / (currentClub.goalsFor + currentClub.goalsAgainst)) * 100
+                    : 50
+                }%`
+              }}
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* Grid of 8 Stats Cards */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        {statsList.map(stat => {
+          const IconComp = stat.icon;
+          return (
+            <div
+              key={stat.label}
+              className={`fc-card p-4 rounded-2xl border shadow-md bg-white hover:shadow-lg transition-all flex flex-col justify-between group ${stat.bg}`}
+            >
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-[10px] font-tech font-bold uppercase text-slate-500">{stat.label}</span>
+                <IconComp className={`w-4 h-4 ${stat.color} group-hover:scale-110 transition-transform`} />
+              </div>
+              <span className={`font-display font-black text-2xl md:text-3xl ${stat.color}`}>
+                {stat.value}
+              </span>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Racha Reciente (Recent Form) */}
+      <div className="fc-card p-6 rounded-3xl border border-slate-200 bg-white shadow-xl space-y-4">
+        <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+          <h3 className="font-display font-extrabold text-slate-900 text-sm uppercase italic flex items-center gap-2">
+            <Trophy className="w-4 h-4 text-amber-500" /> Racha Reciente en la Liga
+          </h3>
+          <span className="text-[10px] font-tech font-bold uppercase text-slate-400">Últimos 5 Partidos</span>
+        </div>
+
+        {currentClub.form && currentClub.form.length > 0 ? (
+          <div className="flex items-center gap-3">
             {currentClub.form.map((result, idx) => {
-              const Icon = formIcon[result];
+              const Icon = formIcon[result] || Minus;
+              const label = formLabels[result] || 'Resultado';
               return (
-                <span
-                  key={idx}
-                  className={`w-8 h-8 rounded-lg flex items-center justify-center font-bold text-xs shrink-0 ${formStyle[result]}`}
-                  title={result === 'W' ? 'Ganado' : result === 'D' ? 'Empatado' : 'Perdido'}
-                >
-                  <Icon className="w-4 h-4" />
-                </span>
+                <div key={idx} className="flex flex-col items-center gap-1 group">
+                  <span
+                    className={`w-10 h-10 rounded-xl flex items-center justify-center font-black text-sm shadow-md shrink-0 transition-transform group-hover:scale-110 ${formStyle[result]}`}
+                    title={label}
+                  >
+                    <Icon className="w-5 h-5 stroke-[2.5]" />
+                  </span>
+                  <span className="text-[9px] font-tech font-bold uppercase text-slate-400">{result}</span>
+                </div>
               );
             })}
           </div>
         ) : (
-          <p className="text-xs text-slate-400 font-tech italic">Sin partidos jugados todavía.</p>
+          <div className="p-4 bg-slate-50 rounded-xl border border-slate-100 text-slate-400 text-xs font-tech italic text-center">
+            Sin partidos jugados todavía en el fixture oficial.
+          </div>
         )}
-      </div>
-
-      <div className="fc-card p-5 rounded-2xl border-slate-200 flex items-center justify-between">
-        <span className="text-xs font-tech font-bold uppercase text-slate-500">Media de Plantilla (11 Titular)</span>
-        <span className="font-display font-black text-3xl text-[#00ba68]">{avgRating} OVR</span>
       </div>
     </div>
   );
 };
+
