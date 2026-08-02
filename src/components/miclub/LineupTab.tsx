@@ -223,7 +223,7 @@ export const LineupTab: React.FC<LineupTabProps> = ({
             <span className="text-xs text-slate-500 font-tech">Haz clic para alternar titular</span>
           </h3>
 
-          <div className="space-y-2 max-h-[500px] overflow-y-auto pr-1">
+          <div className="space-y-2">
             {clubPlayers.map((player) => {
               const transferItem = transfers.find(t => (t.player.id === player.id || t.player.name === player.name) && t.status === 'DISPONIBLE');
 

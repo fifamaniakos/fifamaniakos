@@ -598,7 +598,7 @@ export const DraftLotteryModule: React.FC<DraftLotteryModuleProps> = ({
                 </div>
               </div>
 
-              <div className="space-y-4 text-xs font-tech max-h-[520px] overflow-y-auto pr-2 border-t border-slate-100 pt-3">
+              <div className="space-y-4 text-xs font-tech border-t border-slate-100 pt-3">
                 {/* 2 PORTEROS */}
                 <div className="bg-slate-50 p-3.5 rounded-xl border border-slate-200">
                   <h4 className="font-bold text-emerald-800 uppercase text-[11px] mb-2 flex items-center gap-1.5 border-b border-slate-200 pb-1.5">

@@ -32,7 +32,7 @@ export const ScheduleStandingsTab: React.FC<ScheduleStandingsTabProps> = ({ curr
         {clubMatches.length === 0 ? (
           <p className="text-xs text-slate-400 font-tech italic py-4 text-center">No hay partidos programados todavía.</p>
         ) : (
-          <div className="space-y-2 max-h-[420px] overflow-y-auto pr-1">
+          <div className="space-y-2">
             {clubMatches.map(match => {
               const isHome = match.homeClubId === currentClub.id;
               const opponent = clubs.find(c => c.id === (isHome ? match.awayClubId : match.homeClubId));
