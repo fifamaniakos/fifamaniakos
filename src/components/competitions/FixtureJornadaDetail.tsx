@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Club, MatchResult, Player, PlayerMatchEvent } from '../../types';
 import { GET_OFFICIAL_SQUAD_BY_CLUB_NAME } from '../../data/officialCurrentSquads';
 import { PHASE_LABELS } from '../../utils/competitionStats';
+import { buildMatchReportSquad } from '../../utils/matchReportSquad';
 import { ArrowLeft, ChevronRight, Image as ImageIcon, CheckCircle2, PlusCircle, Upload, X } from 'lucide-react';
 import { ImageUploader } from '../ImageUploader';
 import { CompetitionLogo } from './CompetitionLogo';
@@ -26,17 +27,10 @@ interface FixtureJornadaDetailProps {
 const getClubPlayersList = (club: Club | undefined, players: Player[]) => {
   if (!club) return [];
 
-  const clubSquadPlayers = players.filter(p => p.clubId === club.id);
-  if (clubSquadPlayers.length > 0) {
-    return clubSquadPlayers.map(p => ({ name: p.name, pos: p.position }));
-  }
-
-  const officialSquad = GET_OFFICIAL_SQUAD_BY_CLUB_NAME(club.name);
-  if (officialSquad.length > 0) {
-    return officialSquad.map(sp => ({ name: sp.name, pos: sp.position }));
-  }
-
-  return [];
+  return buildMatchReportSquad(
+    players.filter(p => p.clubId === club.id),
+    GET_OFFICIAL_SQUAD_BY_CLUB_NAME(club.name)
+  );
 };
 
 const appendPlayerToField = (
