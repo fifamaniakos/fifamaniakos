@@ -69,6 +69,7 @@ declare
   buyer_row public.clubs%rowtype;
   seller_row public.clubs%rowtype;
   player_name text;
+  player_id text;
   price numeric;
   buyer_budget numeric;
   seller_budget numeric;
@@ -93,7 +94,12 @@ begin
   end if;
 
   price := coalesce((transfer_row.data->>'askingPrice')::numeric, 0);
+  player_id := transfer_row.data->>'playerId';
   player_name := coalesce(transfer_row.data->'player'->>'name', 'Jugador');
+
+  if coalesce(player_id, '') = '' then
+    raise exception 'La transferencia no tiene jugador asociado.';
+  end if;
 
   select * into buyer_row from public.clubs where key = p_buyer_club_id for update;
   if not found then
@@ -130,7 +136,7 @@ begin
       true
     ),
     updated_at = now()
-  where key = transfer_row.player_id;
+  where key = player_id;
 
   update public.clubs
   set data = jsonb_set(data, '{budget}', to_jsonb(buyer_budget - price), true),
