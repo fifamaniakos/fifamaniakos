@@ -2,7 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { Club, MatchResult, Player } from '../../types';
 import { computeClubPlayerStats } from '../../utils/competitionStats';
 import { BarChart4, Search, Award, Flame, UserCheck, ArrowUpDown, ChevronUp, ChevronDown, Trophy, Shield } from 'lucide-react';
-import { ImageWithFallback } from '../ImageWithFallback';
+import { PlayerAvatar } from '../PlayerAvatar';
 
 interface FullStatsTabProps {
   currentClub: Club;
@@ -122,9 +122,11 @@ export const FullStatsTab: React.FC<FullStatsTabProps> = ({ currentClub, players
         {/* Top Scorer Card */}
         {topScorer && (
           <div className="fc-card p-5 rounded-3xl border border-amber-200/80 bg-gradient-to-br from-amber-50/80 via-white to-amber-50/20 shadow-lg relative overflow-hidden flex items-center gap-4">
-            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-amber-400 to-amber-600 text-slate-950 flex items-center justify-center font-bold shadow-lg shadow-amber-500/20 shrink-0">
-              <Trophy className="w-7 h-7 fill-slate-950 stroke-[1.5]" />
-            </div>
+            <PlayerAvatar
+              name={topScorer.name}
+              photoUrl={topScorer.photoUrl || ''}
+              className="w-14 h-14 rounded-2xl border-2 border-amber-400 shadow-md shrink-0"
+            />
             <div className="overflow-hidden">
               <span className="text-[10px] font-tech uppercase font-bold text-amber-800 tracking-wider block">
                 ⚽ Máximo Goleador
@@ -141,9 +143,11 @@ export const FullStatsTab: React.FC<FullStatsTabProps> = ({ currentClub, players
         {/* Top Assister Card */}
         {topAssister && (
           <div className="fc-card p-5 rounded-3xl border border-blue-200/80 bg-gradient-to-br from-blue-50/80 via-white to-blue-50/20 shadow-lg relative overflow-hidden flex items-center gap-4">
-            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-400 to-blue-600 text-white flex items-center justify-center font-bold shadow-lg shadow-blue-500/20 shrink-0">
-              <Flame className="w-7 h-7 fill-white stroke-[1.5]" />
-            </div>
+            <PlayerAvatar
+              name={topAssister.name}
+              photoUrl={topAssister.photoUrl || ''}
+              className="w-14 h-14 rounded-2xl border-2 border-blue-400 shadow-md shrink-0"
+            />
             <div className="overflow-hidden">
               <span className="text-[10px] font-tech uppercase font-bold text-blue-800 tracking-wider block">
                 🅰️ Máximo Asistente
@@ -160,9 +164,11 @@ export const FullStatsTab: React.FC<FullStatsTabProps> = ({ currentClub, players
         {/* Top Appearances Card */}
         {topApp && (
           <div className="fc-card p-5 rounded-3xl border border-emerald-200/80 bg-gradient-to-br from-emerald-50/80 via-white to-emerald-50/20 shadow-lg relative overflow-hidden flex items-center gap-4">
-            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-emerald-400 to-emerald-600 text-white flex items-center justify-center font-bold shadow-lg shadow-emerald-500/20 shrink-0">
-              <UserCheck className="w-7 h-7 stroke-[2]" />
-            </div>
+            <PlayerAvatar
+              name={topApp.name}
+              photoUrl={topApp.photoUrl || ''}
+              className="w-14 h-14 rounded-2xl border-2 border-emerald-400 shadow-md shrink-0"
+            />
             <div className="overflow-hidden">
               <span className="text-[10px] font-tech uppercase font-bold text-emerald-800 tracking-wider block">
                 👕 Más Partidos
@@ -319,17 +325,11 @@ export const FullStatsTab: React.FC<FullStatsTabProps> = ({ currentClub, players
                     <tr key={player.id} className="hover:bg-slate-50/90 transition-colors group">
                       <td className="p-3.5 whitespace-nowrap">
                         <div className="flex items-center gap-3">
-                          {player.photoUrl ? (
-                            <ImageWithFallback
-                              src={player.photoUrl}
-                              alt={player.name}
-                              className="w-8 h-8 rounded-full object-cover border border-slate-200 bg-slate-100 shrink-0"
-                            />
-                          ) : (
-                            <div className="w-8 h-8 rounded-full bg-slate-200 font-bold text-slate-600 flex items-center justify-center text-xs shrink-0">
-                              {player.name.charAt(0)}
-                            </div>
-                          )}
+                          <PlayerAvatar
+                            name={player.name}
+                            photoUrl={player.photoUrl || ''}
+                            className="w-9 h-9 rounded-full border border-slate-200 shadow-sm shrink-0"
+                          />
                           <div>
                             <span className="font-bold text-slate-900 text-sm block group-hover:text-emerald-700 transition-colors">
                               {player.name}

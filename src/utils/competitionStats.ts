@@ -150,6 +150,8 @@ export interface ClubPlayerStatRow {
   name: string;
   position: string;
   rating: number;
+  photoUrl?: string;
+  isStarter?: boolean;
   matchesPlayed: number;
   goals: number;
   assists: number;
@@ -173,11 +175,14 @@ export function computeClubPlayerStats(
   players
     .filter(p => p.clubId === clubId)
     .forEach(p => {
+      const sofifaPlayer = findSofifaPlayerByName(p.name);
       rows[p.name.trim().toLowerCase()] = {
         id: p.id,
         name: p.name,
         position: p.position,
         rating: p.rating,
+        photoUrl: p.photoUrl || sofifaPlayer?.photoUrl || '',
+        isStarter: p.isStarter,
         matchesPlayed: 0,
         goals: 0,
         assists: 0,
@@ -208,6 +213,7 @@ export function computeClubPlayerStats(
               name: ev.playerName,
               position: sofifaPlayer?.position || '—',
               rating: sofifaPlayer?.rating || 0,
+              photoUrl: sofifaPlayer?.photoUrl || '',
               matchesPlayed: 0,
               goals: 0,
               assists: 0,
