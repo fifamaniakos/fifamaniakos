@@ -887,10 +887,10 @@ export default function App() {
   };
 
   // Handler: Sign player from Free Agent Database
-  const handleSignSofifaPlayer = (playerPreset: SoFifaPlayerPreset, buyerClub: Club, price: number) => {
+  const handleSignSofifaPlayer = async (playerPreset: SoFifaPlayerPreset, buyerClub: Club, price: number) => {
     if (!canUseGatedFeature) {
       alert(SUBSCRIPTION_REQUIRED_MESSAGE);
-      return;
+      return false;
     }
     const newPlayer: Player = {
       id: `pl-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
@@ -906,29 +906,19 @@ export default function App() {
       isStarter: false
     };
 
-    // 1. Add player to players list
-    setPlayers(prev => [newPlayer, ...prev]);
+    const { error } = await supabase.rpc('sign_free_agent_player', {
+      p_player: newPlayer,
+      p_buyer_club_id: buyerClub.id,
+      p_price: price
+    });
 
-    // 2. Deduct budget from buyer club
-    setClubs(prev => prev.map(c => {
-      if (c.id === buyerClub.id) {
-        return { ...c, budget: c.budget - price };
-      }
-      return c;
-    }));
+    if (error) {
+      alert(`No se pudo fichar al jugador: ${error.message}`);
+      return false;
+    }
 
-    // 3. Log financial transaction
-    setTransactions(prev => [
-      {
-        id: `tx-${Date.now()}`,
-        clubId: buyerClub.id,
-        type: 'GASTO',
-        concept: `Fichaje: ${playerPreset.name}`,
-        amount: price,
-        date: new Date().toLocaleDateString('es-ES')
-      },
-      ...prev
-    ]);
+    await Promise.all([refetchPlayers(), refetchClubs(), refetchTransactions()]);
+    return true;
   };
 
   // Handler: Populate an empty or reset club with official squad players

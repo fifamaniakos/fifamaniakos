@@ -246,11 +246,80 @@ begin
 end;
 $$;
 
+create or replace function public.sign_free_agent_player(
+  p_player jsonb,
+  p_buyer_club_id text,
+  p_price numeric
+)
+returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  buyer_row public.clubs%rowtype;
+  buyer_budget numeric;
+  player_id text;
+  player_name text;
+begin
+  perform public.assert_can_transfer_for_buyer(p_buyer_club_id);
+
+  if p_price <= 0 then
+    raise exception 'El precio debe ser mayor a cero.';
+  end if;
+
+  player_id := p_player->>'id';
+  player_name := coalesce(p_player->>'name', 'Jugador');
+
+  if coalesce(player_id, '') = '' then
+    raise exception 'El jugador no tiene id.';
+  end if;
+
+  select * into buyer_row from public.clubs where key = p_buyer_club_id for update;
+  if not found then
+    raise exception 'No se encontro el club comprador.';
+  end if;
+
+  buyer_budget := coalesce((buyer_row.data->>'budget')::numeric, 0);
+
+  if buyer_budget < p_price then
+    raise exception 'Presupuesto insuficiente.';
+  end if;
+
+  insert into public.players (key, data)
+  values (
+    player_id,
+    jsonb_set(
+      jsonb_set(p_player, '{clubId}', to_jsonb(p_buyer_club_id), true),
+      '{value}',
+      to_jsonb(p_price),
+      true
+    )
+  )
+  on conflict (key) do update
+  set data = excluded.data,
+    updated_at = now();
+
+  update public.clubs
+  set data = jsonb_set(data, '{budget}', to_jsonb(buyer_budget - p_price), true),
+    updated_at = now()
+  where key = p_buyer_club_id;
+
+  perform public.add_financial_transaction(
+    p_buyer_club_id,
+    'GASTO',
+    'Fichaje: ' || player_name,
+    p_price
+  );
+end;
+$$;
+
 revoke execute on function public.assert_can_transfer_for_buyer(text) from public, anon, authenticated;
 revoke execute on function public.add_financial_transaction(text, text, text, numeric) from public, anon, authenticated;
 
 grant execute on function public.complete_market_transfer(text, text) to authenticated;
 grant execute on function public.complete_direct_transfer(text, text, numeric) to authenticated;
+grant execute on function public.sign_free_agent_player(jsonb, text, numeric) to authenticated;
 
 -- Backfill contable para compras por clausula que ya quedaron marcadas como
 -- VENDIDO antes de existir esta RPC. No modifica presupuestos para no duplicar

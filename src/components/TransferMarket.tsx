@@ -13,7 +13,7 @@ interface TransferMarketProps {
   transactions: FinancialTransaction[];
   onBuyPlayer: (transfer: TransferItem, buyerClub: Club) => boolean | Promise<boolean>;
   onDirectTransferPlayer: (player: Player, buyerClub: Club, sellerClub: Club, price: number) => boolean | Promise<boolean>;
-  onSignSofifaPlayer?: (playerPreset: SoFifaPlayerPreset, buyerClub: Club, price: number) => void;
+  onSignSofifaPlayer?: (playerPreset: SoFifaPlayerPreset, buyerClub: Club, price: number) => boolean | Promise<boolean>;
   onPopulateClubWithSofifa?: (targetClub: Club) => void;
   players: Player[];
 }
@@ -79,7 +79,7 @@ export const TransferMarket: React.FC<TransferMarketProps> = ({
     setSofifaSignPrice(preset.value);
   };
 
-  const handleConfirmSofifaSign = (e: React.FormEvent) => {
+  const handleConfirmSofifaSign = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedSofifaPreset) return;
 
@@ -94,23 +94,8 @@ export const TransferMarket: React.FC<TransferMarketProps> = ({
       return;
     }
 
-    const newPlayer: Player = {
-      id: `pl-sofifa-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
-      clubId: buyerClub.id,
-      name: selectedSofifaPreset.name,
-      position: selectedSofifaPreset.position,
-      rating: selectedSofifaPreset.rating,
-      cardType: selectedSofifaPreset.cardType || 'Gold',
-      value: sofifaSignPrice,
-      releaseClause: 0,
-      photoUrl: selectedSofifaPreset.photoUrl,
-      stats: selectedSofifaPreset.stats,
-      isStarter: false
-    };
-
-    if (onSignSofifaPlayer) {
-      onSignSofifaPlayer(selectedSofifaPreset, buyerClub, sofifaSignPrice);
-    }
+    const completed = await onSignSofifaPlayer?.(selectedSofifaPreset, buyerClub, sofifaSignPrice);
+    if (!completed) return;
 
     confetti({
       particleCount: 80,
@@ -301,9 +286,11 @@ export const TransferMarket: React.FC<TransferMarketProps> = ({
             currentClub={currentClub}
             signedPlayers={players}
             compact
-            onSignPlayer={(preset) => {
+            onSignPlayer={async (preset) => {
               if (currentClub) {
-                onSignSofifaPlayer?.(preset, currentClub, preset.value);
+                const completed = await onSignSofifaPlayer?.(preset, currentClub, preset.value);
+                if (!completed) return;
+                alert(`Fichaje completado: ${preset.name} ya figura en ${currentClub.name} y el movimiento quedo registrado en Estado Financiero.`);
               } else {
                 alert('Selecciona un club en la barra superior para fichar este jugador.');
               }
