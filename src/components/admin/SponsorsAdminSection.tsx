@@ -120,110 +120,160 @@ export const SponsorsAdminSection: React.FC<SponsorsAdminSectionProps> = ({
 
   return (
     <div className="space-y-6">
-      <div className="fc-card p-6 rounded-xl">
-        <div className="flex items-center gap-3 mb-2">
-          <Handshake className="w-6 h-6 text-[#02f59b]" />
-          <h3 className="font-display font-bold text-xl text-white">Patrocinadores</h3>
-        </div>
-        <p className="text-xs text-slate-400">
-          Temporada {currentSeasonNumber}. {sponsorContracts.filter(c => c.seasonNumber === currentSeasonNumber).length} contratos firmados.
-        </p>
-      </div>
-
-      <div className="fc-card p-6 rounded-xl space-y-4">
-        <h4 className="font-display font-bold text-lg text-white">Premios por marca</h4>
-        {sponsors.map(sponsor => (
-          <div key={sponsor.id} className="space-y-2">
-            <p className="text-sm font-bold text-[#02f59b]">{sponsor.name}</p>
-            {sponsorObjectives
-              .filter(o => o.sponsorId === sponsor.id)
-              .map(objective => (
-                <div key={objective.id} className="flex items-center justify-between gap-3">
-                  <span className="text-xs text-slate-300">{objective.label}</span>
-                  <div className="flex items-center gap-1">
-                    <input
-                      type="number"
-                      value={objective.rewardMillions}
-                      onChange={e =>
-                        onUpdateObjective({ ...objective, rewardMillions: Number(e.target.value) || 0 })
-                      }
-                      className="w-20 bg-slate-800 text-white text-xs rounded px-2 py-1 border border-white/10"
-                    />
-                    <span className="text-xs text-slate-500">M €</span>
-                  </div>
-                </div>
-              ))}
-          </div>
-        ))}
-      </div>
-
-      <div className="fc-card p-6 rounded-xl space-y-4">
-        <h4 className="font-display font-bold text-lg text-white">Liquidacion</h4>
-
-        {!preview && (
-          <button
-            onClick={() => setPreview(buildPreview())}
-            className="bg-[#02f59b] text-slate-900 font-bold text-sm rounded-lg px-4 py-2 hover:brightness-110"
-          >
-            Ver vista previa de pagos
-          </button>
-        )}
-
-        {preview && (
-          <>
-            {preview.length === 0 && (
-              <p className="text-xs text-slate-400">Ningun club cumplio objetivos todavia.</p>
-            )}
-
-            {preview.length > 0 && (
-              <div className="space-y-1">
-                {preview.map(row => (
-                  <div
-                    key={`${row.clubId}-${row.objectiveId}`}
-                    className="flex items-center justify-between gap-3 text-xs border-b border-white/5 py-2"
-                  >
-                    <span className="text-white">
-                      {row.clubName} <span className="text-slate-500">— {row.sponsorName}: {row.label}</span>
-                    </span>
-                    <span className={row.alreadyPaid ? 'text-slate-500 line-through' : 'text-[#02f59b] font-bold'}>
-                      {formatMillions(row.amount)}
-                    </span>
-                  </div>
-                ))}
-
-                <div className="flex items-center justify-between pt-3 text-sm">
-                  <span className="text-slate-300">Total a acreditar</span>
-                  <span className="font-display font-black text-xl text-[#02f59b]">{formatMillions(pendingTotal)}</span>
-                </div>
-
-                <div className="flex items-start gap-2 text-[11px] text-amber-400 pt-2">
-                  <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
-                  <span>Esto suma dinero al presupuesto de cada club y crea las transacciones. Los tachados ya se pagaron y se saltean.</span>
-                </div>
-              </div>
-            )}
-
-            <div className="flex gap-2">
-              <button
-                onClick={settle}
-                disabled={settling || preview.length === 0}
-                className="bg-[#02f59b] text-slate-900 font-bold text-sm rounded-lg px-4 py-2 disabled:opacity-40 flex items-center gap-2"
-              >
-                <Play className="w-4 h-4" />
-                {settling ? 'Liquidando...' : 'Confirmar y acreditar'}
-              </button>
-              <button
-                onClick={() => setPreview(null)}
-                disabled={settling}
-                className="text-slate-400 text-sm px-4 py-2 hover:text-white"
-              >
-                Cancelar
-              </button>
+      <div className="fc-card p-6 rounded-3xl border border-slate-200 shadow-xl bg-white">
+        <div className="flex items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <div className="w-12 h-12 rounded-2xl bg-emerald-50 border border-emerald-100 flex items-center justify-center shrink-0">
+              <Handshake className="w-6 h-6 text-emerald-600" />
             </div>
-          </>
-        )}
+            <div>
+              <h3 className="font-display font-extrabold text-2xl text-slate-900 uppercase italic leading-none">
+                Patrocinadores
+              </h3>
+              <p className="text-xs text-slate-500 mt-1.5">
+                Temporada {currentSeasonNumber} ·{' '}
+                {sponsorContracts.filter(c => c.seasonNumber === currentSeasonNumber).length} contratos firmados
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
 
-        {result && <p className="text-xs text-slate-300">{result}</p>}
+      <div className="fc-card rounded-3xl border border-slate-200 shadow-xl bg-white overflow-hidden">
+        <div className="px-6 py-4 border-b border-slate-100">
+          <h4 className="font-display font-extrabold text-slate-900 text-base uppercase italic">
+            Premios por marca
+          </h4>
+          <p className="text-xs text-slate-500 mt-1">
+            Los cambios se guardan solos y afectan la proxima liquidacion.
+          </p>
+        </div>
+
+        <div className="divide-y divide-slate-100">
+          {sponsors.map(sponsor => (
+            <div key={sponsor.id} className="px-6 py-4">
+              <p className="font-display font-extrabold text-sm text-emerald-600 uppercase italic mb-3">
+                {sponsor.name}
+              </p>
+              <div className="space-y-2">
+                {sponsorObjectives
+                  .filter(o => o.sponsorId === sponsor.id)
+                  .map(objective => (
+                    <div key={objective.id} className="flex items-center justify-between gap-4">
+                      <span className="text-sm text-slate-600">{objective.label}</span>
+                      <div className="flex items-center gap-1.5 shrink-0">
+                        <input
+                          type="number"
+                          value={objective.rewardMillions}
+                          onChange={e =>
+                            onUpdateObjective({ ...objective, rewardMillions: Number(e.target.value) || 0 })
+                          }
+                          className="w-20 bg-white text-slate-900 text-sm font-bold text-right rounded-lg px-2 py-1.5 border border-slate-200 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+                        />
+                        <span className="text-xs text-slate-400 font-bold">M €</span>
+                      </div>
+                    </div>
+                  ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="fc-card rounded-3xl border border-slate-200 shadow-xl bg-white overflow-hidden">
+        <div className="px-6 py-4 border-b border-slate-100">
+          <h4 className="font-display font-extrabold text-slate-900 text-base uppercase italic">
+            Liquidacion
+          </h4>
+          <p className="text-xs text-slate-500 mt-1">
+            Revisa la vista previa antes de acreditar. Los pagos ya hechos se saltean solos.
+          </p>
+        </div>
+
+        <div className="p-6 space-y-4">
+          {!preview && (
+            <button
+              onClick={() => setPreview(buildPreview())}
+              className="bg-emerald-500 hover:bg-emerald-600 text-white font-display font-extrabold text-sm uppercase italic tracking-wide rounded-xl px-5 py-2.5 transition-colors shadow-md shadow-emerald-500/20"
+            >
+              Ver vista previa de pagos
+            </button>
+          )}
+
+          {preview && (
+            <>
+              {preview.length === 0 && (
+                <p className="text-sm text-slate-500">Ningun club cumplio objetivos todavia.</p>
+              )}
+
+              {preview.length > 0 && (
+                <div>
+                  <div className="rounded-2xl border border-slate-200 overflow-hidden">
+                    {preview.map(row => (
+                      <div
+                        key={`${row.clubId}-${row.objectiveId}`}
+                        className="flex items-center justify-between gap-4 px-4 py-3 border-b border-slate-100 last:border-b-0 odd:bg-slate-50/50"
+                      >
+                        <span className="text-sm text-slate-700">
+                          <span className="font-bold text-slate-900">{row.clubName}</span>
+                          <span className="text-slate-500"> — {row.sponsorName}: {row.label}</span>
+                        </span>
+                        <span
+                          className={`font-display font-black text-base whitespace-nowrap ${
+                            row.alreadyPaid ? 'text-slate-300 line-through' : 'text-emerald-600'
+                          }`}
+                        >
+                          {formatMillions(row.amount)}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="flex items-center justify-between gap-4 pt-4">
+                    <span className="text-sm font-bold text-slate-600 uppercase tracking-wide">
+                      Total a acreditar
+                    </span>
+                    <span className="font-display font-black text-3xl text-emerald-600 leading-none">
+                      {formatMillions(pendingTotal)}
+                    </span>
+                  </div>
+
+                  <div className="flex items-start gap-2.5 text-xs text-amber-800 bg-amber-50 border border-amber-200 rounded-xl p-3 mt-4">
+                    <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5 text-amber-600" />
+                    <span>
+                      Esto suma dinero al presupuesto de cada club y crea las transacciones.
+                      Los tachados ya se pagaron y se saltean.
+                    </span>
+                  </div>
+                </div>
+              )}
+
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={settle}
+                  disabled={settling || preview.length === 0}
+                  className="bg-emerald-500 hover:bg-emerald-600 text-white font-display font-extrabold text-sm uppercase italic tracking-wide rounded-xl px-5 py-2.5 transition-colors shadow-md shadow-emerald-500/20 disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none flex items-center gap-2"
+                >
+                  <Play className="w-4 h-4" />
+                  {settling ? 'Liquidando...' : 'Confirmar y acreditar'}
+                </button>
+                <button
+                  onClick={() => setPreview(null)}
+                  disabled={settling}
+                  className="text-sm font-bold text-slate-500 px-4 py-2.5 hover:text-slate-900 transition-colors disabled:opacity-40"
+                >
+                  Cancelar
+                </button>
+              </div>
+            </>
+          )}
+
+          {result && (
+            <p className="text-sm text-slate-600 bg-slate-50 border border-slate-200 rounded-xl p-3">
+              {result}
+            </p>
+          )}
+        </div>
       </div>
     </div>
   );

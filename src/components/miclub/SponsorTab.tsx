@@ -1,5 +1,5 @@
 import React from 'react';
-import { Handshake, Check, Lock } from 'lucide-react';
+import { Handshake, Check, Lock, Trophy } from 'lucide-react';
 import { Club, ClubSponsorContract, MatchResult, Sponsor, SponsorObjective } from '../../types';
 import { evaluateContract, eligibleSponsors } from '../../utils/sponsorEngine';
 
@@ -40,53 +40,85 @@ export const SponsorTab: React.FC<SponsorTabProps> = ({
 
     if (seasonStarted) {
       return (
-        <div className="fc-card p-8 rounded-xl text-center">
-          <Lock className="w-10 h-10 text-slate-500 mx-auto mb-3" />
-          <h3 className="font-display font-bold text-xl text-white">Sin patrocinador esta temporada</h3>
-          <p className="text-xs text-slate-400 mt-2">
-            La temporada ya comenzo, asi que no se pueden firmar contratos nuevos. Vas a poder elegir marca al inicio de la Temporada {currentSeasonNumber + 1}.
+        <div className="fc-card p-10 rounded-3xl border border-slate-200 shadow-xl bg-white text-center">
+          <div className="w-14 h-14 rounded-2xl bg-slate-100 flex items-center justify-center mx-auto mb-4">
+            <Lock className="w-7 h-7 text-slate-400" />
+          </div>
+          <h3 className="font-display font-extrabold text-2xl text-slate-900 uppercase italic">
+            Sin patrocinador esta temporada
+          </h3>
+          <p className="text-sm text-slate-500 mt-2 max-w-md mx-auto">
+            La temporada ya comenzo, asi que no se pueden firmar contratos nuevos.
+            Vas a poder elegir marca al inicio de la Temporada {currentSeasonNumber + 1}.
           </p>
         </div>
       );
     }
 
     return (
-      <div className="space-y-4">
-        <div className="fc-card p-6 rounded-xl">
-          <h3 className="font-display font-bold text-xl text-white">Elegi tu patrocinador</h3>
-          <p className="text-xs text-slate-400 mt-1">
-            Una vez que arranque la temporada no vas a poder cambiarlo. Las marcas mas exigentes pagan mas.
+      <div className="space-y-6">
+        <div className="fc-card p-6 rounded-3xl border border-slate-200 shadow-xl bg-white">
+          <div className="flex items-center justify-between pb-4 border-b border-slate-100 mb-4">
+            <h3 className="font-display font-extrabold text-slate-900 text-base uppercase italic flex items-center gap-2">
+              <Handshake className="w-5 h-5 text-emerald-600" /> Elegi tu patrocinador
+            </h3>
+            <span className="text-[10px] font-bold uppercase bg-slate-100 text-slate-600 px-2 py-0.5 rounded-md">
+              Temporada {currentSeasonNumber}
+            </span>
+          </div>
+          <p className="text-sm text-slate-500">
+            Una vez que arranque la temporada no vas a poder cambiarlo. Las marcas mas
+            exigentes pagan mas.
           </p>
         </div>
 
         {options.length === 0 && (
-          <div className="fc-card p-6 rounded-xl text-center text-sm text-slate-400">
+          <div className="fc-card p-8 rounded-3xl border border-slate-200 shadow-xl bg-white text-center text-sm text-slate-500">
             No hay marcas disponibles para tu division todavia.
           </div>
         )}
 
-        <div className="grid gap-4 md:grid-cols-2">
+        <div className="grid gap-6 md:grid-cols-2">
           {options.map(sponsor => {
             const objectives = sponsorObjectives.filter(o => o.sponsorId === sponsor.id);
             const maxTotal = objectives.reduce((sum, o) => sum + o.rewardMillions, 0);
 
             return (
-              <div key={sponsor.id} className="fc-card p-5 rounded-xl flex flex-col gap-3">
-                <div className="flex items-center justify-between">
-                  <h4 className="font-display font-bold text-lg text-white">{sponsor.name}</h4>
-                  <span className="text-xs text-[#02f59b] font-bold">Hasta {maxTotal} M €</span>
+              <div
+                key={sponsor.id}
+                className="fc-card fc-card-hover p-6 rounded-3xl border border-slate-200 shadow-xl bg-white flex flex-col"
+              >
+                <div className="flex items-start justify-between gap-3 pb-4 border-b border-slate-100">
+                  <div>
+                    <h4 className="font-display font-extrabold text-xl text-slate-900 uppercase italic">
+                      {sponsor.name}
+                    </h4>
+                    <p className="text-[11px] text-slate-400 uppercase font-bold tracking-wide mt-0.5">
+                      {sponsor.requirementDivision ?? 'Sin requisitos'}
+                    </p>
+                  </div>
+                  <div className="text-right shrink-0">
+                    <p className="text-[10px] text-slate-400 uppercase font-bold">Hasta</p>
+                    <p className="font-display font-black text-2xl text-emerald-600 leading-none">
+                      {maxTotal} M €
+                    </p>
+                  </div>
                 </div>
-                <ul className="text-xs text-slate-300 space-y-1">
+
+                <ul className="text-sm space-y-2 py-4 flex-1">
                   {objectives.map(o => (
-                    <li key={o.id} className="flex justify-between gap-3">
-                      <span>{o.label}</span>
-                      <span className="text-slate-400 whitespace-nowrap">+{o.rewardMillions} M</span>
+                    <li key={o.id} className="flex justify-between gap-3 items-baseline">
+                      <span className="text-slate-600">{o.label}</span>
+                      <span className="text-slate-900 font-bold whitespace-nowrap">
+                        +{o.rewardMillions} M
+                      </span>
                     </li>
                   ))}
                 </ul>
+
                 <button
                   onClick={() => onSignSponsor(sponsor.id)}
-                  className="mt-auto bg-[#02f59b] text-slate-900 font-bold text-sm rounded-lg py-2 hover:brightness-110"
+                  className="mt-auto bg-emerald-500 hover:bg-emerald-600 text-white font-display font-extrabold text-sm uppercase italic tracking-wide rounded-xl py-3 transition-colors shadow-md shadow-emerald-500/20"
                 >
                   Firmar con {sponsor.name}
                 </button>
@@ -102,58 +134,91 @@ export const SponsorTab: React.FC<SponsorTabProps> = ({
   const objectives = sponsorObjectives.filter(o => o.sponsorId === contract.sponsorId);
   const evaluation = evaluateContract(currentClub.id, clubs, matches, objectives);
   const byId = new Map<string, SponsorObjective>(objectives.map(o => [o.id, o]));
+  const metCount = evaluation.lines.filter(l => l.met).length;
 
   return (
-    <div className="space-y-4">
-      <div className="fc-card p-6 rounded-xl flex items-center justify-between gap-4">
-        <div className="flex items-center gap-3">
-          <Handshake className="w-8 h-8 text-[#02f59b]" />
+    <div className="space-y-6">
+      <div className="fc-card p-6 rounded-3xl border border-slate-200 shadow-xl bg-white flex flex-col sm:flex-row sm:items-center justify-between gap-6">
+        <div className="flex items-center gap-4">
+          <div className="w-14 h-14 rounded-2xl bg-emerald-50 border border-emerald-100 flex items-center justify-center shrink-0">
+            <Handshake className="w-7 h-7 text-emerald-600" />
+          </div>
           <div>
-            <h3 className="font-display font-bold text-xl text-white">{sponsor?.name ?? 'Patrocinador'}</h3>
-            <p className="text-xs text-slate-400">Temporada {contract.seasonNumber}</p>
+            <h3 className="font-display font-extrabold text-2xl text-slate-900 uppercase italic leading-none">
+              {sponsor?.name ?? 'Patrocinador'}
+            </h3>
+            <p className="text-xs text-slate-500 mt-1.5">
+              Temporada {contract.seasonNumber} · {metCount} de {evaluation.lines.length} objetivos cumplidos
+            </p>
           </div>
         </div>
-        <div className="text-right">
-          <p className="text-xs text-slate-400">Acumulado</p>
-          <p className="font-display font-black text-2xl text-[#02f59b]">{formatMillions(evaluation.totalAmount)}</p>
+        <div className="sm:text-right">
+          <p className="text-[10px] text-slate-400 uppercase font-bold tracking-wide">Acumulado</p>
+          <p className="font-display font-black text-4xl text-emerald-600 leading-none">
+            {formatMillions(evaluation.totalAmount)}
+          </p>
         </div>
       </div>
 
-      <div className="fc-card rounded-xl overflow-hidden">
+      <div className="fc-card rounded-3xl border border-slate-200 shadow-xl bg-white overflow-hidden">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
+          <h4 className="font-display font-extrabold text-slate-900 text-base uppercase italic flex items-center gap-2">
+            <Trophy className="w-5 h-5 text-emerald-600" /> Objetivos del contrato
+          </h4>
+        </div>
+
         {evaluation.lines.map(line => {
           const objective = byId.get(line.objectiveId);
           const percent = line.target > 0 ? Math.min(100, (line.current / line.target) * 100) : 0;
 
           return (
-            <div key={line.objectiveId} className="p-4 border-b border-white/5 last:border-b-0">
-              <div className="flex items-center justify-between gap-3">
-                <span className="text-sm text-white flex items-center gap-2">
-                  {line.met && <Check className="w-4 h-4 text-[#02f59b]" />}
+            <div
+              key={line.objectiveId}
+              className={`px-6 py-4 border-b border-slate-100 last:border-b-0 ${line.met ? 'bg-emerald-50/40' : ''}`}
+            >
+              <div className="flex items-center justify-between gap-4">
+                <span className="text-sm text-slate-700 flex items-center gap-2.5 font-medium">
+                  {line.met ? (
+                    <span className="w-5 h-5 rounded-full bg-emerald-500 flex items-center justify-center shrink-0">
+                      <Check className="w-3.5 h-3.5 text-white" strokeWidth={3} />
+                    </span>
+                  ) : (
+                    <span className="w-5 h-5 rounded-full border-2 border-slate-200 shrink-0" />
+                  )}
                   {line.label}
                 </span>
-                <span className={`text-sm font-bold whitespace-nowrap ${line.met ? 'text-[#02f59b]' : 'text-slate-500'}`}>
+                <span
+                  className={`font-display font-black text-lg whitespace-nowrap ${
+                    line.met ? 'text-emerald-600' : 'text-slate-300'
+                  }`}
+                >
                   +{objective?.rewardMillions ?? 0} M €
                 </span>
               </div>
 
               {line.target > 1 && !line.met && (
-                <div className="mt-2">
-                  <div className="h-1.5 bg-slate-700 rounded-full overflow-hidden">
-                    <div className="h-full bg-[#02f59b]" style={{ width: `${percent}%` }} />
+                <div className="mt-2.5 pl-[30px]">
+                  <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-emerald-500 rounded-full transition-all duration-500"
+                      style={{ width: `${percent}%` }}
+                    />
                   </div>
-                  <p className="text-[11px] text-slate-400 mt-1">Vas {line.current} de {line.target}</p>
+                  <p className="text-[11px] text-slate-500 mt-1.5 font-medium">
+                    Vas {line.current} de {line.target}
+                  </p>
                 </div>
               )}
 
               {!line.met && line.target <= 1 && (
-                <p className="text-[11px] text-slate-500 mt-1">No alcanzado</p>
+                <p className="text-[11px] text-slate-400 mt-1 pl-[30px]">No alcanzado</p>
               )}
             </div>
           );
         })}
       </div>
 
-      <p className="text-[11px] text-slate-500 text-center">
+      <p className="text-xs text-slate-400 text-center">
         Los premios se acreditan cuando el administrador cierra la temporada.
       </p>
     </div>
