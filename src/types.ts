@@ -190,3 +190,52 @@ export interface TickerNewsItem {
   active: boolean;
   createdAt?: string;
 }
+
+export type SponsorObjectiveKind =
+  | 'CHAMPION'
+  | 'RUNNER_UP'
+  | 'REACH_PHASE'
+  | 'LEAGUE_WINS'
+  | 'TOP_SCORER'
+  | 'ASSISTS_THRESHOLD';
+
+export interface Sponsor {
+  id: string;
+  name: string;
+  logoUrl: string;
+  tier: number; // 1 = mas exigente y mejor pago, 5 = mas accesible
+  requirementDivision?: string;
+  // Definido en la spec pero todavia sin usar: la app no guarda historial por
+  // temporada (MatchResult no tiene seasonNumber), asi que no se puede saber
+  // en que puesto termino un club la temporada pasada.
+  requirementMaxPosition?: number;
+  active: boolean;
+}
+
+export interface SponsorObjective {
+  id: string;
+  sponsorId: string;
+  kind: SponsorObjectiveKind;
+  competition?: string;
+  phase?: MatchPhase;
+  threshold?: number;
+  rewardMillions: number;
+  label: string;
+}
+
+export interface ClubSponsorContract {
+  id: string;
+  clubId: string;
+  sponsorId: string;
+  seasonNumber: number;
+  signedAt: string;
+}
+
+export interface SponsorPayout {
+  id: string;
+  clubId: string;
+  seasonNumber: number;
+  objectiveId: string;
+  amount: number; // en euros
+  paidAt: string;
+}
