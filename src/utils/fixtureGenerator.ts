@@ -131,8 +131,11 @@ export function generateAllCompetitionsFixtures(clubs: Club[]): MatchResult[] {
   const div1Clubs = clubs.filter(c => !c.division || c.division === '1ra División' || c.division === 'Primera División');
   const div2Clubs = clubs.filter(c => c.division === '2da División' || c.division === 'Segunda División');
 
-  const targetDiv1 = div1Clubs.length >= 2 ? div1Clubs : clubs;
-  const div1Matches = generateFixtureForClubs(targetDiv1, '1ra División', true);
+  // Antes, si 1ra tenia menos de 2 equipos se caia a `clubs` (TODOS), asi que
+  // los clubes de 2da terminaban jugando el fixture de 1ra y la tabla de la
+  // liga mostraba equipos que no pertenecen a esa division. Con menos de 2
+  // participantes la division simplemente no tiene fixture.
+  const div1Matches = div1Clubs.length >= 2 ? generateFixtureForClubs(div1Clubs, '1ra División', true) : [];
 
   const div2Matches = div2Clubs.length >= 2 ? generateFixtureForClubs(div2Clubs, '2da División', true) : [];
 
