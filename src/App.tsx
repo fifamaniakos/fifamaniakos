@@ -775,11 +775,6 @@ export default function App() {
     }
   };
 
-  // Handler: Add player to squad
-  const handleAddPlayer = (newPlayer: Player) => {
-    setPlayers(prev => [newPlayer, ...prev]);
-  };
-
   // Handler: Remove player from squad
   const handleRemovePlayer = (playerId: string) => {
     setPlayers(prev => prev.filter(p => p.id !== playerId));
@@ -1179,7 +1174,6 @@ export default function App() {
             players={players}
             transactions={transactions}
             transfers={transfers}
-            onAddPlayer={handleAddPlayer}
             onRemovePlayer={handleRemovePlayer}
             onToggleStarter={handleToggleStarter}
             onUpdatePlayerValue={handleUpdatePlayerValue}
