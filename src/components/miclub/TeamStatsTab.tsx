@@ -47,59 +47,58 @@ export const TeamStatsTab: React.FC<TeamStatsTabProps> = ({ currentClub, players
 
   return (
     <div className="space-y-6">
-      {/* Hero Performance Overview */}
-      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 p-6 md:p-8 text-white shadow-2xl border border-slate-800">
-        <div className="absolute top-0 right-0 w-80 h-80 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none" />
-
-        <div className="relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
-          {/* Main Info */}
-          <div className="lg:col-span-7 space-y-3">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/20 border border-indigo-500/30 text-indigo-300 text-xs font-tech font-bold uppercase tracking-wider">
-              <Zap className="w-3.5 h-3.5 text-amber-400 animate-pulse" /> Rendimiento de Temporada
-            </div>
-            <h2 className="font-display font-black text-2xl md:text-3xl text-white tracking-tight uppercase italic flex items-center gap-3">
-              Estadísticas de Equipo <span className="text-emerald-400 font-normal text-lg non-italic font-sans">| {currentClub.name}</span>
-            </h2>
-            <p className="text-xs text-slate-300 font-tech">
-              Métricas globales del club en la liga actual, efectividad ofensiva/defensiva y racha competitiva.
+      {/* Key Performance Indicators Summary Card */}
+      <div className="fc-card p-5 rounded-3xl border border-slate-200 bg-white shadow-xl flex flex-col md:flex-row items-center justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <div className="w-12 h-12 rounded-2xl bg-emerald-500 text-white flex items-center justify-center shadow-lg shadow-emerald-500/20 shrink-0">
+            <Zap className="w-6 h-6" />
+          </div>
+          <div>
+            <h3 className="font-display font-extrabold text-slate-900 text-base uppercase italic">
+              Rendimiento Global de Temporada
+            </h3>
+            <p className="text-xs text-slate-500 font-tech">
+              Resumen de efectividad y nivel general del plantel en la competición.
             </p>
           </div>
+        </div>
 
-          {/* Key Metrics Widgets */}
-          <div className="lg:col-span-5 grid grid-cols-2 gap-3">
-            {/* Win Rate Circular Widget */}
-            <div className="bg-slate-950/60 backdrop-blur-xl p-4 rounded-2xl border border-slate-700/60 flex flex-col items-center justify-center text-center shadow-inner">
-              <div className="relative w-16 h-16 flex items-center justify-center mb-1">
-                <svg className="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
-                  <path
-                    className="text-slate-800"
-                    strokeWidth="3.5"
-                    stroke="currentColor"
-                    fill="none"
-                    d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-                  />
-                  <path
-                    className="text-emerald-400 transition-all duration-700"
-                    strokeDasharray={`${winRate}, 100`}
-                    strokeWidth="3.5"
-                    strokeLinecap="round"
-                    stroke="currentColor"
-                    fill="none"
-                    d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-                  />
-                </svg>
-                <span className="absolute font-display font-black text-sm text-emerald-400">{winRate}%</span>
-              </div>
-              <span className="text-[10px] font-bold font-tech uppercase text-slate-400">Efectividad</span>
+        <div className="flex items-center gap-4 w-full md:w-auto justify-end">
+          {/* Win Rate Circular Widget */}
+          <div className="bg-slate-50 px-4 py-2 rounded-2xl border border-slate-200 flex items-center gap-3">
+            <div className="relative w-11 h-11 flex items-center justify-center">
+              <svg className="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
+                <path
+                  className="text-slate-200"
+                  strokeWidth="3.5"
+                  stroke="currentColor"
+                  fill="none"
+                  d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                />
+                <path
+                  className="text-emerald-600 transition-all duration-700"
+                  strokeDasharray={`${winRate}, 100`}
+                  strokeWidth="3.5"
+                  strokeLinecap="round"
+                  stroke="currentColor"
+                  fill="none"
+                  d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                />
+              </svg>
+              <span className="absolute font-display font-black text-xs text-emerald-700">{winRate}%</span>
             </div>
+            <div>
+              <span className="text-[10px] font-bold font-tech uppercase text-slate-400 block">Efectividad</span>
+              <span className="font-display font-black text-sm text-slate-800">{currentClub.won}G - {currentClub.drawn}E - {currentClub.lost}P</span>
+            </div>
+          </div>
 
-            {/* OVR Rating Widget */}
-            <div className="bg-slate-950/60 backdrop-blur-xl p-4 rounded-2xl border border-slate-700/60 flex flex-col items-center justify-center text-center shadow-inner">
-              <div className="w-10 h-10 rounded-xl bg-amber-500/20 border border-amber-500/30 text-amber-400 flex items-center justify-center mb-1">
-                <Star className="w-5 h-5 fill-amber-400 text-amber-400" />
-              </div>
-              <span className="font-display font-black text-2xl text-amber-300">{avgRating} OVR</span>
-              <span className="text-[10px] font-bold font-tech uppercase text-slate-400">Media Titular</span>
+          {/* OVR Rating Widget */}
+          <div className="bg-amber-50 px-4 py-2.5 rounded-2xl border border-amber-200/80 flex items-center gap-3">
+            <Star className="w-5 h-5 fill-amber-400 text-amber-500" />
+            <div>
+              <span className="text-[10px] font-bold font-tech uppercase text-amber-800 block">Media Titular</span>
+              <span className="font-display font-black text-lg text-amber-700">{avgRating} OVR</span>
             </div>
           </div>
         </div>

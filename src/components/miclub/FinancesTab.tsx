@@ -50,38 +50,6 @@ export const FinancesTab: React.FC<FinancesTabProps> = ({ currentClub, transacti
 
   return (
     <div className="space-y-6">
-      {/* Top Banner Card */}
-      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-slate-900 via-slate-800 to-emerald-950 p-6 md:p-8 text-white shadow-2xl border border-slate-700/50">
-        <div className="absolute -top-24 -right-24 w-72 h-72 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute -bottom-24 -left-24 w-72 h-72 bg-blue-500/10 rounded-full blur-3xl pointer-events-none" />
-
-        <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
-          <div className="space-y-2">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-tech font-bold uppercase tracking-wider">
-              <Wallet className="w-3.5 h-3.5 animate-pulse" /> Resumen Financiero
-            </div>
-            <h2 className="font-display font-black text-2xl md:text-3xl text-white tracking-tight uppercase italic flex items-center gap-3">
-              Estado Financiero <span className="text-emerald-400 font-normal text-lg non-italic font-sans">| {currentClub.name}</span>
-            </h2>
-            <p className="text-xs text-slate-300 font-tech max-w-xl">
-              Control general de la tesorería, análisis de flujo de caja y distribución de presupuesto del club.
-            </p>
-          </div>
-
-          <div className="bg-slate-950/60 backdrop-blur-xl p-4 md:px-6 md:py-4 rounded-2xl border border-slate-700/60 flex items-center gap-4 shrink-0 shadow-inner">
-            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-400 to-emerald-600 text-slate-950 flex items-center justify-center font-bold shadow-lg shadow-emerald-500/20">
-              <DollarSign className="w-6 h-6 stroke-[2.5]" />
-            </div>
-            <div>
-              <span className="text-[10px] font-bold font-tech text-slate-400 uppercase tracking-wider block">Presupuesto Actual</span>
-              <span className="font-display font-black text-2xl md:text-3xl text-[#02f59b] tracking-tight drop-shadow-md">
-                €{(currentBudget / 1000000).toFixed(2)}M
-              </span>
-            </div>
-          </div>
-        </div>
-      </div>
-
       {/* Main Grid: Donut Chart + Financial KPI Cards */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* DONUT CHART CARD */}
