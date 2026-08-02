@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { Club, MatchResult } from '../types';
-import { isChampionOf, isRunnerUpOf, reachedPhase } from './sponsorEngine';
+import { isChampionOf, isRunnerUpOf, reachedPhase, countLeagueWins } from './sponsorEngine';
 
 export const club = (id: string, division = '1ra División'): Club => ({
   id,
@@ -129,5 +129,44 @@ describe('reachedPhase', () => {
       match({ competition: 'UEFA Champions League', phase: 'FINAL', homeClubId: 'a', awayClubId: 'b', status: 'RECHAZADO' })
     ];
     expect(reachedPhase('a', matches, 'UEFA Champions League', 'CUARTOS')).toBe(false);
+  });
+});
+
+describe('countLeagueWins', () => {
+  const clubs = [club('a', '1ra División'), club('b', '1ra División')];
+
+  it('cuenta victorias de local y de visitante en su division', () => {
+    const matches = [
+      match({ competition: '1ra División', homeClubId: 'a', awayClubId: 'b', homeGoals: 2, awayGoals: 0 }),
+      match({ competition: '1ra División', homeClubId: 'b', awayClubId: 'a', homeGoals: 0, awayGoals: 1 })
+    ];
+    expect(countLeagueWins('a', clubs, matches)).toBe(2);
+  });
+
+  it('no cuenta empates ni derrotas', () => {
+    const matches = [
+      match({ competition: '1ra División', homeClubId: 'a', awayClubId: 'b', homeGoals: 1, awayGoals: 1 }),
+      match({ competition: '1ra División', homeClubId: 'a', awayClubId: 'b', homeGoals: 0, awayGoals: 2 })
+    ];
+    expect(countLeagueWins('a', clubs, matches)).toBe(0);
+  });
+
+  it('no cuenta partidos de copa', () => {
+    const matches = [
+      match({ competition: 'UEFA Champions League', homeClubId: 'a', awayClubId: 'b', homeGoals: 3, awayGoals: 0 })
+    ];
+    expect(countLeagueWins('a', clubs, matches)).toBe(0);
+  });
+
+  it('usa la division del propio club', () => {
+    const segunda = [club('a', '2da División'), club('b', '2da División')];
+    const matches = [
+      match({ competition: '2da División', homeClubId: 'a', awayClubId: 'b', homeGoals: 1, awayGoals: 0 })
+    ];
+    expect(countLeagueWins('a', segunda, matches)).toBe(1);
+  });
+
+  it('devuelve 0 si el club no existe', () => {
+    expect(countLeagueWins('zzz', clubs, [])).toBe(0);
   });
 });

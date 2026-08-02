@@ -64,3 +64,14 @@ export function reachedPhase(
     return PHASE_ORDER.indexOf(m.phase) >= targetIndex;
   });
 }
+
+export function countLeagueWins(clubId: string, clubs: Club[], matches: MatchResult[]): number {
+  const club = clubs.find(c => c.id === clubId);
+  if (!club) return 0;
+
+  return confirmedMatches(matches, club.division).filter(m => {
+    if (m.homeClubId === clubId) return m.homeGoals > m.awayGoals;
+    if (m.awayClubId === clubId) return m.awayGoals > m.homeGoals;
+    return false;
+  }).length;
+}
