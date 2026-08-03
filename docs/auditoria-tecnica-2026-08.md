@@ -177,10 +177,29 @@ create policy "manager_insert_own_club" on public.clubs for insert
 El único requisito es que el `id` no sea nulo. Cualquier usuario registrado puede
 insertar clubes con el presupuesto, la división y los puntos que quiera.
 
-### 4.4 Propuesta de arreglo (revisar antes de correr)
+### 4.4 Arreglo escrito: `supabase/migrations/014_lock_club_economy.sql`
 
-El patrón correcto es el de 006: trigger, no parche por policy. Los RPC legítimos marcan
-la transacción con un flag y el trigger deja pasar solo a ellos.
+**Escrito y commiteado, NO ejecutado** (no tengo acceso a la base; hay que correrlo a
+mano en el SQL Editor). Cubre 4.1, 4.3 y 4.5. Deja 4.2 explícitamente afuera, con el
+motivo documentado en el propio archivo.
+
+Puntos clave del diseño:
+
+- Sigue el patrón de 006 (trigger, no parche por policy).
+- **No toca ni una línea del cuerpo de los RPC de 011/013.** En vez de agregarles un
+  `set_config`, usa `alter function ... set "app.club_economy_write" = 'on'`: Postgres
+  activa el parámetro al entrar a la función y lo restaura al salir. Menos riesgo de
+  romper la lógica de dinero, y el flag no puede quedar pegado en la sesión.
+- El trigger **revierte** los campos protegidos en vez de rechazar la escritura, porque
+  `useSupabaseTable` manda siempre el objeto completo: si un manager edita el estadio, el
+  upsert incluye igual `budget`. Rechazar rompería esa edición legítima.
+- El bloque 4 avisa con `raise warning` si alguna RPC no existe todavía (012/013 pueden
+  no estar corridas). **Si ese aviso aparece, hay que volver a correr el bloque 4 después**,
+  o los traspasos quedan rotos.
+- Incluye consultas de verificación al final para confirmar que el agujero cerró y que
+  los traspasos siguen funcionando.
+
+El esquema de la solución, para referencia:
 
 ```sql
 -- 014_lock_club_economy.sql  (PROPUESTA — revisar y correr a mano)
@@ -342,3 +361,8 @@ Comprobado, no asumido:
   clases contradictorias o estilos muertos necesita una herramienta dedicada.
 - **Comportamiento en runtime:** no levanté la app ni hice clic en nada. La verificación es
   compilador + tests + build.
+- **La migración `014` no se ejecutó ni se validó sintácticamente.** No hay `psql` ni
+  `docker` en este entorno y no tengo acceso al proyecto Supabase, así que el SQL está
+  revisado a mano, no probado. **Corré primero el bloque 4 y después una compra de prueba**
+  antes de darlo por bueno: si el bloque 4 no encuentra alguna función, los traspasos
+  quedan rotos hasta que se vuelva a aplicar.
