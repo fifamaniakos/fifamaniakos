@@ -102,7 +102,25 @@ para reglas distintas — vale la pena renombrarlos (`ligaWinner` / `knockoutWin
 3. **Ramas muertas en el foro:** comparaciones contra `'Resultados'`/`'Fichajes'`,
    imposibles de satisfacer. *Corregido* junto con la duplicación.
 
-4. **Riesgo latente en `useSupabaseTable`:** cada escritura envía **el objeto completo**
+4. **Los errores de escritura de `players` se descartaban.** En `App.tsx` el hook se
+   desestructuraba como `const [players, setPlayers, , , , refetchPlayers] = ...`, tirando
+   `writeError` y `clearWriteError`, y `dataWriteError` solo agregaba los de `matches` y
+   `clubs`. Cuando la base rechazaba un alta de jugadores, **la app no mostraba nada**: el
+   estado local ya tenía los jugadores, así que la acción parecía haber funcionado.
+
+   Esto ocultó por completo el control del Draft (016) y costó una ronda entera de
+   depuración: el sorteo parecía repetible sin límite, cuando en realidad el servidor lo
+   rechazaba cada vez. Se confirmó con los datos: el club tenía exactamente 22 jugadores
+   (una sola plantilla) y una sola fila en `draft_claims`, pese a haberlo sorteado muchas
+   veces en pantalla.
+
+   Lo irónico es que `useSupabaseTable` ya documenta este problema en un comentario
+   propio ("sin esto el cambio quedaba visible localmente aunque el servidor lo hubiera
+   rechazado"), pero la solución se había aplicado solo a `clubs` y `matches`.
+   **Lección:** un rechazo silencioso es peor que un error visible; al agregar una tabla
+   nueva al hook hay que acordarse de enganchar su `writeError`.
+
+5. **Riesgo latente en `useSupabaseTable`:** cada escritura envía **el objeto completo**
    (`upsert({ key, data: item })`). Dos pestañas o dos managers editando el mismo club
    se pisan enteros: gana el último en escribir, incluso en campos que no tocó. No es
    un bug visible hoy, pero es la causa raíz del riesgo de seguridad #1.
