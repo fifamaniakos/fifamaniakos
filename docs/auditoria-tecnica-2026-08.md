@@ -163,8 +163,31 @@ Un manager puede insertar **cualquier** jugador en su plantilla sin pasar por
 `sign_free_agent_player()`, que es la RPC que cobra el fichaje. El pago es opcional.
 
 Ojo: esta policy **existe por un motivo legítimo** y está documentado en el encabezado
-de la migración (sin ella se rompen el Draft y "Añadir Jugador"). **No la borres.** Hay
-que reemplazarla por algo que distinga "insert vía RPC" de "insert directo".
+de la migración (sin ella se rompe el Draft). **No hay que borrarla:** lo que faltaba no
+era el permiso, sino la *ventana* en la que ese permiso vale.
+
+Además del Draft, había un segundo camino gratis que no estaba en el radar:
+`TransferMarket.tsx` no tiene **ninguna** referencia a `isAdmin`, así que el botón
+"Sincronizar plantilla oficial de EA FC" estaba disponible para cualquier usuario y
+asignaba una plantilla real completa sin cobrar.
+
+**Resuelto en `supabase/migrations/015_draft_window.sql`** (aplicada el 2026-08-03), con
+la regla de negocio que definió el dueño de la liga: un manager solo recibe jugadores
+gratis con el Draft abierto, y una sola vez por club y temporada.
+
+Dos detalles de diseño que no eran obvios:
+
+- **Hace falta una tabla (`draft_claims`), no alcanza una policy.** Si la condición fuera
+  "el club todavía no tiene jugadores", al manager le bastaba con borrar su plantilla
+  (cosa que `manager_delete_own_players` le permite) para volver a sortear hasta conseguir
+  mejores cartas. Borrar jugadores no deshace el registro.
+- **Se guarda la transacción que creó el registro.** El Draft inserta las ~22 filas en una
+  sola sentencia; sin eso, la fila 1 creaba el registro y las filas 2 a 22 quedaban
+  rechazadas por "ya usaste tu Draft".
+
+Un tercer detalle que habría sido un bug silencioso: en un `BEFORE INSERT` las columnas
+generadas todavía no están calculadas, así que el trigger lee `data->>'clubId'` y no
+`new.club_id` (que sería `NULL`).
 
 ### 4.3 ALTO — Cualquier autenticado puede crear clubes arbitrarios
 
