@@ -45,24 +45,22 @@ export const LineupTab: React.FC<LineupTabProps> = ({
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Pitch Display (2 cols) */}
-        <div className="lg:col-span-2 pitch-bg rounded-2xl p-6 border-2 border-emerald-600/40 shadow-2xl relative min-h-[520px] flex flex-col justify-between overflow-hidden">
-          <div className="absolute inset-x-0 top-0 h-24 border-b-2 border-white/20 rounded-b-full w-2/3 mx-auto pointer-events-none" />
-          <div className="absolute inset-x-0 bottom-0 h-24 border-t-2 border-white/20 rounded-t-full w-2/3 mx-auto pointer-events-none" />
-          <div className="absolute inset-y-1/2 inset-x-0 border-t-2 border-white/20 pointer-events-none" />
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-32 h-32 border-2 border-white/20 rounded-full pointer-events-none" />
-
-          <div className="relative z-10 flex justify-between items-center bg-slate-950/80 backdrop-blur-md p-2.5 rounded-xl border border-white/10 mb-2">
+        {/* Alineación por líneas (2 cols) */}
+        <div className="lg:col-span-2 fc-card rounded-2xl border-slate-200 shadow-md overflow-hidden">
+          <div className="flex flex-wrap justify-between items-center gap-3 bg-slate-950 p-3">
             <span className="font-display font-bold text-sm text-white uppercase tracking-wider flex items-center gap-2">
-              <Zap className="w-4 h-4 text-[#02f59b]" /> Táctica & Alineación Titular
+              <Zap className="w-4 h-4 text-[#02f59b]" aria-hidden="true" /> Táctica & Alineación Titular
             </span>
 
             <div className="flex items-center gap-2">
-              <span className="text-xs text-slate-300 font-tech uppercase">Formación:</span>
+              <label htmlFor="formation-select" className="text-xs text-slate-300 font-tech uppercase">
+                Formación:
+              </label>
               <select
+                id="formation-select"
                 value={formation}
                 onChange={(e) => setFormation(e.target.value)}
-                className="bg-[#080d0a] text-xs font-bold text-[#02f59b] border border-emerald-500/40 px-2.5 py-1 rounded focus:outline-none"
+                className="bg-[#080d0a] text-xs font-bold text-[#02f59b] border border-emerald-500/40 px-2.5 py-1 rounded focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
               >
                 {FORMATIONS.map(f => (
                   <option key={f.name} value={f.name}>{f.name}</option>
@@ -177,7 +175,9 @@ export const LineupTab: React.FC<LineupTabProps> = ({
                       )}
                     </div>
 
-                    <h4 className="font-display font-extrabold text-[10px] truncate uppercase tracking-tight text-slate-950">
+                    {/* Hereda el color de la carta: en las oscuras un
+                        text-slate-950 quedaba negro sobre negro. */}
+                    <h4 className="font-display font-extrabold text-[10px] truncate uppercase tracking-tight">
                       {player.name}
                     </h4>
 
@@ -195,21 +195,32 @@ export const LineupTab: React.FC<LineupTabProps> = ({
             };
 
             return (
-              <div className="relative z-10 flex flex-col justify-between h-full min-h-[500px] py-2 space-y-2">
+              <div className="p-4 md:p-5">
                 {starters.length === 0 ? (
-                  <div className="my-auto text-center py-12 text-white font-tech bg-black/40 p-4 rounded-xl border border-white/10">
+                  <div className="text-center py-12 px-4 text-slate-500 font-tech bg-slate-50 rounded-xl border border-slate-200">
                     No hay titulares asignados. Haz clic en los jugadores de la derecha para llenar el 11 titular.
                   </div>
                 ) : (
-                  lines.map((line, lIdx) => (
-                    <div key={lIdx} className="flex justify-around items-center gap-2 sm:gap-6 px-4">
-                      {line.players.map(player => (
-                        <div key={player.id} className="w-24 sm:w-28 flex-1 max-w-[125px]">
-                          {renderCard(player)}
+                  <div className="divide-y divide-slate-100">
+                    {/* Una fila por linea; las vacias se saltean para no dejar
+                        huecos cuando el 11 esta incompleto. */}
+                    {lines
+                      .filter(line => line.players.length > 0)
+                      .map(line => (
+                        <div key={line.title} className="py-3 first:pt-0 last:pb-0">
+                          <p className="font-tech text-[11px] font-bold uppercase tracking-widest text-slate-400 mb-2">
+                            {line.title}
+                          </p>
+                          <div className="flex flex-wrap gap-2 sm:gap-3">
+                            {line.players.map(player => (
+                              <div key={player.id} className="w-[104px] sm:w-28">
+                                {renderCard(player)}
+                              </div>
+                            ))}
+                          </div>
                         </div>
                       ))}
-                    </div>
-                  ))
+                  </div>
                 )}
               </div>
             );

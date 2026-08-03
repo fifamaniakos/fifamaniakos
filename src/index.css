@@ -130,16 +130,6 @@
   color: #ffffff;
 }
 
-/* Pitch Texture */
-.pitch-bg {
-  background-color: #064e3b;
-  background-image: 
-    repeating-linear-gradient(0deg, transparent, transparent 40px, rgba(255,255,255,0.06) 40px, rgba(255,255,255,0.06) 80px),
-    linear-gradient(to right, rgba(255,255,255,0.1) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(255,255,255,0.1) 1px, transparent 1px);
-  background-size: 100% 80px, 40px 40px, 40px 40px;
-}
-
 /* Cyber Card (Tienda de Presupuesto) */
 .cc-container {
   position: relative;
