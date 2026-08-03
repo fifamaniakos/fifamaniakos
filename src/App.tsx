@@ -133,12 +133,6 @@ export default function App() {
     (m) => m.id
   );
 
-  const dataWriteError = matchesWriteError ?? clubsWriteError;
-  const clearDataWriteError = () => {
-    clearMatchesWriteError();
-    clearClubsWriteError();
-  };
-
   // Temporada 1 es gratis para todos; desde la Temporada 2 se cobra
   // suscripcion (ver MonetizationModule/AdminPanel). El numero de temporada
   // (y la cantidad de equipos por division) vive en la tabla `seasons`
@@ -190,11 +184,23 @@ export default function App() {
     if (isAdminLoggedIn) setAdminSelectedClubId(clubId);
   };
 
-  const [players, setPlayers, , , , refetchPlayers] = useSupabaseTable<Player>(
+  const [players, setPlayers, , playersWriteError, clearPlayersWriteError, refetchPlayers] = useSupabaseTable<Player>(
     'players',
     INITIAL_PLAYERS,
     (p) => p.id
   );
+
+  // El error de `players` faltaba en esta lista: cuando la base rechazaba un
+  // alta (por ejemplo el Draft ya usado, migracion 016) la app no mostraba
+  // nada. El estado local ya tenia los jugadores, asi que el sorteo parecia
+  // funcionar y se podia repetir indefinidamente, aunque en el servidor no se
+  // guardara ninguno. Un rechazo silencioso es peor que un error visible.
+  const dataWriteError = matchesWriteError ?? clubsWriteError ?? playersWriteError;
+  const clearDataWriteError = () => {
+    clearMatchesWriteError();
+    clearClubsWriteError();
+    clearPlayersWriteError();
+  };
 
   const [topics, setTopics] = useSupabaseTable<ForumTopic>(
     'forum_topics',
