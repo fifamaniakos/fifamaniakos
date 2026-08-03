@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import { MessageSquare, Trophy, Shield, DollarSign, UserPlus, PlusCircle, ShieldCheck, Megaphone, LogOut, Shuffle, ChevronDown, Wallet, Scale, Coins, Gavel, Dice5, Star, Globe, Award, Search, Briefcase } from 'lucide-react';
 import { Club, TickerNewsItem, ForumSectionTag } from '../types';
 import { ClubLogo } from './ClubLogo';
+import { CompetitionLogo } from './competitions/CompetitionLogo';
 import { MarkdownToolbar } from './MarkdownToolbar';
 
 interface NavbarProps {
@@ -292,7 +293,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                   }}
                   className="w-full text-left px-3.5 py-2 text-xs font-bold flex items-center gap-2.5 transition-colors text-slate-700 hover:bg-slate-50"
                 >
-                  <Trophy className="w-4 h-4 shrink-0 text-emerald-600" />
+                  <CompetitionLogo competition="1ra División" size="sm" />
                   <span>Liga 1ra División</span>
                 </button>
 
@@ -304,7 +305,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                   }}
                   className="w-full text-left px-3.5 py-2 text-xs font-bold flex items-center gap-2.5 transition-colors text-slate-700 hover:bg-slate-50"
                 >
-                  <Trophy className="w-4 h-4 shrink-0 text-blue-600" />
+                  <CompetitionLogo competition="2da División" size="sm" />
                   <span>Liga 2da División</span>
                 </button>
 
@@ -316,7 +317,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                   }}
                   className="w-full text-left px-3.5 py-2 text-xs font-bold flex items-center gap-2.5 transition-colors text-slate-700 hover:bg-slate-50"
                 >
-                  <Star className="w-4 h-4 shrink-0 text-amber-500" />
+                  <CompetitionLogo competition="UEFA Champions League" size="sm" />
                   <span>UEFA Champions League</span>
                 </button>
 
@@ -328,7 +329,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                   }}
                   className="w-full text-left px-3.5 py-2 text-xs font-bold flex items-center gap-2.5 transition-colors text-slate-700 hover:bg-slate-50"
                 >
-                  <Globe className="w-4 h-4 shrink-0 text-cyan-500" />
+                  <CompetitionLogo competition="UEFA Europa League" size="sm" />
                   <span>UEFA Europa League</span>
                 </button>
 
@@ -340,7 +341,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                   }}
                   className="w-full text-left px-3.5 py-2 text-xs font-bold flex items-center gap-2.5 transition-colors text-slate-700 hover:bg-slate-50"
                 >
-                  <Award className="w-4 h-4 shrink-0 text-emerald-500" />
+                  <CompetitionLogo competition="UEFA Conference League" size="sm" />
                   <span>UEFA Conference League</span>
                 </button>
 
