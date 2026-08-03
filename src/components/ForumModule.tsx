@@ -492,59 +492,6 @@ export const ForumModule: React.FC<ForumModuleProps> = ({
             </div>
           </div>
 
-          {/* Secciones Oficiales / Reglamento */}
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
-            <button
-              onClick={() => onOpenForumSection ? onOpenForumSection('normas') : setSelectedCategory('Normas competiciones')}
-              className="p-3.5 rounded-xl border border-slate-200 bg-white text-slate-800 hover:bg-slate-50 flex items-center gap-2.5 text-left transition-all fc-shimmer-card shadow-sm"
-            >
-              <div className="w-9 h-9 rounded-lg overflow-hidden shrink-0 border border-slate-200 bg-slate-50">
-                <img src="/badges/normas.png" alt="" className="w-full h-full object-cover" />
-              </div>
-              <span className="text-xs font-tech font-bold">Normas competiciones</span>
-            </button>
-
-            <button
-              onClick={() => onOpenForumSection ? onOpenForumSection('ganancias') : setSelectedCategory('Ganancias competiciones')}
-              className="p-3.5 rounded-xl border border-slate-200 bg-white text-slate-800 hover:bg-slate-50 flex items-center gap-2.5 text-left transition-all fc-shimmer-card shadow-sm"
-            >
-              <div className="w-9 h-9 rounded-lg overflow-hidden shrink-0 border border-slate-200 bg-slate-50">
-                <img src="/badges/ganancias.png" alt="" className="w-full h-full object-cover" />
-              </div>
-              <span className="text-xs font-tech font-bold">Ganancias competiciones</span>
-            </button>
-
-            <button
-              onClick={() => onOpenForumSection ? onOpenForumSection('sanciones') : setSelectedCategory('Sanciones')}
-              className="p-3.5 rounded-xl border border-slate-200 bg-white text-slate-800 hover:bg-slate-50 flex items-center gap-2.5 text-left transition-all fc-shimmer-card shadow-sm"
-            >
-              <div className="w-9 h-9 rounded-lg overflow-hidden shrink-0 border border-slate-200 bg-slate-50">
-                <img src="/badges/sanciones.png" alt="" className="w-full h-full object-cover" />
-              </div>
-              <span className="text-xs font-tech font-bold">Sanciones</span>
-            </button>
-
-            <button
-              onClick={() => onOpenForumSection ? onOpenForumSection('apuestas') : setSelectedCategory('Apuestas deportivas')}
-              className="p-3.5 rounded-xl border border-slate-200 bg-white text-slate-800 hover:bg-slate-50 flex items-center gap-2.5 text-left transition-all fc-shimmer-card shadow-sm"
-            >
-              <div className="w-9 h-9 rounded-lg overflow-hidden shrink-0 border border-slate-200 bg-slate-50">
-                <img src="/badges/apuestas.png" alt="" className="w-full h-full object-cover" />
-              </div>
-              <span className="text-xs font-tech font-bold">Apuestas deportivas</span>
-            </button>
-
-            <button
-              onClick={() => onOpenForumSection && onOpenForumSection('mercado')}
-              className="p-3.5 rounded-xl border border-slate-200 bg-white text-slate-800 hover:bg-slate-50 flex items-center gap-2.5 text-left transition-all fc-shimmer-card shadow-sm"
-            >
-              <div className="w-9 h-9 rounded-lg overflow-hidden shrink-0 border border-slate-200 bg-slate-50">
-                <img src="/badges/mercado.png" alt="" className="w-full h-full object-cover" />
-              </div>
-              <span className="text-xs font-tech font-bold">Mercado de fichajes</span>
-            </button>
-          </div>
-
           {/* Controls: Category Filter + Search */}
           <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4 bg-white p-3.5 rounded-2xl border border-slate-200 shadow-sm">
             {/* Category Filter Pills */}
