@@ -364,12 +364,14 @@ Comprobado, no asumido:
   clases contradictorias o estilos muertos necesita una herramienta dedicada.
 - **Comportamiento en runtime:** no levanté la app ni hice clic en nada. La verificación es
   compilador + tests + build.
-- **La migración `014` corrió sin errores, pero su efecto NO está verificado end-to-end.**
-  Que aplique limpio solo prueba que la sintaxis es válida. Faltan dos pruebas que solo se
-  pueden hacer desde la app:
-  1. **Comprar un jugador** y confirmar que el presupuesto del comprador baja. Esto valida
-     el supuesto central (que dentro de los RPC `current_user` no es `authenticated`).
-     Si fallara, los traspasos dejarían de mover dinero.
-  2. **Intentar el exploit con una sesión de manager común** y confirmar que el presupuesto
-     no cambia. Ojo: desde el SQL Editor se corre como `postgres`, así que ahí el trigger
-     deja pasar a propósito y el valor sí cambia — eso no es un fallo.
+- **Migración `014` — estado de verificación:**
+  - ✅ Aplicó sin errores en Supabase (2026-08-03).
+  - ✅ Los dos triggers existen sobre `public.clubs` (`protect_club_economy` y
+    `enforce_new_club_defaults`), confirmado con `pg_trigger`.
+  - ✅ **Los traspasos siguen funcionando:** compra de un jugador desde la app, el
+    presupuesto del comprador baja. Esto valida el supuesto central del diseño — que
+    dentro de un RPC `security definer` `current_user` no es `authenticated` — que era
+    el único punto donde este enfoque podía fallar.
+  - ⬜ **Pendiente:** intentar el exploit con una sesión de manager común y confirmar que
+    el presupuesto no cambia. Ojo: desde el SQL Editor se corre como `postgres`, así que
+    ahí el trigger deja pasar a propósito y el valor sí cambia — eso no es un fallo.
