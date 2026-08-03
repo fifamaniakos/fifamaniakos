@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
-import { MessageSquare, Trophy, Shield, DollarSign, UserPlus, PlusCircle, ShieldCheck, Megaphone, LogOut, Users, Shuffle, ChevronDown, Wallet, Scale, Coins, Gavel, Dice5, Star, Globe, Award, Search } from 'lucide-react';
+import { MessageSquare, Trophy, Shield, DollarSign, UserPlus, PlusCircle, ShieldCheck, Megaphone, LogOut, Users, Shuffle, ChevronDown, Wallet, Scale, Coins, Gavel, Dice5, Star, Globe, Award, Search, Briefcase } from 'lucide-react';
 import { Club, TickerNewsItem, ForumSectionTag } from '../types';
 import { ClubLogo } from './ClubLogo';
 import { CompetitionLogo } from './competitions/CompetitionLogo';
@@ -53,6 +53,10 @@ export const Navbar: React.FC<NavbarProps> = ({
   const [miClubMenuPos, setMiClubMenuPos] = useState({ top: 0, left: 0 });
   const miClubButtonRef = useRef<HTMLButtonElement>(null);
 
+  const [showReglamentoMenu, setShowReglamentoMenu] = useState(false);
+  const [reglamentoMenuPos, setReglamentoMenuPos] = useState({ top: 0, left: 0 });
+  const reglamentoButtonRef = useRef<HTMLButtonElement>(null);
+
   const toggleCompeticionesMenu = () => {
     if (!showCompeticionesMenu && competicionesButtonRef.current) {
       const rect = competicionesButtonRef.current.getBoundingClientRect();
@@ -60,6 +64,7 @@ export const Navbar: React.FC<NavbarProps> = ({
     }
     setShowCompeticionesMenu(prev => !prev);
     setShowMiClubMenu(false);
+    setShowReglamentoMenu(false);
   };
 
   const toggleMiClubMenu = () => {
@@ -69,6 +74,17 @@ export const Navbar: React.FC<NavbarProps> = ({
     }
     setShowMiClubMenu(prev => !prev);
     setShowCompeticionesMenu(false);
+    setShowReglamentoMenu(false);
+  };
+
+  const toggleReglamentoMenu = () => {
+    if (!showReglamentoMenu && reglamentoButtonRef.current) {
+      const rect = reglamentoButtonRef.current.getBoundingClientRect();
+      setReglamentoMenuPos({ top: rect.bottom + 6, left: rect.left });
+    }
+    setShowReglamentoMenu(prev => !prev);
+    setShowCompeticionesMenu(false);
+    setShowMiClubMenu(false);
   };
 
   const forumSections: { tag: ForumSectionTag; label: string }[] = [
@@ -78,7 +94,7 @@ export const Navbar: React.FC<NavbarProps> = ({
     { tag: 'apuestas', label: 'Apuestas deportivas' }
   ];
 
-  const isCompeticionesActive = activeTab === 'clasificacion' || activeTab === 'fichajes' || activeTab === 'sorteo' || activeTab === 'competicion-seccion';
+  const isCompeticionesActive = activeTab === 'clasificacion' || activeTab === 'fichajes' || activeTab === 'sorteo';
 
   const activeNews = tickerNews.filter(n => n.active);
   const miClubOptions = isAdmin
@@ -356,6 +372,74 @@ export const Navbar: React.FC<NavbarProps> = ({
                 >
                   <Shuffle className="w-4 h-4 shrink-0 text-amber-500" />
                   <span>Sorteo Draft</span>
+                </button>
+              </div>
+            </>,
+            document.body
+          )}
+
+          {/* Pestaña Reglamento con Portal Desplegable de Secciones del Foro */}
+          <div className="relative shrink-0">
+            <button
+              ref={reglamentoButtonRef}
+              onClick={toggleReglamentoMenu}
+              className={`h-10 px-4 min-w-[130px] rounded-lg transition-all flex items-center justify-center gap-1.5 font-bold whitespace-nowrap ${
+                activeTab === 'competicion-seccion'
+                  ? 'bg-[#00ba68] text-white shadow-md'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+              }`}
+            >
+              <Scale className="w-4 h-4 shrink-0" />
+              Reglamento
+              <ChevronDown className={`w-3.5 h-3.5 shrink-0 transition-transform ${showReglamentoMenu ? 'rotate-180' : ''}`} />
+            </button>
+          </div>
+
+          {showReglamentoMenu && createPortal(
+            <>
+              <div className="fixed inset-0 z-40" onClick={() => setShowReglamentoMenu(false)} />
+              <div
+                style={{ top: reglamentoMenuPos.top, left: reglamentoMenuPos.left }}
+                className="fixed w-64 bg-white border border-slate-200 rounded-lg shadow-xl z-50 py-1.5 normal-case tracking-normal font-display text-xs md:text-sm max-h-[70vh] overflow-y-auto"
+              >
+                <button
+                  onClick={() => { onOpenForumSection('normas'); setShowReglamentoMenu(false); }}
+                  className="w-full text-left px-3.5 py-2 text-xs font-bold flex items-center gap-2.5 transition-colors text-slate-700 hover:bg-slate-50"
+                >
+                  <Scale className="w-4 h-4 shrink-0 text-blue-500" />
+                  <span>Normas competiciones</span>
+                </button>
+
+                <button
+                  onClick={() => { onOpenForumSection('ganancias'); setShowReglamentoMenu(false); }}
+                  className="w-full text-left px-3.5 py-2 text-xs font-bold flex items-center gap-2.5 transition-colors text-slate-700 hover:bg-slate-50"
+                >
+                  <Coins className="w-4 h-4 shrink-0 text-amber-500" />
+                  <span>Ganancias competiciones</span>
+                </button>
+
+                <button
+                  onClick={() => { onOpenForumSection('sanciones'); setShowReglamentoMenu(false); }}
+                  className="w-full text-left px-3.5 py-2 text-xs font-bold flex items-center gap-2.5 transition-colors text-slate-700 hover:bg-slate-50"
+                >
+                  <Gavel className="w-4 h-4 shrink-0 text-rose-500" />
+                  <span>Sanciones</span>
+                </button>
+
+                <button
+                  onClick={() => { onOpenForumSection('apuestas'); setShowReglamentoMenu(false); }}
+                  className="w-full text-left px-3.5 py-2 text-xs font-bold flex items-center gap-2.5 transition-colors text-slate-700 hover:bg-slate-50"
+                >
+                  <Dice5 className="w-4 h-4 shrink-0 text-purple-500" />
+                  <span>Apuestas deportivas</span>
+                </button>
+
+                <button
+                  onClick={() => { onOpenForumSection('mercado'); setShowReglamentoMenu(false); }}
+                  className="w-full text-left px-3.5 py-2 text-xs font-bold flex items-center gap-2.5 transition-colors text-slate-700 hover:bg-slate-50"
+                >
+                  <Briefcase className="w-4 h-4 shrink-0 text-emerald-600" />
+                  <span>Mercado de fichajes</span>
                 </button>
               </div>
             </>,
