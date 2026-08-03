@@ -83,59 +83,79 @@ export const MiClubHub: React.FC<MiClubHubProps> = ({
 
   return (
     <div className="space-y-6">
-      <div className="fc-card p-6 rounded-2xl border-emerald-300 bg-gradient-to-r from-emerald-800 via-emerald-900 to-slate-900 text-white flex flex-col md:flex-row items-start md:items-center justify-between gap-6 shadow-xl">
-        <div className="flex items-center gap-4">
-          <ClubLogo src={currentClub.logoUrl} alt={currentClub.name} className="w-16 h-16 rounded-xl object-cover border-2 border-[#02f59b]" />
+      {/* Banner Principal del Club con Estilo EA FC 27 eSports */}
+      <div className="fc-card p-6 md:p-8 rounded-3xl border-slate-800 bg-gradient-to-r from-slate-950 via-slate-900 to-emerald-950 text-white flex flex-col md:flex-row items-start md:items-center justify-between gap-6 shadow-2xl relative overflow-hidden">
+        <div className="absolute -right-12 -bottom-12 w-64 h-64 bg-[#02f59b]/10 rounded-full blur-3xl pointer-events-none" />
+
+        <div className="flex items-center gap-5 relative z-10">
+          <div className="relative group shrink-0">
+            <div className="absolute -inset-1 bg-gradient-to-r from-[#02f59b] to-emerald-500 rounded-2xl blur-xs opacity-75 group-hover:opacity-100 transition" />
+            <ClubLogo src={currentClub.logoUrl} alt={currentClub.name} className="relative w-20 h-20 rounded-2xl object-cover border-2 border-[#02f59b] bg-slate-900 shadow-xl" />
+          </div>
+
           <div>
-            <div className="flex items-center gap-2">
-              <h1 className="font-display font-black text-3xl text-white italic uppercase tracking-wider">
-                {currentClub.name}
-              </h1>
-              <span className="bg-[#02f59b] text-black text-[10px] font-extrabold px-2 py-0.5 rounded font-mono uppercase">
+            <div className="flex items-center gap-2.5 flex-wrap">
+              <span className="bg-[#02f59b]/20 border border-[#02f59b]/40 text-[#02f59b] text-[10px] font-mono font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider">
                 {currentClub.platform}
               </span>
+              <span className="text-[10px] text-slate-400 font-tech uppercase tracking-wide">
+                Estadio: <strong className="text-white">{currentClub.stadium}</strong>
+              </span>
             </div>
-            <p className="text-xs text-emerald-100 font-tech">
-              Manager: <strong className="text-[#02f59b]">@{currentClub.manager}</strong> ({currentClub.gamertag}) - Estadio: {currentClub.stadium}
+
+            <h1 className="font-display font-black text-3xl md:text-4xl text-white italic uppercase tracking-wider mt-1 drop-shadow-md">
+              {currentClub.name}
+            </h1>
+
+            <p className="text-xs text-slate-300 font-tech flex items-center gap-1.5 mt-0.5">
+              <span>Manager:</span>
+              <strong className="text-[#02f59b] font-mono font-bold">@{currentClub.manager}</strong>
+              <span className="text-slate-500">({currentClub.gamertag})</span>
             </p>
           </div>
         </div>
 
-        <div className="flex items-center gap-4 text-center">
-          <div className="bg-black/40 backdrop-blur-md px-4 py-2 rounded-xl border border-white/20">
-            <span className="text-[10px] text-emerald-200 font-tech uppercase block">Media Plantilla</span>
-            <span className="font-display font-black text-2xl text-[#02f59b]">{avgRating} OVR</span>
+        {/* Bloques de Estadísticas KPI */}
+        <div className="grid grid-cols-3 gap-3 w-full md:w-auto relative z-10">
+          <div className="bg-slate-900/80 backdrop-blur-md px-4 py-3 rounded-2xl border border-slate-800/80 shadow-inner text-center">
+            <span className="text-[10px] text-slate-400 font-tech uppercase tracking-wider block">Media Plantilla</span>
+            <span className="font-display font-black text-2xl md:text-3xl text-[#02f59b] tracking-tight">{avgRating} <span className="text-xs font-mono">OVR</span></span>
           </div>
 
-          <div className="bg-black/40 backdrop-blur-md px-4 py-2 rounded-xl border border-white/20">
-            <span className="text-[10px] text-emerald-200 font-tech uppercase block">Jugadores</span>
-            <span className="font-display font-black text-2xl text-white">{clubPlayers.length}</span>
+          <div className="bg-slate-900/80 backdrop-blur-md px-4 py-3 rounded-2xl border border-slate-800/80 shadow-inner text-center">
+            <span className="text-[10px] text-slate-400 font-tech uppercase tracking-wider block">Plantilla</span>
+            <span className="font-display font-black text-2xl md:text-3xl text-white tracking-tight">{clubPlayers.length} <span className="text-xs font-mono text-slate-400">JUG</span></span>
           </div>
 
-          <div className="bg-black/40 backdrop-blur-md px-4 py-2 rounded-xl border border-white/20">
-            <span className="text-[10px] text-emerald-200 font-tech uppercase block">Presupuesto</span>
-            <span className="font-display font-black text-xl text-[#02f59b]">${(currentClub.budget / 1000000).toFixed(1)}M</span>
+          <div className="bg-slate-900/80 backdrop-blur-md px-4 py-3 rounded-2xl border border-slate-800/80 shadow-inner text-center">
+            <span className="text-[10px] text-slate-400 font-tech uppercase tracking-wider block">Presupuesto</span>
+            <span className="font-display font-black text-xl md:text-2xl text-emerald-400 tracking-tight">${(currentClub.budget / 1000000).toFixed(1)}M</span>
           </div>
         </div>
       </div>
 
-      <div className="flex flex-wrap items-center gap-1.5 bg-white p-2 rounded-2xl border border-slate-200 shadow-sm">
-        {TABS.map(tab => {
-          const Icon = tab.icon;
-          return (
-            <button
-              key={tab.id}
-              onClick={() => setActiveMiClubTab(tab.id)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-tech font-bold uppercase transition-all whitespace-nowrap flex items-center gap-1.5 shrink-0 ${
-                activeMiClubTab === tab.id
-                  ? 'bg-[#00ba68] text-white shadow-sm'
-                  : 'bg-slate-100 text-slate-600 hover:text-slate-900 hover:bg-slate-200'
-              }`}
-            >
-              <Icon className="w-3.5 h-3.5" /> {tab.label}
-            </button>
-          );
-        })}
+      {/* Tira de Navegación por Pestañas eSports */}
+      <div className="bg-slate-950 p-2 rounded-2xl border border-slate-800/80 shadow-xl overflow-x-auto no-scrollbar">
+        <div className="flex items-center gap-1.5 min-w-max">
+          {TABS.map(tab => {
+            const Icon = tab.icon;
+            const isActive = activeMiClubTab === tab.id;
+            return (
+              <button
+                key={tab.id}
+                onClick={() => setActiveMiClubTab(tab.id)}
+                className={`px-3.5 py-2 rounded-xl text-xs font-tech font-extrabold uppercase transition-all flex items-center gap-2 shrink-0 ${
+                  isActive
+                    ? 'bg-[#02f59b] text-slate-950 shadow-[0_0_15px_rgba(2,245,155,0.4)] font-black'
+                    : 'bg-slate-900/90 text-slate-400 hover:text-white hover:bg-slate-800/90 border border-slate-800'
+                }`}
+              >
+                <Icon className={`w-4 h-4 ${isActive ? 'text-slate-950' : 'text-[#02f59b]'}`} />
+                <span>{tab.label}</span>
+              </button>
+            );
+          })}
+        </div>
       </div>
 
       {activeMiClubTab === 'recientes' && (
