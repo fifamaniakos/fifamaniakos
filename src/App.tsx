@@ -166,10 +166,16 @@ export default function App() {
   // No usa useSupabaseTable porque draft_claims no tiene el formato key/data.
   const [draftedIdentities, setDraftedIdentities] = useState<{ gamertag: string | null; platform: string | null }[]>([]);
   const refetchDraftClaims = useCallback(async () => {
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from('draft_claims')
       .select('gamertag, platform')
       .eq('season_number', currentSeasonNumber);
+    if (error) {
+      // Sin esto, un fallo de permisos dejaba la lista vacia en silencio y el
+      // boton del Draft quedaba habilitado como si nadie hubiera sorteado.
+      console.error('[draft_claims] no se pudieron leer los Draft usados:', error.message);
+      return;
+    }
     if (data) setDraftedIdentities(data);
   }, [currentSeasonNumber]);
 
