@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { supabase } from '../lib/supabaseClient';
 
 type Updater<T> = T[] | ((prev: T[]) => T[]);
@@ -89,9 +89,20 @@ export function useSupabaseTable<T>(
     };
   }, [table]);
 
+  // El estado tambien se mira por referencia porque la escritura NO puede vivir
+  // dentro del callback de setState: React invoca esos callbacks dos veces bajo
+  // StrictMode (a proposito, para exponer efectos impuros), asi que cada accion
+  // disparaba DOS peticiones a Supabase. Con dos escrituras por accion, la
+  // segunda llegaba a una base ya modificada por la primera y podia fallar sola
+  // (por ejemplo chocando contra un trigger que ya habia registrado algo).
+  const dataRef = useRef<T[]>(initialData);
+  useEffect(() => {
+    dataRef.current = data;
+  }, [data]);
+
   const setData = useCallback(
     (updater: Updater<T>) => {
-      setDataState((prev) => {
+      const run = (prev: T[]) => {
         const next = typeof updater === 'function' ? (updater as (p: T[]) => T[])(prev) : updater;
 
         const prevByKey = new Map<string, T>(prev.map((item) => [getKey(item), item]));
@@ -143,7 +154,12 @@ export function useSupabaseTable<T>(
         }
 
         return next;
-      });
+      };
+
+      // Se calcula y se persiste una sola vez, fuera del updater de React.
+      const next = run(dataRef.current);
+      dataRef.current = next;
+      setDataState(next);
     },
     [table, refetch]
   );
