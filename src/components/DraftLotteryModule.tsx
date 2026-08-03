@@ -580,7 +580,11 @@ export const DraftLotteryModule: React.FC<DraftLotteryModuleProps> = ({
           </button>
 
           {!canDraft && (
-            <p className="text-[11px] text-amber-300 font-tech text-center bg-amber-500/10 border border-amber-500/30 rounded-lg px-3 py-2">
+            <p className={`text-[11px] font-tech text-center rounded-lg px-3 py-2 ${
+              alreadyDrafted
+                ? 'text-rose-300 bg-rose-500/10 border border-rose-500/40'
+                : 'text-amber-300 bg-amber-500/10 border border-amber-500/30'
+            }`}>
               {missingClub
                 ? 'Tu sesión no tiene un club asignado. Cerrá sesión y volvé a entrar para actualizarla.'
                 : alreadyDrafted
