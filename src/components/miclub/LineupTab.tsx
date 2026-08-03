@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Player, Club, TransferItem } from '../../types';
-import { Trash2, Edit3, Tag, X } from 'lucide-react';
+import { Trash2, Edit3, Tag, X, Shield, UserCheck, UserPlus, Star, ArrowLeftRight } from 'lucide-react';
 
 interface LineupTabProps {
   currentClub: Club;
@@ -30,143 +30,246 @@ export const LineupTab: React.FC<LineupTabProps> = ({
   const [newValueInput, setNewValueInput] = useState<number>(25000000);
 
   const clubPlayers = players.filter(p => p.clubId === currentClub.id);
+  const starters = clubPlayers.filter(p => p.isStarter);
   const substitutes = clubPlayers.filter(p => !p.isStarter);
 
-  return (
-    <div className="space-y-6">
-        <div className="fc-card p-5 rounded-2xl border-slate-200 space-y-4 shadow-md">
-          <h3 className="font-display font-bold text-lg uppercase text-slate-900 flex items-center justify-between border-b border-slate-200 pb-2">
-            {/* La lista muestra toda la plantilla, no solo los suplentes: el
-                contador iba con substitutes.length y no coincidia con las filas. */}
-            <span>Plantilla ({clubPlayers.length}) · {substitutes.length} suplentes</span>
-            <span className="text-xs text-slate-500 font-tech">Haz clic para alternar titular</span>
-          </h3>
+  const startersAvgRating = starters.length > 0
+    ? Math.round(starters.reduce((acc, p) => acc + p.rating, 0) / starters.length)
+    : 0;
 
-          <div className="space-y-2">
-            {clubPlayers.map((player) => {
-              const transferItem = transfers.find(t => (t.player.id === player.id || t.player.name === player.name) && t.status === 'DISPONIBLE');
+  const renderPlayerCard = (player: Player, isStarterCard: boolean) => {
+    const transferItem = transfers.find(t => (t.player.id === player.id || t.player.name === player.name) && t.status === 'DISPONIBLE');
+    const isSpecial = player.cardType === 'Special';
+    const isGold = player.cardType === 'Gold' || player.rating >= 78;
+    const isFichable = Boolean(player.releaseClause && player.releaseClause > 0);
 
-              return (
-                <div
-                  key={player.id}
-                  className={`p-2.5 rounded-lg border transition-all flex items-center justify-between gap-2 ${
-                    transferItem
-                      ? 'bg-amber-50/80 border-amber-300'
-                      : player.isStarter
-                      ? 'bg-emerald-50 border-emerald-300'
-                      : 'bg-slate-50 border-slate-200 hover:border-slate-300'
-                  }`}
-                >
-                  <div className="flex items-center gap-2.5 min-w-0">
-                    <div className="w-9 h-9 rounded-full bg-slate-200 overflow-hidden border border-slate-300 shrink-0 relative">
-                      <img
-                        src={player.photoUrl || `https://cdn.sofifa.net/players/231/747/25_120.png`}
-                        alt={player.name}
-                        referrerPolicy="no-referrer"
-                        className="w-full h-full object-cover"
-                        onError={(e) => {
-                          (e.target as HTMLElement).style.display = 'none';
-                        }}
-                      />
-                    </div>
-                    <span className={`w-6 h-6 rounded flex items-center justify-center font-display font-extrabold text-xs text-black shrink-0 ${
-                      player.cardType === 'Special' ? 'bg-[#02f59b]' : 'bg-amber-400'
-                    }`}>
-                      {player.rating}
-                    </span>
-                    <div className="min-w-0">
-                      <div className="font-bold text-xs text-slate-900 truncate flex items-center gap-1.5 flex-wrap">
-                        <span>{player.name}</span>
-                        <span className="text-[9px] font-mono text-slate-600 bg-slate-200 px-1 rounded">
-                          {player.position}
-                        </span>
-                        {player.releaseClause && player.releaseClause > 0 && (
-                          <span className="text-[9px] bg-amber-400 text-slate-950 font-display font-black uppercase px-1.5 py-0.5 rounded border border-amber-500 shadow-xs flex items-center gap-1 animate-pulse">
-                            <Tag className="w-2.5 h-2.5 shrink-0" /> FICHABLE
-                          </span>
-                        )}
-                      </div>
-                      <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 mt-0.5 text-[10px] font-tech">
-                        <span className="text-slate-500 font-semibold">
-                          Valor Referencial: <strong className="font-mono text-slate-700">€{((player.value || 0) / 1000000).toFixed(1)}M</strong>
-                        </span>
-                        {player.releaseClause && player.releaseClause > 0 ? (
-                          <span className="text-[#00ba68] font-bold">
-                            Precio de Traspaso: <strong className="font-mono">€{(player.releaseClause / 1000000).toFixed(1)}M</strong> · visible en el Mercado
-                          </span>
-                        ) : (
-                          <span className="text-slate-400 font-semibold italic">
-                            No Transferible (ningún club puede ficharlo todavía)
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                  </div>
+    return (
+      <div
+        key={player.id}
+        className={`relative flex flex-col justify-between rounded-xl border transition-all shadow-sm hover:shadow-md ${
+          isStarterCard
+            ? 'bg-white border-emerald-300/80 hover:border-emerald-400 ring-1 ring-emerald-500/10'
+            : 'bg-slate-50 border-slate-200 hover:border-slate-300'
+        }`}
+      >
+        {/* Cabecera de la tarjeta: Badge Posición + OVR Rating */}
+        <div className="p-3 pb-2 border-b border-slate-100 flex items-center justify-between gap-2">
+          <span className={`px-2 py-0.5 rounded text-[10px] font-mono font-extrabold uppercase tracking-wide ${
+            isSpecial
+              ? 'bg-slate-900 text-[#02f59b] border border-slate-700'
+              : 'bg-slate-200 text-slate-800'
+          }`}>
+            {player.position}
+          </span>
 
-                  <div className="flex items-center gap-1.5 shrink-0 flex-wrap">
-                    {onUpdatePlayerValue && (
-                      <button
-                        onClick={() => {
-                          setValueEditPlayer(player);
-                          setNewValueInput(player.value || 25000000);
-                        }}
-                        className="px-2 py-1 rounded text-[10px] font-extrabold font-tech uppercase bg-slate-100 text-slate-700 hover:bg-slate-200 border border-slate-300 flex items-center gap-1 transition-colors"
-                        title="Editar el valor de mercado de referencia (informativo, no afecta compras)"
-                      >
-                        <Edit3 className="w-3 h-3 text-slate-500" /> Valor
-                      </button>
-                    )}
-
-                    {onSetTransferPrice && (
-                      <button
-                        onClick={() => {
-                          setTransferPriceEditPlayer(player);
-                          setNewTransferPriceInput(player.releaseClause && player.releaseClause > 0 ? player.releaseClause : (player.value || 25000000));
-                        }}
-                        className="px-2 py-1 rounded text-[10px] font-extrabold font-tech uppercase bg-emerald-50 text-emerald-800 hover:bg-emerald-100 border border-emerald-300 flex items-center gap-1 transition-colors"
-                        title="Fijar el precio por el que cualquier club puede fichar a este jugador (lo lista en el Mercado de Fichajes)"
-                      >
-                        <Tag className="w-3 h-3 text-emerald-600" /> {player.releaseClause && player.releaseClause > 0 ? 'Editar Precio' : 'Poner Fichable'}
-                      </button>
-                    )}
-
-                    {onRemoveFromMarket && player.releaseClause && player.releaseClause > 0 && (
-                      <button
-                        onClick={() => {
-                          if (confirm(`¿Quitar a ${player.name} del Mercado de Fichajes? Ya no será fichable por otros clubes.`)) {
-                            onRemoveFromMarket(player.id);
-                          }
-                        }}
-                        className="px-2 py-1 rounded text-[10px] font-extrabold font-tech uppercase bg-rose-50 text-rose-700 hover:bg-rose-100 border border-rose-200 flex items-center gap-1 transition-colors"
-                        title="Quitar del Mercado de Fichajes"
-                      >
-                        <X className="w-3 h-3" /> Quitar
-                      </button>
-                    )}
-
-                    <button
-                      onClick={() => onToggleStarter(player.id)}
-                      className={`px-2 py-1 rounded text-[10px] font-bold font-tech uppercase transition-colors ${
-                        player.isStarter
-                          ? 'bg-emerald-100 text-emerald-800 border border-emerald-300'
-                          : 'bg-slate-200 text-slate-700 hover:bg-emerald-100 hover:text-emerald-800'
-                      }`}
-                    >
-                      {player.isStarter ? '11 Titular' : 'Hacer Titular'}
-                    </button>
-
-                    <button
-                      onClick={() => onRemovePlayer(player.id)}
-                      className="p-1 text-slate-400 hover:text-rose-600 transition-colors"
-                    >
-                      <Trash2 className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
-                </div>
-              );
-            })}
+          <div className="flex items-center gap-1.5">
+            {isFichable && (
+              <span className="bg-amber-400 text-slate-950 font-display font-black text-[9px] px-1.5 py-0.5 rounded uppercase tracking-wider flex items-center gap-1 shadow-xs animate-pulse">
+                <Tag className="w-2.5 h-2.5" /> FICHABLE
+              </span>
+            )}
+            <span className={`px-2 py-0.5 rounded font-display font-black text-xs shadow-xs ${
+              isSpecial
+                ? 'bg-[#02f59b] text-slate-950'
+                : isGold
+                ? 'bg-amber-400 text-slate-950'
+                : 'bg-slate-900 text-white'
+            }`}>
+              {player.rating}
+            </span>
           </div>
         </div>
+
+        {/* Cuerpo de la tarjeta: Foto + Información */}
+        <div className="p-3.5 flex items-center gap-3">
+          <div className="w-12 h-12 rounded-xl bg-slate-200/80 border border-slate-300 overflow-hidden shrink-0 shadow-inner relative flex items-center justify-center">
+            <img
+              src={player.photoUrl || `https://cdn.sofifa.net/players/231/747/25_120.png`}
+              alt={player.name}
+              referrerPolicy="no-referrer"
+              className="w-full h-full object-cover"
+              onError={(e) => {
+                (e.target as HTMLElement).style.display = 'none';
+              }}
+            />
+          </div>
+
+          <div className="min-w-0 flex-1">
+            <h4 className="font-display font-extrabold text-sm text-slate-900 truncate uppercase tracking-tight" title={player.name}>
+              {player.name}
+            </h4>
+            
+            <div className="mt-1 space-y-0.5 text-[11px] font-tech">
+              <p className="text-slate-500 font-semibold truncate">
+                Valor: <strong className="font-mono text-slate-800">€{((player.value || 0) / 1000000).toFixed(1)}M</strong>
+              </p>
+              {isFichable ? (
+                <p className="text-[#00ba68] font-bold truncate">
+                  Cláusula: <strong className="font-mono">€{(player.releaseClause! / 1000000).toFixed(1)}M</strong>
+                </p>
+              ) : (
+                <p className="text-slate-400 italic text-[10px]">No transferible</p>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Pie de tarjeta: Botón principal (Toggle Starter) + Acciones rápidas */}
+        <div className="p-2.5 bg-slate-100/60 rounded-b-xl border-t border-slate-100 flex items-center justify-between gap-2">
+          {/* Botón Principal para cambiar de Grid */}
+          <button
+            onClick={() => onToggleStarter(player.id)}
+            className={`flex-1 px-2.5 py-1.5 rounded-lg text-xs font-tech font-extrabold uppercase transition-all flex items-center justify-center gap-1.5 shadow-xs ${
+              isStarterCard
+                ? 'bg-slate-200 text-slate-800 hover:bg-amber-100 hover:text-amber-900 hover:border-amber-300 border border-slate-300'
+                : 'bg-emerald-600 text-white hover:bg-emerald-500 shadow-emerald-600/20'
+            }`}
+            title={isStarterCard ? 'Mover a la banca de suplentes' : 'Asignar al 11 Titular'}
+          >
+            {isStarterCard ? (
+              <>
+                <ArrowLeftRight className="w-3.5 h-3.5 text-slate-600" />
+                <span>Mover a Suplentes</span>
+              </>
+            ) : (
+              <>
+                <UserCheck className="w-3.5 h-3.5" />
+                <span>Hacer Titular</span>
+              </>
+            )}
+          </button>
+
+          {/* Menú de Acciones Secundarias */}
+          <div className="flex items-center gap-1 shrink-0">
+            {onSetTransferPrice && (
+              <button
+                onClick={() => {
+                  setTransferPriceEditPlayer(player);
+                  setNewTransferPriceInput(player.releaseClause && player.releaseClause > 0 ? player.releaseClause : (player.value || 25000000));
+                }}
+                className={`p-1.5 rounded-md text-xs font-bold transition-colors border ${
+                  isFichable
+                    ? 'bg-amber-100 text-amber-900 border-amber-300 hover:bg-amber-200'
+                    : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-100 hover:text-slate-900'
+                }`}
+                title={isFichable ? 'Editar precio de traspaso en Mercado' : 'Poner fichable en Mercado de Fichajes'}
+              >
+                <Tag className="w-3.5 h-3.5 text-amber-600" />
+              </button>
+            )}
+
+            {onUpdatePlayerValue && (
+              <button
+                onClick={() => {
+                  setValueEditPlayer(player);
+                  setNewValueInput(player.value || 25000000);
+                }}
+                className="p-1.5 rounded-md bg-white text-slate-600 border border-slate-200 hover:bg-slate-100 hover:text-slate-900 transition-colors"
+                title="Editar valor referencial de mercado"
+              >
+                <Edit3 className="w-3.5 h-3.5" />
+              </button>
+            )}
+
+            {onRemoveFromMarket && isFichable && (
+              <button
+                onClick={() => {
+                  if (confirm(`¿Quitar a ${player.name} del Mercado de Fichajes? Ya no será fichable por otros clubes.`)) {
+                    onRemoveFromMarket(player.id);
+                  }
+                }}
+                className="p-1.5 rounded-md bg-rose-50 text-rose-700 border border-rose-200 hover:bg-rose-100 transition-colors"
+                title="Quitar del Mercado de Fichajes"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            )}
+
+            <button
+              onClick={() => {
+                if (confirm(`¿Eliminar a ${player.name} de la plantilla?`)) {
+                  onRemovePlayer(player.id);
+                }
+              }}
+              className="p-1.5 rounded-md bg-white text-slate-400 border border-slate-200 hover:text-rose-600 hover:bg-rose-50 hover:border-rose-200 transition-colors"
+              title="Desvincular jugador del club"
+            >
+              <Trash2 className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  return (
+    <div className="space-y-8">
+      {/* GRID 1: 11 TITULAR */}
+      <div className="fc-card p-5 md:p-6 rounded-2xl border-slate-200 space-y-4 shadow-md bg-white">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-200 pb-4 gap-2">
+          <div>
+            <h3 className="font-display font-black text-xl uppercase text-slate-900 flex items-center gap-2 tracking-wide">
+              <span className="w-3 h-3 rounded-full bg-emerald-500 inline-block animate-pulse"></span>
+              <span>11 Titular ({starters.length}/11)</span>
+            </h3>
+            <p className="text-xs text-slate-500 font-tech mt-0.5">
+              Jugadores que inician en el campo de juego en los partidos del club.
+            </p>
+          </div>
+
+          <div className="flex items-center gap-3">
+            {starters.length > 0 && (
+              <div className="bg-emerald-50 border border-emerald-200 px-3 py-1 rounded-xl text-xs font-tech font-bold text-emerald-800 flex items-center gap-1.5">
+                <Star className="w-3.5 h-3.5 text-amber-500 fill-amber-400" />
+                <span>Media OVR Titulares: <strong>{startersAvgRating}</strong></span>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {starters.length === 0 ? (
+          <div className="text-center py-12 px-4 bg-slate-50 rounded-xl border border-dashed border-slate-300">
+            <UserPlus className="w-10 h-10 text-slate-400 mx-auto mb-2" />
+            <h4 className="font-display font-bold text-base text-slate-700 uppercase">Sin titulares asignados</h4>
+            <p className="text-xs text-slate-500 font-tech mt-1 max-w-md mx-auto">
+              Haz clic en <strong>"Hacer Titular"</strong> en cualquiera de los jugadores del grid de suplentes para conformar tu 11 inicial.
+            </p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            {starters.map(player => renderPlayerCard(player, true))}
+          </div>
+        )}
+      </div>
+
+      {/* GRID 2: SUPLENTES Y RESERVAS */}
+      <div className="fc-card p-5 md:p-6 rounded-2xl border-slate-200 space-y-4 shadow-md bg-white">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-200 pb-4 gap-2">
+          <div>
+            <h3 className="font-display font-black text-xl uppercase text-slate-900 flex items-center gap-2 tracking-wide">
+              <span className="w-3 h-3 rounded-full bg-slate-400 inline-block"></span>
+              <span>Suplentes & Reservas ({substitutes.length})</span>
+            </h3>
+            <p className="text-xs text-slate-500 font-tech mt-0.5">
+              Jugadores disponibles en la banca para ingresar o rotar.
+            </p>
+          </div>
+        </div>
+
+        {substitutes.length === 0 ? (
+          <div className="text-center py-10 px-4 bg-slate-50 rounded-xl border border-dashed border-slate-300">
+            <Shield className="w-10 h-10 text-slate-400 mx-auto mb-2" />
+            <h4 className="font-display font-bold text-base text-slate-700 uppercase">No hay suplentes en banca</h4>
+            <p className="text-xs text-slate-500 font-tech mt-1 max-w-md mx-auto">
+              Toda tu plantilla ({clubPlayers.length} jugadores) está actualmente asignada en el 11 titular.
+            </p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            {substitutes.map(player => renderPlayerCard(player, false))}
+          </div>
+        )}
+      </div>
 
       {/* MODAL: Precio de Traspaso (une Cláusula + Vender en un solo paso) */}
       {transferPriceEditPlayer && (
