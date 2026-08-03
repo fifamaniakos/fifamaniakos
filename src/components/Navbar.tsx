@@ -259,7 +259,7 @@ export const Navbar: React.FC<NavbarProps> = ({
         <nav className="flex items-center gap-2 overflow-x-auto pb-1 md:pb-0 font-display text-xs md:text-sm uppercase tracking-wider">
           <button
             onClick={() => setActiveTab('foro')}
-            className={`h-10 px-4 min-w-[130px] rounded-lg transition-all flex items-center justify-center gap-1.5 font-bold whitespace-nowrap shrink-0 ${
+            className={`h-10 px-4 w-36 rounded-lg transition-all flex items-center justify-center gap-1.5 font-bold whitespace-nowrap shrink-0 ${
               activeTab === 'foro'
                 ? 'bg-[#00ba68] text-white shadow-md'
                 : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
@@ -273,7 +273,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             <button
               ref={competicionesButtonRef}
               onClick={toggleCompeticionesMenu}
-              className={`h-10 px-4 min-w-[130px] rounded-lg transition-all flex items-center justify-center gap-1.5 font-bold whitespace-nowrap ${
+              className={`h-10 px-4 w-36 rounded-lg transition-all flex items-center justify-center gap-1.5 font-bold whitespace-nowrap ${
                 isCompeticionesActive
                   ? 'bg-[#00ba68] text-white shadow-md'
                   : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
@@ -383,7 +383,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             <button
               ref={reglamentoButtonRef}
               onClick={toggleReglamentoMenu}
-              className={`h-10 px-4 min-w-[130px] rounded-lg transition-all flex items-center justify-center gap-1.5 font-bold whitespace-nowrap ${
+              className={`h-10 px-4 w-36 rounded-lg transition-all flex items-center justify-center gap-1.5 font-bold whitespace-nowrap ${
                 activeTab === 'competicion-seccion'
                   ? 'bg-[#00ba68] text-white shadow-md'
                   : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
@@ -453,7 +453,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               onClick={() => {
                 toggleMiClubMenu();
               }}
-              className={`h-10 px-4 min-w-[130px] rounded-lg transition-all flex items-center justify-center gap-1.5 font-bold whitespace-nowrap shrink-0 ${
+              className={`h-10 px-4 w-36 rounded-lg transition-all flex items-center justify-center gap-1.5 font-bold whitespace-nowrap shrink-0 ${
                 activeTab === 'plantilla'
                   ? 'bg-[#00ba68] text-white shadow-md'
                   : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
@@ -553,7 +553,7 @@ export const Navbar: React.FC<NavbarProps> = ({
 
           <button
             onClick={() => setActiveTab('tienda')}
-            className={`h-10 px-4 min-w-[130px] rounded-lg transition-all flex items-center justify-center gap-1.5 font-bold whitespace-nowrap shrink-0 ${
+            className={`h-10 px-4 w-36 rounded-lg transition-all flex items-center justify-center gap-1.5 font-bold whitespace-nowrap shrink-0 ${
               activeTab === 'tienda'
                 ? 'bg-[#00ba68] text-white shadow-md'
                 : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
