@@ -157,17 +157,20 @@ export default function App() {
   const setDraftOpen = (open: boolean) =>
     setLeagueSettings([{ ...currentLeagueSettings, id: 'current', currentSeasonNumber, draftOpen: open }]);
 
-  // Que club ya uso su Draft esta temporada. La regla la hace cumplir la base
-  // (trigger de la migracion 016); esto es solo para poder deshabilitar el boton
-  // en vez de dejar que el usuario sortee y recien ahi reciba un rechazo.
+  // Si el DT de la sesion ya uso su Draft esta temporada. La regla la hace
+  // cumplir la base (trigger de la migracion 017); esto solo sirve para
+  // deshabilitar el boton en vez de dejar que sortee y recien ahi reciba el
+  // rechazo. Se identifica por gamertag+plataforma, igual que las
+  // suscripciones (008): por user_id o por club se escapa cambiando de club o
+  // registrando otra cuenta.
   // No usa useSupabaseTable porque draft_claims no tiene el formato key/data.
-  const [draftedClubIds, setDraftedClubIds] = useState<string[]>([]);
+  const [draftedIdentities, setDraftedIdentities] = useState<{ gamertag: string | null; platform: string | null }[]>([]);
   const refetchDraftClaims = useCallback(async () => {
     const { data } = await supabase
       .from('draft_claims')
-      .select('club_id')
+      .select('gamertag, platform')
       .eq('season_number', currentSeasonNumber);
-    if (data) setDraftedClubIds(data.map((row: { club_id: string }) => row.club_id));
+    if (data) setDraftedIdentities(data);
   }, [currentSeasonNumber]);
 
   useEffect(() => {
@@ -1053,7 +1056,9 @@ export default function App() {
             registeredClubs={isAdminLoggedIn ? clubs : clubs.filter(c => c.id === profile?.club_id)}
             isAdmin={isAdminLoggedIn}
             draftOpen={draftOpen}
-            draftedClubIds={draftedClubIds}
+            alreadyDrafted={draftedIdentities.some(
+              c => c.gamertag === profile?.gamertag && c.platform === profile?.platform
+            )}
             onAssignDraftPlayer={(clubId, playerPreset) => {
               const newPlayer: Player = {
                 id: `pl-draft-${Date.now()}-${Math.floor(Math.random() * 1000)}`,

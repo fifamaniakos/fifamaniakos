@@ -11,8 +11,8 @@ interface DraftLotteryModuleProps {
   registeredClubs: Club[];
   isAdmin?: boolean;
   draftOpen?: boolean;
-  /** Clubes que ya usaron su Draft esta temporada (tabla draft_claims). */
-  draftedClubIds?: string[];
+  /** Si el DT de la sesion ya uso su Draft esta temporada (tabla draft_claims). */
+  alreadyDrafted?: boolean;
   onAssignDraftPlayer?: (registeredClubId: string, playerPreset: SoFifaPlayerPreset) => void;
   onAssignFullSquadDraft?: (registeredClubId: string, playerPresets: SoFifaPlayerPreset[]) => void;
 }
@@ -21,7 +21,7 @@ export const DraftLotteryModule: React.FC<DraftLotteryModuleProps> = ({
   registeredClubs,
   isAdmin = false,
   draftOpen = false,
-  draftedClubIds = [],
+  alreadyDrafted: alreadyDraftedProp = false,
   onAssignDraftPlayer,
   onAssignFullSquadDraft
 }) => {
@@ -41,7 +41,7 @@ export const DraftLotteryModule: React.FC<DraftLotteryModuleProps> = ({
   // Bloquear los botones es cortesia para no chocar contra un rechazo de la
   // base: la regla real la hace cumplir el trigger de la migracion 016. El
   // admin queda exento porque es quien rehace plantillas.
-  const alreadyDrafted = !isAdmin && draftedClubIds.includes(targetManagerId);
+  const alreadyDrafted = !isAdmin && alreadyDraftedProp;
   const canDraft = isAdmin || (draftOpen && !alreadyDrafted);
 
   useEffect(() => {
@@ -578,7 +578,7 @@ export const DraftLotteryModule: React.FC<DraftLotteryModuleProps> = ({
           {!canDraft && (
             <p className="text-[11px] text-amber-300 font-tech text-center bg-amber-500/10 border border-amber-500/30 rounded-lg px-3 py-2">
               {alreadyDrafted
-                ? 'Este club ya usó su Draft en esta temporada. Para incorporar jugadores, usá el mercado de fichajes.'
+                ? 'Ya usaste tu Draft en esta temporada. Para incorporar jugadores, usá el mercado de fichajes.'
                 : 'El Draft está cerrado. Un administrador tiene que abrirlo desde el Panel para poder repartir plantillas.'}
             </p>
           )}
