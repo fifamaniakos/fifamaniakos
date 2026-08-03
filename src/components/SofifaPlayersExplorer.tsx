@@ -144,19 +144,19 @@ export const SofifaPlayersExplorer: React.FC<SofifaPlayersExplorerProps> = ({
         </div>
       )}
 
-      {/* Control Panel: Buscador & Filtros Tácticos eSports */}
-      <div className="fc-card p-5 md:p-6 rounded-3xl bg-slate-950 border border-slate-800 text-white shadow-2xl space-y-5 relative overflow-hidden">
+      {/* Control Panel: Buscador & Filtros Tácticos (Tema Claro) */}
+      <div className="fc-card p-5 md:p-6 rounded-3xl bg-white border border-slate-200 text-slate-900 shadow-md space-y-5 relative overflow-hidden">
         {/* Cabecera del Panel de Control */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800/80 pb-3">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
           <div className="flex items-center gap-2">
-            <SlidersHorizontal className="w-4 h-4 text-[#02f59b]" />
-            <h3 className="font-display font-black text-sm text-white uppercase italic tracking-wider">
+            <SlidersHorizontal className="w-4 h-4 text-emerald-600" />
+            <h3 className="font-display font-black text-sm text-slate-900 uppercase italic tracking-wider">
               Panel de Filtros & Búsqueda Táctica
             </h3>
           </div>
 
-          <div className="flex items-center gap-3 text-xs font-tech text-slate-400">
-            <span className="bg-slate-900 border border-slate-800 px-3 py-1 rounded-full text-[11px] font-mono text-[#02f59b]">
+          <div className="flex items-center gap-3 text-xs font-tech text-slate-500">
+            <span className="bg-emerald-50 border border-emerald-200 px-3 py-1 rounded-full text-[11px] font-mono font-bold text-emerald-800">
               {filteredPlayers.length.toLocaleString('es-ES')} resultados
             </span>
 
@@ -170,7 +170,7 @@ export const SofifaPlayersExplorer: React.FC<SofifaPlayersExplorerProps> = ({
                   setMinRating(50);
                   setCurrentPage(1);
                 }}
-                className="px-2.5 py-1 rounded-full bg-rose-500/10 text-rose-400 hover:bg-rose-500/20 border border-rose-500/30 text-[10px] font-bold uppercase transition flex items-center gap-1 cursor-pointer"
+                className="px-2.5 py-1 rounded-full bg-rose-50 text-rose-700 hover:bg-rose-100 border border-rose-200 text-[10px] font-bold uppercase transition flex items-center gap-1 cursor-pointer"
               >
                 <RotateCcw className="w-3 h-3" /> Restablecer
               </button>
@@ -182,18 +182,18 @@ export const SofifaPlayersExplorer: React.FC<SofifaPlayersExplorerProps> = ({
         <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
           {/* Buscador de Nombre/Club */}
           <div className="md:col-span-2 relative">
-            <Search className="w-4 h-4 text-[#02f59b] absolute left-3.5 top-3.5" />
+            <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5" />
             <input
               type="text"
               value={searchTerm}
               onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
               placeholder="Buscar por nombre de jugador o club..."
-              className="w-full pl-10 pr-9 py-2.5 bg-slate-900 border border-slate-800 rounded-xl text-xs font-semibold text-white placeholder-slate-500 focus:outline-none focus:border-[#02f59b] focus:ring-1 focus:ring-[#02f59b] transition"
+              className="w-full pl-10 pr-9 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 placeholder-slate-400 focus:outline-none focus:border-emerald-500 focus:bg-white focus:ring-1 focus:ring-emerald-500 transition"
             />
             {searchTerm && (
               <button
                 onClick={() => setSearchTerm('')}
-                className="absolute right-3 top-3 text-slate-500 hover:text-white"
+                className="absolute right-3 top-3 text-slate-400 hover:text-slate-700"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -205,19 +205,19 @@ export const SofifaPlayersExplorer: React.FC<SofifaPlayersExplorerProps> = ({
             <select
               value={selectedPosition}
               onChange={(e) => { setSelectedPosition(e.target.value); setCurrentPage(1); }}
-              className="w-full px-3.5 py-2.5 bg-slate-900 border border-slate-800 rounded-xl text-xs font-bold text-white focus:outline-none focus:border-[#02f59b] transition cursor-pointer"
+              className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-900 focus:outline-none focus:border-emerald-500 focus:bg-white transition cursor-pointer"
             >
-              <option value="" className="bg-slate-950 text-white">⚽ Todas las Posiciones</option>
-              <option value="POR" className="bg-slate-950 text-white">🧤 Arquero (POR)</option>
-              <option value="DFC" className="bg-slate-950 text-white">🛡️ Defensor Central (DFC)</option>
-              <option value="LI" className="bg-slate-950 text-white">🏃 Lateral Izquierdo (LI)</option>
-              <option value="LD" className="bg-slate-950 text-white">🏃 Lateral Derecho (LD)</option>
-              <option value="MCD" className="bg-slate-950 text-white">🔒 Mediocentro Defensivo (MCD)</option>
-              <option value="MC" className="bg-slate-950 text-white">⚙️ Mediocentro (MC)</option>
-              <option value="MCO" className="bg-slate-950 text-white">🎨 Mediocentro Ofensivo (MCO)</option>
-              <option value="ED" className="bg-slate-950 text-white">🔥 Extremo Derecho (ED)</option>
-              <option value="EI" className="bg-slate-950 text-white">🔥 Extremo Izquierdo (EI)</option>
-              <option value="DC" className="bg-slate-950 text-white">🎯 Delantero Centro (DC)</option>
+              <option value="">⚽ Todas las Posiciones</option>
+              <option value="POR">🧤 Arquero (POR)</option>
+              <option value="DFC">🛡️ Defensor Central (DFC)</option>
+              <option value="LI">🏃 Lateral Izquierdo (LI)</option>
+              <option value="LD">🏃 Lateral Derecho (LD)</option>
+              <option value="MCD">🔒 Mediocentro Defensivo (MCD)</option>
+              <option value="MC">⚙️ Mediocentro (MC)</option>
+              <option value="MCO">🎨 Mediocentro Ofensivo (MCO)</option>
+              <option value="ED">🔥 Extremo Derecho (ED)</option>
+              <option value="EI">🔥 Extremo Izquierdo (EI)</option>
+              <option value="DC">🎯 Delantero Centro (DC)</option>
             </select>
           </div>
 
@@ -226,45 +226,45 @@ export const SofifaPlayersExplorer: React.FC<SofifaPlayersExplorerProps> = ({
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value as any)}
-              className="w-full px-3.5 py-2.5 bg-slate-900 border border-slate-800 rounded-xl text-xs font-bold text-white focus:outline-none focus:border-[#02f59b] transition cursor-pointer"
+              className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-900 focus:outline-none focus:border-emerald-500 focus:bg-white transition cursor-pointer"
             >
-              <option value="rating" className="bg-slate-950 text-white">🌟 Mayor Rating (Overall)</option>
-              <option value="age" className="bg-slate-950 text-white">👶 Más Joven</option>
-              <option value="name" className="bg-slate-950 text-white">🔤 Orden Alfabético</option>
+              <option value="rating">🌟 Mayor Rating (Overall)</option>
+              <option value="age">👶 Más Joven</option>
+              <option value="name">🔤 Orden Alfabético</option>
             </select>
           </div>
         </div>
 
         {/* Fila Secundaria: Liga + País + Slider de Rating */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-3 border-t border-slate-800/80">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-3 border-t border-slate-100">
           <div>
-            <label className="block text-[10px] text-slate-400 font-tech font-extrabold uppercase tracking-wider mb-1">Liga Oficial</label>
+            <label className="block text-[10px] text-slate-500 font-tech font-extrabold uppercase tracking-wider mb-1">Liga Oficial</label>
             <select
               value={selectedLeague}
               onChange={(e) => { setSelectedLeague(e.target.value); setCurrentPage(1); }}
-              className="w-full px-3 py-2 bg-slate-900 border border-slate-800 rounded-xl text-xs font-semibold text-white focus:outline-none focus:border-[#02f59b] transition cursor-pointer"
+              className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 focus:outline-none focus:border-emerald-500 focus:bg-white transition cursor-pointer"
             >
-              <option value="" className="bg-slate-950 text-white">🏆 Todas las Ligas ({leaguesList.length})</option>
-              {leaguesList.map(l => <option key={l} value={l} className="bg-slate-950 text-white">{l}</option>)}
+              <option value="">🏆 Todas las Ligas ({leaguesList.length})</option>
+              {leaguesList.map(l => <option key={l} value={l}>{l}</option>)}
             </select>
           </div>
 
           <div>
-            <label className="block text-[10px] text-slate-400 font-tech font-extrabold uppercase tracking-wider mb-1">Nacionalidad</label>
+            <label className="block text-[10px] text-slate-500 font-tech font-extrabold uppercase tracking-wider mb-1">Nacionalidad</label>
             <select
               value={selectedNation}
               onChange={(e) => { setSelectedNation(e.target.value); setCurrentPage(1); }}
-              className="w-full px-3 py-2 bg-slate-900 border border-slate-800 rounded-xl text-xs font-semibold text-white focus:outline-none focus:border-[#02f59b] transition cursor-pointer"
+              className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 focus:outline-none focus:border-emerald-500 focus:bg-white transition cursor-pointer"
             >
-              <option value="" className="bg-slate-950 text-white">🌍 Todos los Países ({nationsList.length})</option>
-              {nationsList.map(n => <option key={n} value={n} className="bg-slate-950 text-white">{n}</option>)}
+              <option value="">🌍 Todos los Países ({nationsList.length})</option>
+              {nationsList.map(n => <option key={n} value={n}>{n}</option>)}
             </select>
           </div>
 
           <div>
             <div className="flex items-center justify-between mb-1">
-              <label className="text-[10px] text-slate-400 font-tech font-extrabold uppercase tracking-wider">Rating Mínimo</label>
-              <span className="text-xs font-mono font-black text-[#02f59b] bg-[#02f59b]/10 border border-[#02f59b]/30 px-2 py-0.5 rounded">
+              <label className="text-[10px] text-slate-500 font-tech font-extrabold uppercase tracking-wider">Rating Mínimo</label>
+              <span className="text-xs font-mono font-bold text-emerald-800 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded">
                 {minRating > 50 ? `${minRating}+ OVR` : 'TODAS LAS MEDIAS'}
               </span>
             </div>
@@ -274,7 +274,7 @@ export const SofifaPlayersExplorer: React.FC<SofifaPlayersExplorerProps> = ({
               max="95"
               value={minRating}
               onChange={(e) => { setMinRating(Number(e.target.value)); setCurrentPage(1); }}
-              className="w-full accent-[#02f59b] h-2 bg-slate-800 rounded-lg cursor-pointer transition-all"
+              className="w-full accent-emerald-600 h-2 bg-slate-200 rounded-lg cursor-pointer transition-all"
             />
           </div>
         </div>
