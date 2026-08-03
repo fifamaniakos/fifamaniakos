@@ -93,6 +93,8 @@ interface AdminPanelProps {
   sponsorContracts: ClubSponsorContract[];
   sponsorPayouts: SponsorPayout[];
   onUpdateSponsorObjective: (objective: SponsorObjective) => void;
+  onAddSponsorObjective: (objective: SponsorObjective) => void;
+  onDeleteSponsorObjective: (objectiveId: string) => void;
 }
 
 export const AdminPanel: React.FC<AdminPanelProps> = ({
@@ -130,7 +132,9 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
   sponsorObjectives,
   sponsorContracts,
   sponsorPayouts,
-  onUpdateSponsorObjective
+  onUpdateSponsorObjective,
+  onAddSponsorObjective,
+  onDeleteSponsorObjective
 }) => {
   const [adminTab, setAdminTab] = useState<'cartel' | 'clubes' | 'partidos' | 'foro' | 'fichajes' | 'anuncios' | 'cuentas' | 'patrocinadores'>('cartel');
 
@@ -1821,6 +1825,8 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
           sponsorPayouts={sponsorPayouts}
           currentSeasonNumber={currentSeasonNumber}
           onUpdateObjective={onUpdateSponsorObjective}
+          onAddObjective={onAddSponsorObjective}
+          onDeleteObjective={onDeleteSponsorObjective}
         />
       )}
 

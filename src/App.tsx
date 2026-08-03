@@ -775,6 +775,14 @@ export default function App() {
     setSponsorObjectives(prev => prev.map(o => (o.id === objective.id ? objective : o)));
   };
 
+  const handleAddSponsorObjective = (objective: SponsorObjective) => {
+    setSponsorObjectives(prev => [...prev, objective]);
+  };
+
+  const handleDeleteSponsorObjective = (objectiveId: string) => {
+    setSponsorObjectives(prev => prev.filter(o => o.id !== objectiveId));
+  };
+
   // Handler: Update player's market value (Valor de Mercado)
   const handleUpdatePlayerValue = (playerId: string, newValue: number) => {
     setPlayers(prev => prev.map(p => {
@@ -1142,6 +1150,8 @@ export default function App() {
               sponsorContracts={sponsorContracts}
               sponsorPayouts={sponsorPayouts}
               onUpdateSponsorObjective={handleUpdateSponsorObjective}
+              onAddSponsorObjective={handleAddSponsorObjective}
+              onDeleteSponsorObjective={handleDeleteSponsorObjective}
             />
           ) : (
             <div className="fc-card p-8 md:p-12 rounded-2xl border-emerald-300 bg-slate-900 text-white text-center space-y-6 max-w-2xl mx-auto shadow-2xl animate-scale-up">
