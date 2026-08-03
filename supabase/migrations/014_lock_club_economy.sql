@@ -22,13 +22,29 @@
 -- (fragil, la proxima policy repite el error) sino que se bloquea a nivel de
 -- trigger, que se aplica a toda escritura sin importar que policy la habilito.
 --
--- Los RPC legitimos se distinguen con un parametro de configuracion propio
--- declarado en la propia funcion (`alter function ... set`). Postgres lo activa
--- al entrar a la funcion y lo restaura al salir, asi que no hace falta tocar
--- ni una linea del cuerpo de los RPC de 011/013 (menos riesgo de romperlos) y
--- el flag no puede quedar "pegado" en la sesion.
+-- COMO SE DISTINGUE UN RPC LEGITIMO DE UNA ESCRITURA DIRECTA
+-- Por el rol efectivo, sin necesidad de tocar los RPC ni de configurar nada:
 --
--- Un cliente no puede activar ese flag por su cuenta: PostgREST no expone SET.
+--   * PostgREST ejecuta las escrituras del navegador con SET ROLE al rol del
+--     JWT, asi que `current_user` es 'authenticated' (o 'anon').
+--   * Los 4 RPC de dinero (011 y 013) son `security definer` y su dueno es
+--     `postgres`, asi que dentro de ellos `current_user` pasa a ser 'postgres'.
+--
+-- Por eso los triggers son SECURITY INVOKER (sin `security definer`): necesitan
+-- ver el rol de quien realmente ejecuta la sentencia. Si fueran definer,
+-- `current_user` seria siempre el dueno y no distinguirian nada.
+--
+-- Efecto util adicional: el service_role (backend con clave privilegiada)
+-- tampoco queda restringido; solo el navegador.
+--
+-- NOTA: la version anterior de esta migracion usaba
+--     alter function ... set "app.club_economy_write" = 'on'
+-- pero Supabase lo rechaza con "permission denied to set parameter": el rol
+-- `postgres` de Supabase no es superusuario y desde PG15 fijar un parametro
+-- personalizado de forma persistente requiere privilegios sobre el parametro.
+-- Se deja igual la lectura del flag como valvula de escape opcional: un RPC
+-- futuro puede habilitarse con `perform set_config('app.club_economy_write',
+-- 'on', true)` en su cuerpo, que si esta permitido en tiempo de ejecucion.
 
 -- ---------------------------------------------------------------------------
 -- 1. Defensa en profundidad: pinnear search_path en las funciones de 003.
@@ -67,26 +83,30 @@ $$;
 --    completo: si el manager edita el nombre del estadio, el upsert incluye
 --    igual `budget` y `points`. Rechazar con error romperia esa edicion
 --    legitima; revertir deja pasar el cambio real e ignora el resto.
---    Efecto secundario deseable: si el cliente tenia datos viejos, la revision
+--    Efecto secundario deseable: si el cliente tenia datos viejos, la reversion
 --    evita que pise un presupuesto que un RPC actualizo mientras tanto.
 -- ---------------------------------------------------------------------------
 
 create or replace function public.protect_club_economy()
 returns trigger
 language plpgsql
-security definer
 set search_path = public, pg_temp
 as $$
 declare
   campo text;
 begin
-  -- Llamada desde un RPC autorizado (ver bloque 4).
+  -- Valvula de escape opcional para un RPC futuro (ver nota del encabezado).
   if coalesce(current_setting('app.club_economy_write', true), '') = 'on' then
     return new;
   end if;
 
-  -- Sin JWT (SQL Editor) o admin de la liga: se permite.
-  if auth.uid() is null or public.is_admin() then
+  -- Solo se restringe lo que llega desde el navegador. Dentro de un RPC
+  -- `security definer` current_user es el dueno de la funcion, no 'authenticated'.
+  if current_user not in ('authenticated', 'anon') then
+    return new;
+  end if;
+
+  if public.is_admin() then
     return new;
   end if;
 
@@ -119,13 +139,12 @@ create trigger protect_club_economy
 -- 3. INSERT: la policy "manager_insert_own_club" (003) solo exige que el id no
 --    sea nulo, asi que cualquier autenticado podia crear un club con el
 --    presupuesto, la division y los puntos que quisiera. Se fuerzan los valores
---    de alta (los mismos que usa el cliente al inscribir: App.tsx).
+--    de alta (los mismos que usa el cliente al inscribir, App.tsx).
 -- ---------------------------------------------------------------------------
 
 create or replace function public.enforce_new_club_defaults()
 returns trigger
 language plpgsql
-security definer
 set search_path = public, pg_temp
 as $$
 begin
@@ -133,7 +152,11 @@ begin
     return new;
   end if;
 
-  if auth.uid() is null or public.is_admin() then
+  if current_user not in ('authenticated', 'anon') then
+    return new;
+  end if;
+
+  if public.is_admin() then
     return new;
   end if;
 
@@ -159,51 +182,34 @@ create trigger enforce_new_club_defaults
   for each row execute function public.enforce_new_club_defaults();
 
 -- ---------------------------------------------------------------------------
--- 4. Autorizar a los RPC que SI tienen que mover dinero.
+-- 4. Verificacion posterior (correr a mano).
 --
---    IMPORTANTE: sin este bloque el trigger del punto 2 revierte los pagos y
---    los traspasos dejan de funcionar. Si alguna funcion no existe todavia
---    (012/013 pueden no estar corridas), se avisa y hay que volver a ejecutar
---    ESTE bloque despues de crearla.
--- ---------------------------------------------------------------------------
-
-do $$
-declare
-  fn text;
-begin
-  foreach fn in array array[
-    'public.complete_market_transfer(text, text)',
-    'public.complete_direct_transfer(text, text, numeric)',
-    'public.sign_free_agent_player(jsonb, text, numeric)',
-    'public.settle_sponsor_payout(text, integer, text)'
-  ] loop
-    if to_regprocedure(fn) is not null then
-      execute format('alter function %s set "app.club_economy_write" = ''on''', fn);
-      raise notice 'OK: flag aplicado a %', fn;
-    else
-      raise warning 'FALTA: % no existe todavia. Corre su migracion y volve a ejecutar el bloque 4 de 014.', fn;
-    end if;
-  end loop;
-end;
-$$;
-
--- ---------------------------------------------------------------------------
--- 5. Verificacion posterior (correr a mano, con una sesion de manager comun).
---
---    a) El agujero quedo cerrado: el update no da error, pero el presupuesto
---       NO cambia.
+--    a) Con una sesion de MANAGER COMUN (desde la app, no desde el SQL Editor):
+--       el update no da error, pero el presupuesto NO cambia.
 --         update public.clubs
 --            set data = jsonb_set(data, '{budget}', to_jsonb(999999999))
 --          where key = '<id-de-mi-club>';
 --         select data->>'budget' from public.clubs where key = '<id-de-mi-club>';
 --
+--       OJO: desde el SQL Editor corres como `postgres`, asi que el trigger te
+--       deja pasar a proposito y el presupuesto SI cambia. Eso no es un fallo.
+--
 --    b) Los traspasos siguen funcionando: comprar un jugador desde la app y
 --       confirmar que el presupuesto del comprador baja y el del vendedor sube.
---       Si (b) falla, es que el bloque 4 no encontro alguna funcion.
+--       Esta es la prueba que valida el supuesto de current_user.
 --
 --    c) Confirmar que quedaron los dos triggers:
 --         select tgname from pg_trigger
 --          where tgrelid = 'public.clubs'::regclass and not tgisinternal;
+--
+--    d) Confirmar que los RPC son security definer y su dueno (deberia ser
+--       postgres; si fuera otro rol, igual funciona mientras no sea
+--       'authenticated'):
+--         select p.proname, p.prosecdef, pg_get_userbyid(p.proowner) as owner
+--           from pg_proc p join pg_namespace n on n.oid = p.pronamespace
+--          where n.nspname = 'public'
+--            and p.proname in ('complete_market_transfer','complete_direct_transfer',
+--                              'sign_free_agent_player','settle_sponsor_payout');
 --
 -- ---------------------------------------------------------------------------
 -- LO QUE ESTA MIGRACION NO RESUELVE (decision pendiente)

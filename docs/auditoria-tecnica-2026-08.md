@@ -177,27 +177,30 @@ create policy "manager_insert_own_club" on public.clubs for insert
 El único requisito es que el `id` no sea nulo. Cualquier usuario registrado puede
 insertar clubes con el presupuesto, la división y los puntos que quiera.
 
-### 4.4 Arreglo escrito: `supabase/migrations/014_lock_club_economy.sql`
+### 4.4 Arreglo aplicado: `supabase/migrations/014_lock_club_economy.sql`
 
-**Escrito y commiteado, NO ejecutado** (no tengo acceso a la base; hay que correrlo a
-mano en el SQL Editor). Cubre 4.1, 4.3 y 4.5. Deja 4.2 explícitamente afuera, con el
-motivo documentado en el propio archivo.
+**Ejecutada con éxito en Supabase el 2026-08-03.** Cubre 4.1, 4.3 y 4.5. Deja 4.2
+explícitamente afuera, con el motivo documentado en el propio archivo.
 
 Puntos clave del diseño:
 
 - Sigue el patrón de 006 (trigger, no parche por policy).
-- **No toca ni una línea del cuerpo de los RPC de 011/013.** En vez de agregarles un
-  `set_config`, usa `alter function ... set "app.club_economy_write" = 'on'`: Postgres
-  activa el parámetro al entrar a la función y lo restaura al salir. Menos riesgo de
-  romper la lógica de dinero, y el flag no puede quedar pegado en la sesión.
+- **No toca ni una línea de los RPC de 011/013.** Distingue al RPC legítimo de la
+  escritura directa por el **rol efectivo**: PostgREST ejecuta lo del navegador como
+  `authenticated`, mientras que dentro de un `security definer` (los 4 RPC lo son)
+  `current_user` pasa a ser el dueño, `postgres`.
+- Por eso los triggers son **SECURITY INVOKER** (sin `security definer`): si fueran
+  definer, `current_user` sería siempre el dueño y no distinguirían nada.
 - El trigger **revierte** los campos protegidos en vez de rechazar la escritura, porque
   `useSupabaseTable` manda siempre el objeto completo: si un manager edita el estadio, el
   upsert incluye igual `budget`. Rechazar rompería esa edición legítima.
-- El bloque 4 avisa con `raise warning` si alguna RPC no existe todavía (012/013 pueden
-  no estar corridas). **Si ese aviso aparece, hay que volver a correr el bloque 4 después**,
-  o los traspasos quedan rotos.
-- Incluye consultas de verificación al final para confirmar que el agujero cerró y que
-  los traspasos siguen funcionando.
+
+**Intento fallido previo, documentado para que no se repita:** la primera versión usaba
+`alter function ... set "app.club_economy_write" = 'on'`. Supabase lo rechaza con
+`42501: permission denied to set parameter`, porque su rol `postgres` no es superusuario y
+desde PG15 fijar un parámetro personalizado de forma persistente requiere privilegios
+sobre ese parámetro. El enfoque por rol es además más robusto: no hay un bloque que se
+pueda olvidar de re-aplicar cuando se creen RPC nuevas.
 
 El esquema de la solución, para referencia:
 
@@ -361,8 +364,12 @@ Comprobado, no asumido:
   clases contradictorias o estilos muertos necesita una herramienta dedicada.
 - **Comportamiento en runtime:** no levanté la app ni hice clic en nada. La verificación es
   compilador + tests + build.
-- **La migración `014` no se ejecutó ni se validó sintácticamente.** No hay `psql` ni
-  `docker` en este entorno y no tengo acceso al proyecto Supabase, así que el SQL está
-  revisado a mano, no probado. **Corré primero el bloque 4 y después una compra de prueba**
-  antes de darlo por bueno: si el bloque 4 no encuentra alguna función, los traspasos
-  quedan rotos hasta que se vuelva a aplicar.
+- **La migración `014` corrió sin errores, pero su efecto NO está verificado end-to-end.**
+  Que aplique limpio solo prueba que la sintaxis es válida. Faltan dos pruebas que solo se
+  pueden hacer desde la app:
+  1. **Comprar un jugador** y confirmar que el presupuesto del comprador baja. Esto valida
+     el supuesto central (que dentro de los RPC `current_user` no es `authenticated`).
+     Si fallara, los traspasos dejarían de mover dinero.
+  2. **Intentar el exploit con una sesión de manager común** y confirmar que el presupuesto
+     no cambia. Ojo: desde el SQL Editor se corre como `postgres`, así que ahí el trigger
+     deja pasar a propósito y el valor sí cambia — eso no es un fallo.
