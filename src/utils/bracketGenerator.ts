@@ -51,12 +51,14 @@ export function getSeededClubsForCompetition(
 export interface BracketSlotTeam {
   club: Club | null;
   isWinner: boolean;
+  score?: number;
 }
 
 export interface BracketMatchSlot {
   home: BracketSlotTeam;
   away: BracketSlotTeam;
   status: 'PENDIENTE' | 'CONFIRMADO';
+  match?: MatchResult;
 }
 
 export interface KnockoutBracketData {
@@ -79,8 +81,17 @@ function slotFromMatch(
   const winnerId = isConfirmed && match ? getMatchWinnerClubId(match) : null;
 
   return {
-    home: { club: homeClub, isWinner: isConfirmed && winnerId === homeId },
-    away: { club: awayClub, isWinner: isConfirmed && winnerId === awayId },
+    match,
+    home: {
+      club: homeClub,
+      isWinner: isConfirmed && winnerId === homeId,
+      score: isConfirmed && match ? match.homeGoals : undefined
+    },
+    away: {
+      club: awayClub,
+      isWinner: isConfirmed && winnerId === awayId,
+      score: isConfirmed && match ? match.awayGoals : undefined
+    },
     status: isConfirmed ? 'CONFIRMADO' : 'PENDIENTE'
   };
 }
