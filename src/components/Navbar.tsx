@@ -1,9 +1,8 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useRef } from 'react';
 import { createPortal } from 'react-dom';
-import { MessageSquare, Trophy, Shield, DollarSign, UserPlus, PlusCircle, ShieldCheck, Megaphone, LogOut, Users, Shuffle, ChevronDown, Wallet, Scale, Coins, Gavel, Dice5, Star, Globe, Award, Search, Briefcase } from 'lucide-react';
+import { MessageSquare, Trophy, Shield, DollarSign, UserPlus, PlusCircle, ShieldCheck, Megaphone, LogOut, Shuffle, ChevronDown, Wallet, Scale, Coins, Gavel, Dice5, Star, Globe, Award, Search, Briefcase } from 'lucide-react';
 import { Club, TickerNewsItem, ForumSectionTag } from '../types';
 import { ClubLogo } from './ClubLogo';
-import { CompetitionLogo } from './competitions/CompetitionLogo';
 import { MarkdownToolbar } from './MarkdownToolbar';
 
 interface NavbarProps {
@@ -86,13 +85,6 @@ export const Navbar: React.FC<NavbarProps> = ({
     setShowCompeticionesMenu(false);
     setShowMiClubMenu(false);
   };
-
-  const forumSections: { tag: ForumSectionTag; label: string }[] = [
-    { tag: 'normas', label: 'Normas competiciones' },
-    { tag: 'ganancias', label: 'Ganancias competiciones' },
-    { tag: 'sanciones', label: 'Sanciones' },
-    { tag: 'apuestas', label: 'Apuestas deportivas' }
-  ];
 
   const isCompeticionesActive = activeTab === 'clasificacion' || activeTab === 'fichajes' || activeTab === 'sorteo';
 
@@ -521,7 +513,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                     >
                       <div className="flex items-center gap-2">
                         <ClubLogo
-                          src={club.logoUrl || club.badgeUrl}
+                          src={club.logoUrl}
                           alt={club.name}
                           className="w-7 h-7 object-cover rounded-full border border-slate-200 shrink-0"
                         />

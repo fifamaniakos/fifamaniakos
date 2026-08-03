@@ -78,7 +78,7 @@ interface AdminPanelProps {
   onDeleteClub: (clubId: string) => void;
   onResetAllClubs?: () => void;
   onAddMatchResult: (newMatch: MatchResult) => void;
-  onUpdateMatchResult: (matchId: string, status: 'CONFIRMADO' | 'RECHAZADO' | 'PENDIENTE', homeGoals?: number, awayGoals?: number) => void;
+  onUpdateMatchResult: (matchId: string, status: 'CONFIRMADO' | 'RECHAZADO' | 'PENDIENTE', homeGoals?: number, awayGoals?: number, homeScorers?: string, awayScorers?: string) => void;
   onDeleteMatchResult: (matchId: string) => void;
   onDeleteTopic: (topicId: string) => void;
   onTogglePinTopic: (topicId: string) => void;

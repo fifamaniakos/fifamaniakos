@@ -47,9 +47,6 @@ export function getSeededClubsForCompetition(
   }));
 }
 
-export function getPositionBand(competition: string): [number, number] | undefined {
-  return BRACKET_CONFIG[competition]?.positionBand;
-}
 
 export interface BracketSlotTeam {
   club: Club | null;

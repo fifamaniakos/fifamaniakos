@@ -88,10 +88,29 @@ export interface PlayerStatsAggregate {
   disciplinaryPoints: number;
 }
 
+// La busqueda se hace por cada goleador de cada partido y por cada jugador de
+// cada plantilla, asi que un .find() lineal recorria los ~16.000 registros de
+// SOFIFA (y re-normalizaba cada nombre) en cada llamada. El indice se arma una
+// sola vez, de forma perezosa, para que el costo no se pague si la pantalla de
+// estadisticas nunca se abre.
+let sofifaPlayersByName: Map<string, (typeof SOFIFA_PLAYERS_DATABASE)[number]> | null = null;
+
+const getSofifaIndex = () => {
+  if (!sofifaPlayersByName) {
+    sofifaPlayersByName = new Map();
+    for (const player of SOFIFA_PLAYERS_DATABASE) {
+      const key = player.name.trim().toLowerCase();
+      // El primero gana, igual que el .find() anterior ante nombres repetidos.
+      if (key && !sofifaPlayersByName.has(key)) sofifaPlayersByName.set(key, player);
+    }
+  }
+  return sofifaPlayersByName;
+};
+
 const findSofifaPlayerByName = (name: string) => {
   const normalized = name.trim().toLowerCase();
   if (!normalized) return undefined;
-  return SOFIFA_PLAYERS_DATABASE.find(p => p.name.trim().toLowerCase() === normalized);
+  return getSofifaIndex().get(normalized);
 };
 
 export function computePlayerStatsForCompetition(

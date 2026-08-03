@@ -50,11 +50,6 @@ export const TransferMarket: React.FC<TransferMarketProps> = ({
   const [selectedMarketTransfer, setSelectedMarketTransfer] = useState<TransferItem | null>(null);
   const [marketBuyerClubId, setMarketBuyerClubId] = useState<string>(currentClub?.id || '');
 
-  // Filters for SOFIFA Buscador
-  const [sofifaSearch, setSofifaSearch] = useState('');
-  const [sofifaPosFilter, setSofifaPosFilter] = useState('ALL');
-  const [sofifaClubFilter, setSofifaClubFilter] = useState('ALL');
-
   // Filters for Comprar Jugador de Club
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedClubFilter, setSelectedClubFilter] = useState<string>('ALL');
@@ -196,17 +191,6 @@ export const TransferMarket: React.FC<TransferMarketProps> = ({
 
     setSelectedMarketTransfer(null);
   };
-
-  // Filtered SOFIFA Players
-  const filteredSofifaPlayers = SOFIFA_PLAYERS.filter(sp => {
-    if (sofifaPosFilter !== 'ALL' && sp.position !== sofifaPosFilter) return false;
-    if (sofifaClubFilter !== 'ALL' && sp.clubName !== sofifaClubFilter) return false;
-    if (sofifaSearch.trim()) {
-      const q = sofifaSearch.toLowerCase().trim();
-      return sp.name.toLowerCase().includes(q) || (sp.clubName && sp.clubName.toLowerCase().includes(q)) || sp.nationality.toLowerCase().includes(q);
-    }
-    return true;
-  });
 
   // Filtered clubs for "Traspasos entre Clubes"
   const visibleClubs = clubs.filter(c => selectedClubFilter === 'ALL' || c.id === selectedClubFilter);

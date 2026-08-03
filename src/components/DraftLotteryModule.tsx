@@ -390,7 +390,7 @@ export const DraftLotteryModule: React.FC<DraftLotteryModuleProps> = ({
                     {currentSelectedClub ? (
                       <div className="flex items-center gap-2.5">
                         <ClubLogo
-                          src={currentSelectedClub.logoUrl || currentSelectedClub.badgeUrl}
+                          src={currentSelectedClub.logoUrl}
                           alt={currentSelectedClub.name}
                           className="w-9 h-9 object-cover rounded-full border border-slate-200 shadow-xs shrink-0"
                         />
@@ -439,7 +439,7 @@ export const DraftLotteryModule: React.FC<DraftLotteryModuleProps> = ({
                           >
                             <div className="flex items-center gap-2.5">
                               <ClubLogo
-                                src={c.logoUrl || c.badgeUrl}
+                                src={c.logoUrl}
                                 alt={c.name}
                                 className="w-8 h-8 object-cover rounded-full border border-slate-200 shadow-xs shrink-0"
                               />

@@ -1,11 +1,24 @@
 import React, { useState, useRef } from 'react';
-import { ForumTopic, ForumCategory, ForumReply, Club, ForumSectionTag } from '../types';
-import { MessageSquare, Plus, Eye, Heart, Pin, Share2, Search, CornerDownRight, Shield, User, Image as ImageIcon, ArrowLeft, Clock, Trash2, X, Edit3, Scale, Coins, Gavel, Dice5, Crown } from 'lucide-react';
+import { ForumTopic, ForumCategory, ForumReply, Club } from '../types';
+import { MessageSquare, Plus, Eye, Pin, Search, CornerDownRight, Shield, Image as ImageIcon, ArrowLeft, Clock, Trash2, X, Edit3, Scale, Coins, Gavel, Dice5, Crown } from 'lucide-react';
 import { ImageWithFallback } from './ImageWithFallback';
 import { ClubLogo } from './ClubLogo';
 import { FC27_ADMIN_AVATAR } from '../data/initialData';
 import { MarkdownRenderer } from './MarkdownRenderer';
 import { MarkdownToolbar } from './MarkdownToolbar';
+
+// Fuente unica de color por categoria: antes esto vivia duplicado en el detalle
+// del tema y en el listado, y la copia del detalle seguia comparando contra
+// 'Resultados'/'Fichajes', categorias que ya no existen en ForumCategory, asi
+// que todos los temas se pintaban con el color de fallback.
+const CATEGORY_BADGE_CLASS: Record<ForumCategory, string> = {
+  'Anuncios': 'bg-amber-100 text-amber-800 border border-amber-300',
+  'Normas competiciones': 'bg-blue-100 text-blue-800 border border-blue-300',
+  'Ganancias competiciones': 'bg-amber-100 text-amber-800 border border-amber-300',
+  'Sanciones': 'bg-rose-100 text-rose-800 border border-rose-300',
+  'Apuestas deportivas': 'bg-purple-100 text-purple-800 border border-purple-300',
+  'Quejas y sugerencias': 'bg-slate-100 text-slate-800 border border-slate-300'
+};
 
 const FounderBadge: React.FC<{ className?: string }> = ({ className }) => (
   <span
@@ -30,7 +43,6 @@ interface ForumModuleProps {
   onEditTopic?: (topicId: string, title: string, content: string) => void;
   onEditReply?: (topicId: string, replyId: string, content: string) => void;
   onDeleteReply?: (topicId: string, replyId: string) => void;
-  onOpenForumSection?: (sectionTag: ForumSectionTag) => void;
 }
 
 const CATEGORIES: (ForumCategory | 'Todos')[] = [
@@ -52,8 +64,7 @@ export const ForumModule: React.FC<ForumModuleProps> = ({
   onDeleteTopic,
   onEditTopic,
   onEditReply,
-  onDeleteReply,
-  onOpenForumSection
+  onDeleteReply
 }) => {
   const [selectedCategory, setSelectedCategory] = useState<ForumCategory | 'Todos'>('Todos');
   const [searchQuery, setSearchQuery] = useState('');
@@ -250,12 +261,7 @@ export const ForumModule: React.FC<ForumModuleProps> = ({
             )}
 
             <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 pb-4">
-              <span className={`px-3 py-1 rounded text-xs font-bold font-tech uppercase ${
-                activeTopic.category === 'Anuncios' ? 'bg-amber-100 text-amber-800 border border-amber-300' :
-                activeTopic.category === 'Resultados' ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' :
-                activeTopic.category === 'Fichajes' ? 'bg-purple-100 text-purple-800 border border-purple-300' :
-                'bg-blue-100 text-blue-800 border border-blue-300'
-              }`}>
+              <span className={`px-3 py-1 rounded text-xs font-bold font-tech uppercase ${CATEGORY_BADGE_CLASS[activeTopic.category]}`}>
                 {activeTopic.category}
               </span>
               <div className="flex items-center gap-4 text-xs text-slate-500 font-mono">
@@ -335,7 +341,7 @@ export const ForumModule: React.FC<ForumModuleProps> = ({
                       className="p-3 bg-white border border-slate-200 rounded-xl flex items-center gap-3 hover:border-emerald-400 transition-all shadow-xs"
                     >
                       <ClubLogo
-                        src={club.logoUrl || club.badgeUrl}
+                        src={club.logoUrl}
                         alt={club.name}
                         className="w-10 h-10 object-contain rounded-full bg-white p-0.5 border border-slate-200 shrink-0"
                       />
@@ -543,14 +549,7 @@ export const ForumModule: React.FC<ForumModuleProps> = ({
                           <Pin className="w-3 h-3" /> Fijado
                         </span>
                       )}
-                      <span className={`px-2 py-0.5 rounded text-[10px] font-bold font-tech uppercase ${
-                        topic.category === 'Anuncios' ? 'bg-amber-100 text-amber-800 border border-amber-300' :
-                        topic.category === 'Normas competiciones' ? 'bg-blue-100 text-blue-800 border border-blue-300' :
-                        topic.category === 'Ganancias competiciones' ? 'bg-amber-100 text-amber-800 border border-amber-300' :
-                        topic.category === 'Sanciones' ? 'bg-rose-100 text-rose-800 border border-rose-300' :
-                        topic.category === 'Apuestas deportivas' ? 'bg-purple-100 text-purple-800 border border-purple-300' :
-                        'bg-slate-100 text-slate-800 border border-slate-300'
-                      }`}>
+                      <span className={`px-2 py-0.5 rounded text-[10px] font-bold font-tech uppercase ${CATEGORY_BADGE_CLASS[topic.category]}`}>
                         {topic.category}
                       </span>
                       {topic.imageUrl && (
