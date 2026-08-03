@@ -221,6 +221,15 @@ export default function App() {
   // nada. El estado local ya tenia los jugadores, asi que el sorteo parecia
   // funcionar y se podia repetir indefinidamente, aunque en el servidor no se
   // guardara ninguno. Un rechazo silencioso es peor que un error visible.
+  // La escritura de players es asincrona, asi que releer draft_claims justo
+  // despues de sortear consultaba ANTES de que el trigger hubiera registrado
+  // nada: el boton quedaba habilitado y se podia dar un segundo click, que la
+  // base rechazaba. Releer cuando la plantilla efectivamente llego (por la
+  // respuesta o por Realtime) evita esa ventana.
+  useEffect(() => {
+    refetchDraftClaims();
+  }, [players.length, refetchDraftClaims]);
+
   const dataWriteError = matchesWriteError ?? clubsWriteError ?? playersWriteError;
   const clearDataWriteError = () => {
     clearMatchesWriteError();
