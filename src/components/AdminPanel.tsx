@@ -65,6 +65,8 @@ interface AdminPanelProps {
   tickerNews: TickerNewsItem[];
   currentSeasonNumber: number;
   onSetCurrentSeasonNumber: (n: number) => void;
+  draftOpen: boolean;
+  onSetDraftOpen: (open: boolean) => void;
   division1TeamCount: number;
   division2TeamCount: number;
   onSetDivision1TeamCount: (n: number) => void;
@@ -124,6 +126,8 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
   onLogoutAdmin,
   currentSeasonNumber,
   onSetCurrentSeasonNumber,
+  draftOpen,
+  onSetDraftOpen,
   division1TeamCount,
   division2TeamCount,
   onSetDivision1TeamCount,
@@ -1667,6 +1671,39 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                 </span>
               )}
             </div>
+          </div>
+
+          <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-2">
+            <div className="flex items-center justify-between gap-3">
+              <h3 className="font-display font-bold text-sm text-slate-900 uppercase italic">
+                Ventana del Draft
+              </h3>
+              <span
+                className={`px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase border ${
+                  draftOpen
+                    ? 'bg-emerald-100 text-emerald-800 border-emerald-300'
+                    : 'bg-slate-200 text-slate-600 border-slate-300'
+                }`}
+              >
+                {draftOpen ? 'Abierta' : 'Cerrada'}
+              </span>
+            </div>
+            <p className="text-[11px] text-slate-600 font-tech leading-relaxed">
+              Con la ventana abierta, cada manager puede sortear la plantilla de su club
+              <strong> una sola vez por temporada</strong>. Con la ventana cerrada, nadie
+              puede incorporar jugadores gratis: solo se ficha por el mercado, que cobra.
+              Esto lo hace cumplir la base de datos, no la pantalla.
+            </p>
+            <button
+              onClick={() => onSetDraftOpen(!draftOpen)}
+              className={`px-3.5 py-2 rounded-xl text-xs font-black uppercase transition border shadow-sm ${
+                draftOpen
+                  ? 'bg-rose-600 hover:bg-rose-500 text-white border-rose-400'
+                  : 'bg-[#00ba68] hover:bg-emerald-600 text-white border-emerald-400'
+              }`}
+            >
+              {draftOpen ? 'Cerrar Draft' : 'Abrir Draft'}
+            </button>
           </div>
 
           <div className="p-4 bg-sky-50 border border-sky-200 rounded-xl space-y-2">

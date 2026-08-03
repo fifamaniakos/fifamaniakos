@@ -10,6 +10,7 @@ import confetti from 'canvas-confetti';
 interface DraftLotteryModuleProps {
   registeredClubs: Club[];
   isAdmin?: boolean;
+  draftOpen?: boolean;
   onAssignDraftPlayer?: (registeredClubId: string, playerPreset: SoFifaPlayerPreset) => void;
   onAssignFullSquadDraft?: (registeredClubId: string, playerPresets: SoFifaPlayerPreset[]) => void;
 }
@@ -17,9 +18,14 @@ interface DraftLotteryModuleProps {
 export const DraftLotteryModule: React.FC<DraftLotteryModuleProps> = ({
   registeredClubs,
   isAdmin = false,
+  draftOpen = false,
   onAssignDraftPlayer,
   onAssignFullSquadDraft
 }) => {
+  // Deshabilitar los botones es solo cortesia para no chocar contra un error de
+  // la base: el permiso real lo decide el trigger de la migracion 015.
+  const canDraft = isAdmin || draftOpen;
+
   // Estado del Draft de Jugadores (Top Stats)
   const [minRating, setMinRating] = useState<number>(85);
   const [selectedPosition, setSelectedPosition] = useState<string>('TODAS');
@@ -543,8 +549,8 @@ export const DraftLotteryModule: React.FC<DraftLotteryModuleProps> = ({
 
               <button
                 onClick={handleGenerateFullSquadDraft}
-                disabled={isSpinning}
-                className="w-full bg-gradient-to-r from-emerald-600 via-emerald-500 to-[#00ba68] text-white py-3.5 px-4 rounded-xl text-xs font-black uppercase shadow-lg shadow-emerald-500/20 flex items-center justify-center gap-2 hover:scale-102 transition border border-emerald-400/40"
+                disabled={isSpinning || !canDraft}
+                className="w-full bg-gradient-to-r from-emerald-600 via-emerald-500 to-[#00ba68] text-white py-3.5 px-4 rounded-xl text-xs font-black uppercase shadow-lg shadow-emerald-500/20 flex items-center justify-center gap-2 hover:scale-102 transition border border-emerald-400/40 disabled:opacity-50 disabled:hover:scale-100"
               >
                 <Sparkles className="w-4 h-4 text-amber-300 animate-pulse" />
                 ⚡ Draft Equitativo (22 Jugadores • Máx {maxTopPlayers} Top)
@@ -556,12 +562,19 @@ export const DraftLotteryModule: React.FC<DraftLotteryModuleProps> = ({
 
           <button
             onClick={handleStartPlayerDraw}
-            disabled={isSpinning || availablePlayers.length === 0}
+            disabled={isSpinning || availablePlayers.length === 0 || !canDraft}
             className="w-full fc-button-primary py-3 text-xs font-extrabold uppercase shadow-md flex items-center justify-center gap-2 hover:scale-102 transition disabled:opacity-50"
           >
             <Play className={`w-4 h-4 ${isSpinning ? 'animate-spin' : ''}`} />
             {isSpinning ? 'Sorteando Jugador...' : 'Sortear 1 Jugador Individual'}
           </button>
+
+          {!canDraft && (
+            <p className="text-[11px] text-amber-300 font-tech text-center bg-amber-500/10 border border-amber-500/30 rounded-lg px-3 py-2">
+              El Draft está cerrado. Un administrador tiene que abrirlo desde el Panel para
+              poder repartir plantillas.
+            </p>
+          )}
 
           {/* Insignia / Banner Oficial FIFAMANIAKOS FC 27 para rellenar el espacio inferior */}
           <div className="pt-4 border-t border-slate-100 text-center space-y-2">

@@ -118,6 +118,10 @@ export interface LeagueSettings {
   currentSeasonNumber: number;
   division1TeamCount?: number;
   division2TeamCount?: number;
+  // Mientras esta en true, un manager puede recibir la plantilla del Draft sin
+  // pagarla (una sola vez por temporada). Lo hace cumplir la base en la
+  // migracion 015; este flag es la unica forma de abrir esa ventana.
+  draftOpen?: boolean;
 }
 
 export interface PlayerMatchEvent {

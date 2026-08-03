@@ -159,6 +159,9 @@ export default function App() {
     setLeagueSettings([{ ...currentLeagueSettings, id: 'current', currentSeasonNumber, division1TeamCount: n }]);
   const setDivision2TeamCount = (n: number) =>
     setLeagueSettings([{ ...currentLeagueSettings, id: 'current', currentSeasonNumber, division2TeamCount: n }]);
+  const draftOpen = currentLeagueSettings?.draftOpen ?? false;
+  const setDraftOpen = (open: boolean) =>
+    setLeagueSettings([{ ...currentLeagueSettings, id: 'current', currentSeasonNumber, draftOpen: open }]);
 
   // `clubs` es el catalogo completo (incluye los 234 clubes elegibles al
   // inscribirse); `leagueClubs` son los que realmente juegan la liga: los
@@ -1026,6 +1029,7 @@ export default function App() {
           <DraftLotteryModule
             registeredClubs={isAdminLoggedIn ? clubs : clubs.filter(c => c.id === profile?.club_id)}
             isAdmin={isAdminLoggedIn}
+            draftOpen={draftOpen}
             onAssignDraftPlayer={(clubId, playerPreset) => {
               const newPlayer: Player = {
                 id: `pl-draft-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
@@ -1149,6 +1153,8 @@ export default function App() {
               onLogoutAdmin={handleLogoutAdmin}
               currentSeasonNumber={currentSeasonNumber}
               onSetCurrentSeasonNumber={setCurrentSeasonNumber}
+              draftOpen={draftOpen}
+              onSetDraftOpen={setDraftOpen}
               division1TeamCount={division1TeamCount}
               division2TeamCount={division2TeamCount}
               onSetDivision1TeamCount={setDivision1TeamCount}
