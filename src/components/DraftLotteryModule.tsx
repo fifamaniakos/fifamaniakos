@@ -13,6 +13,8 @@ interface DraftLotteryModuleProps {
   draftOpen?: boolean;
   /** Si el DT de la sesion ya uso su Draft esta temporada (tabla draft_claims). */
   alreadyDrafted?: boolean;
+  /** Borra los Draft usados para que todos puedan volver a sortear. Devuelve el error si falla. */
+  onResetDraftClaims?: () => Promise<string | null>;
   onAssignDraftPlayer?: (registeredClubId: string, playerPreset: SoFifaPlayerPreset) => void;
   onAssignFullSquadDraft?: (registeredClubId: string, playerPresets: SoFifaPlayerPreset[]) => void;
 }
@@ -22,6 +24,7 @@ export const DraftLotteryModule: React.FC<DraftLotteryModuleProps> = ({
   isAdmin = false,
   draftOpen = false,
   alreadyDrafted: alreadyDraftedProp = false,
+  onResetDraftClaims,
   onAssignDraftPlayer,
   onAssignFullSquadDraft
 }) => {
@@ -214,14 +217,29 @@ export const DraftLotteryModule: React.FC<DraftLotteryModuleProps> = ({
     }
   };
 
-  // Reiniciar estado del Draft (solo accesible para Admin)
-  const handleResetDraft = () => {
-    if (confirm('⚠️ ¿Reiniciar todo el historial de Draft y restablecer los bombos de sorteo?')) {
-      setHighlightedPlayer(null);
-      setLastSquadGenerated(null);
-      setLotteryHistory([]);
-      alert('¡El Draft ha sido reiniciado con éxito!');
+  // Reiniciar el Draft (solo Admin).
+  //
+  // Antes esto solo vaciaba el historial en pantalla, asi que decia "reiniciado
+  // con exito" pero ningun DT podia volver a sortear: el limite vive en la
+  // tabla draft_claims (migracion 017), no en este estado local.
+  const handleResetDraft = async () => {
+    if (!confirm('⚠️ ¿Reiniciar el Draft?\n\nSe borra el historial en pantalla y se habilita a TODOS los DT a volver a sortear su plantilla en esta temporada.')) {
+      return;
     }
+
+    setHighlightedPlayer(null);
+    setLastSquadGenerated(null);
+    setLotteryHistory([]);
+
+    if (onResetDraftClaims) {
+      const error = await onResetDraftClaims();
+      if (error) {
+        alert(`Se limpió la pantalla, pero no se pudieron habilitar los Draft: ${error}`);
+        return;
+      }
+    }
+
+    alert('¡El Draft ha sido reiniciado! Todos los DT pueden volver a sortear.');
   };
 
   // Identificar si un jugador es considerado Top Crack Elite

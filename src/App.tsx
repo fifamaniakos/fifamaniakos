@@ -945,28 +945,6 @@ export default function App() {
     setPlayers(prev => [...prev.filter(p => p.clubId !== targetClub.id), ...createdPlayers]);
   };
 
-  // Reset to default data handler
-  const handleResetDemoData = () => {
-    if (confirm('¿Vaciar todos los datos de la Liga FIFAMANIAKOS para empezar desde 0?')) {
-      localStorage.clear();
-      signOut();
-      setClubs([]);
-      setPlayers([]);
-      setTopics([]);
-      setMatches([]);
-      setTransfers([]);
-      setTransactions([]);
-      setTickerNews([
-        {
-          id: `news-${Date.now()}`,
-          text: '🔥 ¡Bienvenido a la Liga Oficial FIFAMANIAKOS FC 27! Sistema iniciado desde cero.',
-          active: true,
-          createdAt: new Date().toLocaleDateString('es-ES')
-        }
-      ]);
-    }
-  };
-
   if (!clubsLoaded) {
     return (
       <div className="min-h-screen bg-slate-100 flex items-center justify-center">
@@ -1077,6 +1055,15 @@ export default function App() {
             alreadyDrafted={draftedIdentities.some(
               c => c.gamertag === profile?.gamertag && c.platform === profile?.platform
             )}
+            onResetDraftClaims={async () => {
+              // La policy "draft_claims_admin_write" (015) solo deja borrar al admin.
+              const { error } = await supabase
+                .from('draft_claims')
+                .delete()
+                .eq('season_number', currentSeasonNumber);
+              await refetchDraftClaims();
+              return error ? error.message : null;
+            }}
             onAssignDraftPlayer={(clubId, playerPreset) => {
               const newPlayer: Player = {
                 id: `pl-draft-${Date.now()}-${Math.floor(Math.random() * 1000)}`,

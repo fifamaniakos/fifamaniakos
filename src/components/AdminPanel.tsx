@@ -79,7 +79,6 @@ interface AdminPanelProps {
   onAddClub: (newClub: Club) => void;
   onUpdateClub: (updatedClub: Club) => void;
   onDeleteClub: (clubId: string) => void;
-  onResetAllClubs?: () => void;
   onAddMatchResult: (newMatch: MatchResult) => void;
   onUpdateMatchResult: (matchId: string, status: 'CONFIRMADO' | 'RECHAZADO' | 'PENDIENTE', homeGoals?: number, awayGoals?: number, homeScorers?: string, awayScorers?: string) => void;
   onDeleteMatchResult: (matchId: string) => void;
@@ -113,7 +112,6 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
   onAddClub,
   onUpdateClub,
   onDeleteClub,
-  onResetAllClubs,
   onAddMatchResult,
   onUpdateMatchResult,
   onDeleteMatchResult,
@@ -902,21 +900,6 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                 <PlusCircle className="w-4 h-4" /> Inscribir Club
               </button>
 
-              <button
-                onClick={() => {
-                  if (confirm('⚠️ ¿DESEAS VACIAR Y RESETEAR TODAS LAS INSCRIPCIONES?\n\nEsta acción eliminará todos los clubes inscritos para empezar desde cero.')) {
-                    if (onResetAllClubs) {
-                      onResetAllClubs();
-                    } else {
-                      clubs.forEach(c => onDeleteClub(c.id));
-                    }
-                  }
-                }}
-                className="px-3.5 py-2 bg-rose-600/90 hover:bg-rose-600 text-white text-xs font-bold font-tech uppercase rounded-xl flex items-center gap-1.5 shadow transition-colors"
-                title="Elimina todas las inscripciones para empezar de nuevo"
-              >
-                <Trash2 className="w-4 h-4" /> Vaciar / Resetear Inscripciones
-              </button>
             </div>
           </div>
 
