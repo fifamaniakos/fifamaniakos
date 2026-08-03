@@ -104,14 +104,23 @@ export default function App() {
   const rawClubsWithSeedData = rawClubs.map(club => {
     const seedClub = initialClubDataById.get(club.id) || initialClubDataByName.get(club.name.toLowerCase());
     const isImportedTop10Club = club.id.startsWith('club-top10-');
+    const isGenericName = !club.name || /^Equipo\s+\d+$/i.test(club.name.trim());
+    const isVacant = !club.manager || club.manager.toLowerCase().includes('vacante') || club.manager.toLowerCase().includes('por inscribir');
+
+    // Restaurar el nombre real del club de catalogo si en Supabase tenia un nombre generico "Equipo N"
+    const name = (seedClub?.name && (isImportedTop10Club || isGenericName || isVacant))
+      ? seedClub.name
+      : club.name;
+
     const logoUrl = isImportedTop10Club
       ? seedClub?.logoUrl || ''
       : (club.logoUrl && club.logoUrl.trim() !== '' ? club.logoUrl : '') ||
-        sofifaClubsByName.get(club.name.toLowerCase()) ||
+        sofifaClubsByName.get(name.toLowerCase()) ||
         seedClub?.logoUrl ||
         '';
     return {
       ...club,
+      name,
       logoUrl,
       country: club.country || seedClub?.country,
       league: club.league || seedClub?.league
