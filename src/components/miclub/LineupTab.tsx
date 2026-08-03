@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Player, Club, TransferItem } from '../../types';
-import { Zap, Trash2, Edit3, Tag, X } from 'lucide-react';
+import { Trash2, Edit3, Tag, X } from 'lucide-react';
 
 interface LineupTabProps {
   currentClub: Club;
@@ -13,13 +13,6 @@ interface LineupTabProps {
   onRemoveFromMarket?: (playerId: string) => void;
 }
 
-const FORMATIONS = [
-  { name: '4-3-3', positions: ['POR', 'LI', 'DFC', 'DFC', 'LD', 'MC', 'MCD', 'MC', 'EI', 'DC', 'ED'] },
-  { name: '4-2-3-1', positions: ['POR', 'LI', 'DFC', 'DFC', 'LD', 'MCD', 'MCD', 'EI', 'MCO', 'ED', 'DC'] },
-  { name: '4-4-2', positions: ['POR', 'LI', 'DFC', 'DFC', 'LD', 'EI', 'MC', 'MC', 'ED', 'DC', 'DC'] },
-  { name: '3-5-2', positions: ['POR', 'DFC', 'DFC', 'DFC', 'MCD', 'MCD', 'EI', 'MCO', 'ED', 'DC', 'DC'] }
-];
-
 export const LineupTab: React.FC<LineupTabProps> = ({
   currentClub,
   players,
@@ -30,8 +23,6 @@ export const LineupTab: React.FC<LineupTabProps> = ({
   onSetTransferPrice,
   onRemoveFromMarket
 }) => {
-  const [formation, setFormation] = useState('4-3-3');
-
   const [transferPriceEditPlayer, setTransferPriceEditPlayer] = useState<Player | null>(null);
   const [newTransferPriceInput, setNewTransferPriceInput] = useState<number>(30000000);
 
@@ -39,198 +30,15 @@ export const LineupTab: React.FC<LineupTabProps> = ({
   const [newValueInput, setNewValueInput] = useState<number>(25000000);
 
   const clubPlayers = players.filter(p => p.clubId === currentClub.id);
-  const starters = clubPlayers.filter(p => p.isStarter);
   const substitutes = clubPlayers.filter(p => !p.isStarter);
 
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Alineación por líneas (2 cols) */}
-        <div className="lg:col-span-2 fc-card rounded-2xl border-slate-200 shadow-md overflow-hidden">
-          <div className="flex flex-wrap justify-between items-center gap-3 bg-slate-950 p-3">
-            <span className="font-display font-bold text-sm text-white uppercase tracking-wider flex items-center gap-2">
-              <Zap className="w-4 h-4 text-[#02f59b]" aria-hidden="true" /> Táctica & Alineación Titular
-            </span>
-
-            <div className="flex items-center gap-2">
-              <label htmlFor="formation-select" className="text-xs text-slate-300 font-tech uppercase">
-                Formación:
-              </label>
-              <select
-                id="formation-select"
-                value={formation}
-                onChange={(e) => setFormation(e.target.value)}
-                className="bg-[#080d0a] text-xs font-bold text-[#02f59b] border border-emerald-500/40 px-2.5 py-1 rounded focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
-              >
-                {FORMATIONS.map(f => (
-                  <option key={f.name} value={f.name}>{f.name}</option>
-                ))}
-              </select>
-            </div>
-          </div>
-
-          {(() => {
-            const elevenStarters = starters.slice(0, 11);
-
-            const gks = elevenStarters.filter(p => ['POR', 'GK'].includes(p.position));
-            const gk = gks[0] || elevenStarters[0];
-            const outfield = elevenStarters.filter(p => p.id !== gk?.id);
-
-            const naturalDefs = outfield.filter(p => ['DFC', 'LD', 'LI', 'CAD', 'CAI'].includes(p.position));
-            const naturalMids = outfield.filter(p => ['MC', 'MCD', 'MCO', 'MI', 'MD'].includes(p.position));
-            const naturalFwds = outfield.filter(p => ['DC', 'EI', 'ED', 'SD'].includes(p.position));
-            const others = outfield.filter(p =>
-              !['DFC', 'LD', 'LI', 'CAD', 'CAI', 'MC', 'MCD', 'MCO', 'MI', 'MD', 'DC', 'EI', 'ED', 'SD'].includes(p.position)
-            );
-
-            let lines: { title: string; players: Player[] }[] = [];
-
-            if (formation === '4-2-3-1') {
-              const lineDEF = naturalDefs.slice(0, 4);
-              const remainingDefs = naturalDefs.slice(4);
-
-              const lineCDM = naturalMids.filter(p => ['MCD', 'MC'].includes(p.position)).slice(0, 2);
-              const usedCdmIds = new Set(lineCDM.map(p => p.id));
-              const remainingMids = naturalMids.filter(p => !usedCdmIds.has(p.id));
-
-              const lineCAM = remainingMids.slice(0, 3);
-              const usedCamIds = new Set(lineCAM.map(p => p.id));
-              const unusedMids = remainingMids.filter(p => !usedCamIds.has(p.id));
-
-              const poolST = [...naturalFwds, ...unusedMids, ...remainingDefs, ...others];
-              const lineST = poolST.slice(0, 1);
-              const usedStId = lineST[0]?.id;
-
-              const unusedPool = poolST.filter(p => p.id !== usedStId);
-
-              while (lineDEF.length < 4 && unusedPool.length > 0) {
-                lineDEF.push(unusedPool.pop()!);
-              }
-
-              lines = [
-                { title: 'Delantero Centro (1)', players: lineST },
-                { title: 'Medias Puntas / Extremos (3)', players: lineCAM },
-                { title: 'Pivotes Defensivos (2)', players: lineCDM },
-                { title: 'Defensas (4)', players: lineDEF },
-                { title: 'Portero (1)', players: gk ? [gk] : [] }
-              ];
-            } else {
-              let targetCounts = { fwds: 3, mids: 3, defs: 4 };
-              if (formation === '4-4-2') targetCounts = { fwds: 2, mids: 4, defs: 4 };
-              if (formation === '3-5-2') targetCounts = { fwds: 2, mids: 5, defs: 3 };
-
-              let lineDEF = naturalDefs.slice(0, targetCounts.defs);
-              let remDefs = naturalDefs.slice(targetCounts.defs);
-
-              let lineFWD = naturalFwds.slice(0, targetCounts.fwds);
-              let remFwds = naturalFwds.slice(targetCounts.fwds);
-
-              let lineMID = [...naturalMids, ...remFwds, ...others];
-
-              while (lineDEF.length < targetCounts.defs && remDefs.length > 0) {
-                lineDEF.push(remDefs.shift()!);
-              }
-              while (lineFWD.length < targetCounts.fwds && lineMID.length > targetCounts.mids) {
-                lineFWD.push(lineMID.pop()!);
-              }
-
-              lines = [
-                { title: 'Delanteros', players: lineFWD },
-                { title: 'Mediocampistas', players: lineMID.slice(0, targetCounts.mids) },
-                { title: 'Defensas', players: lineDEF },
-                { title: 'Portero', players: gk ? [gk] : [] }
-              ];
-            }
-
-            const renderCard = (player: Player) => {
-              const transferItem = transfers.find(t => (t.player.id === player.id || t.player.name === player.name) && t.status === 'DISPONIBLE');
-              return (
-                <div
-                  key={player.id}
-                  onClick={() => onToggleStarter(player.id)}
-                  className="relative group cursor-pointer transition-all hover:scale-105 hover:z-30"
-                >
-                  <div className={`p-1.5 rounded-xl text-center shadow-lg border transition-all ${
-                    player.cardType === 'Special' ? 'fc-special-card text-black border-amber-300' :
-                    player.cardType === 'Gold' ? 'fc-gold-card text-black border-amber-400' :
-                    'bg-slate-900 border-slate-700 text-white'
-                  }`}>
-                    <div className="flex justify-between items-center font-display font-extrabold text-[10px] px-1">
-                      <span className="text-xs font-mono leading-none">{player.rating}</span>
-                      <span className="uppercase text-[9px] bg-black/40 text-white px-1 py-0.5 rounded">{player.position}</span>
-                    </div>
-
-                    <div className="w-10 h-10 rounded-lg bg-black/20 border border-black/30 mx-auto my-1 flex items-center justify-center overflow-hidden shadow-inner relative">
-                      {player.photoUrl ? (
-                        <img
-                          src={player.photoUrl}
-                          alt={player.name}
-                          className="w-full h-full object-cover rounded-lg"
-                          onError={(e) => {
-                            (e.target as HTMLElement).style.display = 'none';
-                          }}
-                        />
-                      ) : (
-                        <span className="font-display font-black text-xs">{player.position}</span>
-                      )}
-                    </div>
-
-                    {/* Hereda el color de la carta: en las oscuras un
-                        text-slate-950 quedaba negro sobre negro. */}
-                    <h4 className="font-display font-extrabold text-[10px] truncate uppercase tracking-tight">
-                      {player.name}
-                    </h4>
-
-                    {transferItem && (
-                      <div className="mt-0.5 bg-amber-400 text-slate-950 font-display font-black text-[8px] px-1 py-0.2 rounded shadow uppercase truncate">
-                        🏷️ €{(transferItem.askingPrice / 1000000).toFixed(1)}M
-                      </div>
-                    )}
-                  </div>
-                  <span className="absolute -top-1 -right-1 bg-rose-600 text-white text-[8px] px-1 rounded font-bold opacity-0 group-hover:opacity-100 transition-opacity z-40">
-                    Banca
-                  </span>
-                </div>
-              );
-            };
-
-            return (
-              <div className="p-4 md:p-5">
-                {starters.length === 0 ? (
-                  <div className="text-center py-12 px-4 text-slate-500 font-tech bg-slate-50 rounded-xl border border-slate-200">
-                    No hay titulares asignados. Haz clic en los jugadores de la derecha para llenar el 11 titular.
-                  </div>
-                ) : (
-                  <div className="divide-y divide-slate-100">
-                    {/* Una fila por linea; las vacias se saltean para no dejar
-                        huecos cuando el 11 esta incompleto. */}
-                    {lines
-                      .filter(line => line.players.length > 0)
-                      .map(line => (
-                        <div key={line.title} className="py-3 first:pt-0 last:pb-0">
-                          <p className="font-tech text-[11px] font-bold uppercase tracking-widest text-slate-400 mb-2">
-                            {line.title}
-                          </p>
-                          <div className="flex flex-wrap gap-2 sm:gap-3">
-                            {line.players.map(player => (
-                              <div key={player.id} className="w-[104px] sm:w-28">
-                                {renderCard(player)}
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      ))}
-                  </div>
-                )}
-              </div>
-            );
-          })()}
-        </div>
-
-        {/* Squad Roster List / Substitutes (1 col) */}
         <div className="fc-card p-5 rounded-2xl border-slate-200 space-y-4 shadow-md">
           <h3 className="font-display font-bold text-lg uppercase text-slate-900 flex items-center justify-between border-b border-slate-200 pb-2">
-            <span>Suplentes & Plantilla ({substitutes.length})</span>
+            {/* La lista muestra toda la plantilla, no solo los suplentes: el
+                contador iba con substitutes.length y no coincidia con las filas. */}
+            <span>Plantilla ({clubPlayers.length}) · {substitutes.length} suplentes</span>
             <span className="text-xs text-slate-500 font-tech">Haz clic para alternar titular</span>
           </h3>
 
@@ -359,7 +167,6 @@ export const LineupTab: React.FC<LineupTabProps> = ({
             })}
           </div>
         </div>
-      </div>
 
       {/* MODAL: Precio de Traspaso (une Cláusula + Vender en un solo paso) */}
       {transferPriceEditPlayer && (
