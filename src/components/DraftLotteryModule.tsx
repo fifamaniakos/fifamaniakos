@@ -11,6 +11,8 @@ interface DraftLotteryModuleProps {
   registeredClubs: Club[];
   isAdmin?: boolean;
   draftOpen?: boolean;
+  /** Clubes que ya usaron su Draft esta temporada (tabla draft_claims). */
+  draftedClubIds?: string[];
   onAssignDraftPlayer?: (registeredClubId: string, playerPreset: SoFifaPlayerPreset) => void;
   onAssignFullSquadDraft?: (registeredClubId: string, playerPresets: SoFifaPlayerPreset[]) => void;
 }
@@ -19,12 +21,10 @@ export const DraftLotteryModule: React.FC<DraftLotteryModuleProps> = ({
   registeredClubs,
   isAdmin = false,
   draftOpen = false,
+  draftedClubIds = [],
   onAssignDraftPlayer,
   onAssignFullSquadDraft
 }) => {
-  // Deshabilitar los botones es solo cortesia para no chocar contra un error de
-  // la base: el permiso real lo decide el trigger de la migracion 015.
-  const canDraft = isAdmin || draftOpen;
 
   // Estado del Draft de Jugadores (Top Stats)
   const [minRating, setMinRating] = useState<number>(85);
@@ -37,6 +37,12 @@ export const DraftLotteryModule: React.FC<DraftLotteryModuleProps> = ({
 
   const [targetManagerId, setTargetManagerId] = useState<string>(registeredClubs[0]?.id || '');
   const [assignedDTName, setAssignedDTName] = useState<string>('');
+
+  // Bloquear los botones es cortesia para no chocar contra un rechazo de la
+  // base: la regla real la hace cumplir el trigger de la migracion 016. El
+  // admin queda exento porque es quien rehace plantillas.
+  const alreadyDrafted = !isAdmin && draftedClubIds.includes(targetManagerId);
+  const canDraft = isAdmin || (draftOpen && !alreadyDrafted);
 
   useEffect(() => {
     if (registeredClubs.length > 0 && !targetManagerId) {
@@ -571,8 +577,9 @@ export const DraftLotteryModule: React.FC<DraftLotteryModuleProps> = ({
 
           {!canDraft && (
             <p className="text-[11px] text-amber-300 font-tech text-center bg-amber-500/10 border border-amber-500/30 rounded-lg px-3 py-2">
-              El Draft está cerrado. Un administrador tiene que abrirlo desde el Panel para
-              poder repartir plantillas.
+              {alreadyDrafted
+                ? 'Este club ya usó su Draft en esta temporada. Para incorporar jugadores, usá el mercado de fichajes.'
+                : 'El Draft está cerrado. Un administrador tiene que abrirlo desde el Panel para poder repartir plantillas.'}
             </p>
           )}
 

@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Navbar } from './components/Navbar';
 import { ForumModule } from './components/ForumModule';
 import { InscripcionesModule } from './components/InscripcionesModule';
@@ -156,6 +156,23 @@ export default function App() {
   const draftOpen = currentLeagueSettings?.draftOpen ?? false;
   const setDraftOpen = (open: boolean) =>
     setLeagueSettings([{ ...currentLeagueSettings, id: 'current', currentSeasonNumber, draftOpen: open }]);
+
+  // Que club ya uso su Draft esta temporada. La regla la hace cumplir la base
+  // (trigger de la migracion 016); esto es solo para poder deshabilitar el boton
+  // en vez de dejar que el usuario sortee y recien ahi reciba un rechazo.
+  // No usa useSupabaseTable porque draft_claims no tiene el formato key/data.
+  const [draftedClubIds, setDraftedClubIds] = useState<string[]>([]);
+  const refetchDraftClaims = useCallback(async () => {
+    const { data } = await supabase
+      .from('draft_claims')
+      .select('club_id')
+      .eq('season_number', currentSeasonNumber);
+    if (data) setDraftedClubIds(data.map((row: { club_id: string }) => row.club_id));
+  }, [currentSeasonNumber]);
+
+  useEffect(() => {
+    refetchDraftClaims();
+  }, [refetchDraftClaims]);
 
   // `clubs` es el catalogo completo (incluye los 234 clubes elegibles al
   // inscribirse); `leagueClubs` son los que realmente juegan la liga: los
@@ -1036,6 +1053,7 @@ export default function App() {
             registeredClubs={isAdminLoggedIn ? clubs : clubs.filter(c => c.id === profile?.club_id)}
             isAdmin={isAdminLoggedIn}
             draftOpen={draftOpen}
+            draftedClubIds={draftedClubIds}
             onAssignDraftPlayer={(clubId, playerPreset) => {
               const newPlayer: Player = {
                 id: `pl-draft-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
@@ -1050,6 +1068,7 @@ export default function App() {
                 isStarter: false
               };
               setPlayers(prev => [newPlayer, ...prev]);
+              refetchDraftClaims();
             }}
             onAssignFullSquadDraft={(clubId, playerPresets) => {
               const newSquad: Player[] = playerPresets.map((preset, idx) => ({
@@ -1065,6 +1084,9 @@ export default function App() {
                 isStarter: idx < 11
               }));
               setPlayers(prev => [...prev.filter(p => p.clubId !== clubId), ...newSquad]);
+              // El trigger crea el registro recien al insertar, asi que hay que
+              // releerlo para que el boton quede bloqueado sin recargar.
+              refetchDraftClaims();
             }}
           />
         )}
