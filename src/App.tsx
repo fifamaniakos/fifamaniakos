@@ -620,7 +620,7 @@ export default function App() {
       if (!isSingleCompetition) return;
     }
 
-    let newMatches: MatchResult[] = [];
+    let newMatches: MatchResult[];
     if (competitionName && competitionName !== 'TODAS') {
       const compClubs = leagueClubs.filter(
         competitionName === '2da División' ? isDivision2Club : isDivision1Club

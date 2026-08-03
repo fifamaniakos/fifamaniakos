@@ -14,7 +14,7 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content, cla
   const renderFormattedInlineText = (text: string): React.ReactNode[] => {
     // Helper to parse inline markdown (bold, italic, code, links, strikethrough)
     const elements: React.ReactNode[] = [];
-    let remaining = text;
+    const remaining = text;
     let keyIndex = 0;
 
     // Pattern for inline elements:

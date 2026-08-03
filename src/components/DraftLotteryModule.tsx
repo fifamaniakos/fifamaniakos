@@ -19,6 +19,122 @@ interface DraftLotteryModuleProps {
   onAssignFullSquadDraft?: (registeredClubId: string, playerPresets: SoFifaPlayerPreset[]) => void;
 }
 
+// Extraido de un IIFE que llamaba hooks (useState/useRef/useEffect) dentro de
+// un callback dentro del JSX de DraftLotteryModule: violaba react-hooks/rules-of-hooks.
+// Mismo JSX y logica, solo movido a un componente propio para que los hooks
+// esten en el nivel superior de una funcion de componente real.
+const ManagerDropdownSelector: React.FC<{
+  registeredClubs: Club[];
+  targetManagerId: string;
+  setTargetManagerId: (id: string) => void;
+}> = ({ registeredClubs, targetManagerId, setTargetManagerId }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const dropdownRef = React.useRef<HTMLDivElement>(null);
+  const currentSelectedClub = registeredClubs.find(c => c.id === targetManagerId) || registeredClubs[0];
+
+  // Cerrar dropdown al hacer click afuera
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  return (
+    <div className="relative" ref={dropdownRef}>
+      {/* Botón Principal Custom (Tarjeta) */}
+      <div
+        onClick={() => setIsOpen(!isOpen)}
+        className={`flex items-center justify-between p-2.5 bg-slate-50 border rounded-xl shadow-xs transition-all cursor-pointer ${
+          isOpen ? 'border-emerald-500 ring-2 ring-emerald-500/20 bg-white' : 'border-slate-300 hover:border-emerald-400 hover:bg-slate-100/80'
+        }`}
+      >
+        {currentSelectedClub ? (
+          <div className="flex items-center gap-2.5">
+            <ClubLogo
+              src={currentSelectedClub.logoUrl}
+              alt={currentSelectedClub.name}
+              className="w-9 h-9 object-cover rounded-full border border-slate-200 shadow-xs shrink-0"
+            />
+            <div className="leading-tight">
+              <div className="flex items-center gap-1.5">
+                <span className="font-extrabold text-xs text-slate-900 uppercase tracking-tight">
+                  {currentSelectedClub.name || 'Sin equipo'}
+                </span>
+                {currentSelectedClub.platform && (
+                  <span className="px-1.5 py-0.2 bg-emerald-100 text-emerald-800 text-[9px] font-black rounded font-mono">
+                    {currentSelectedClub.platform}
+                  </span>
+                )}
+              </div>
+              <div className="text-[11px] text-slate-500 font-mono mt-0.5">
+                ${((currentSelectedClub.budget || 0) / 1000000).toFixed(1)}M • <span className="text-emerald-700 font-bold">@{currentSelectedClub.manager}</span>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <span className="text-xs text-slate-500 font-bold">Seleccionar Club...</span>
+        )}
+
+        <div className={`p-1.5 rounded-lg transition-transform duration-200 ${isOpen ? 'rotate-180 bg-emerald-100 text-emerald-800' : 'bg-slate-200/60 text-slate-600'}`}>
+          <ChevronDown className="w-4 h-4" />
+        </div>
+      </div>
+
+      {/* Menú Desplegable Custom */}
+      {isOpen && (
+        <div className="absolute top-full left-0 right-0 mt-1.5 bg-white border border-slate-200 rounded-xl shadow-2xl z-50 max-h-64 overflow-y-auto divide-y divide-slate-100 p-1.5 animate-in fade-in slide-in-from-top-2 duration-150">
+          {registeredClubs.map(c => {
+            const isSelected = c.id === targetManagerId;
+            return (
+              <div
+                key={c.id}
+                onClick={() => {
+                  setTargetManagerId(c.id);
+                  setIsOpen(false);
+                }}
+                className={`flex items-center justify-between p-2 rounded-lg cursor-pointer transition-all ${
+                  isSelected
+                    ? 'bg-emerald-50 text-emerald-950 font-bold border border-emerald-200'
+                    : 'hover:bg-slate-50 text-slate-800'
+                }`}
+              >
+                <div className="flex items-center gap-2.5">
+                  <ClubLogo
+                    src={c.logoUrl}
+                    alt={c.name}
+                    className="w-8 h-8 object-cover rounded-full border border-slate-200 shadow-xs shrink-0"
+                  />
+                  <div className="leading-tight">
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-xs font-bold uppercase">{c.name || 'Sin equipo'}</span>
+                      {c.platform && (
+                        <span className="px-1 py-0.2 bg-slate-200 text-slate-700 text-[8px] font-black rounded font-mono">
+                          {c.platform}
+                        </span>
+                      )}
+                    </div>
+                    <div className="text-[10px] text-slate-500 font-mono">
+                      ${((c.budget || 0) / 1000000).toFixed(1)}M • <span className="text-emerald-700 font-bold">@{c.manager}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {isSelected && (
+                  <CheckCircle className="w-4 h-4 text-emerald-600 shrink-0" />
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+};
+
 export const DraftLotteryModule: React.FC<DraftLotteryModuleProps> = ({
   registeredClubs,
   isAdmin = false,
@@ -396,113 +512,11 @@ export const DraftLotteryModule: React.FC<DraftLotteryModuleProps> = ({
               <Users className="w-3.5 h-3.5 text-slate-500" /> Seleccionar DT / Participante ({registeredClubs.length})
             </label>
 
-            {(() => {
-              const [isOpen, setIsOpen] = useState(false);
-              const dropdownRef = React.useRef<HTMLDivElement>(null);
-              const currentSelectedClub = registeredClubs.find(c => c.id === targetManagerId) || registeredClubs[0];
-
-              // Cerrar dropdown al hacer click afuera
-              useEffect(() => {
-                const handleClickOutside = (e: MouseEvent) => {
-                  if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
-                    setIsOpen(false);
-                  }
-                };
-                document.addEventListener('mousedown', handleClickOutside);
-                return () => document.removeEventListener('mousedown', handleClickOutside);
-              }, []);
-
-              return (
-                <div className="relative" ref={dropdownRef}>
-                  {/* Botón Principal Custom (Tarjeta) */}
-                  <div
-                    onClick={() => setIsOpen(!isOpen)}
-                    className={`flex items-center justify-between p-2.5 bg-slate-50 border rounded-xl shadow-xs transition-all cursor-pointer ${
-                      isOpen ? 'border-emerald-500 ring-2 ring-emerald-500/20 bg-white' : 'border-slate-300 hover:border-emerald-400 hover:bg-slate-100/80'
-                    }`}
-                  >
-                    {currentSelectedClub ? (
-                      <div className="flex items-center gap-2.5">
-                        <ClubLogo
-                          src={currentSelectedClub.logoUrl}
-                          alt={currentSelectedClub.name}
-                          className="w-9 h-9 object-cover rounded-full border border-slate-200 shadow-xs shrink-0"
-                        />
-                        <div className="leading-tight">
-                          <div className="flex items-center gap-1.5">
-                            <span className="font-extrabold text-xs text-slate-900 uppercase tracking-tight">
-                              {currentSelectedClub.name || 'Sin equipo'}
-                            </span>
-                            {currentSelectedClub.platform && (
-                              <span className="px-1.5 py-0.2 bg-emerald-100 text-emerald-800 text-[9px] font-black rounded font-mono">
-                                {currentSelectedClub.platform}
-                              </span>
-                            )}
-                          </div>
-                          <div className="text-[11px] text-slate-500 font-mono mt-0.5">
-                            ${((currentSelectedClub.budget || 0) / 1000000).toFixed(1)}M • <span className="text-emerald-700 font-bold">@{currentSelectedClub.manager}</span>
-                          </div>
-                        </div>
-                      </div>
-                    ) : (
-                      <span className="text-xs text-slate-500 font-bold">Seleccionar Club...</span>
-                    )}
-
-                    <div className={`p-1.5 rounded-lg transition-transform duration-200 ${isOpen ? 'rotate-180 bg-emerald-100 text-emerald-800' : 'bg-slate-200/60 text-slate-600'}`}>
-                      <ChevronDown className="w-4 h-4" />
-                    </div>
-                  </div>
-
-                  {/* Menú Desplegable Custom */}
-                  {isOpen && (
-                    <div className="absolute top-full left-0 right-0 mt-1.5 bg-white border border-slate-200 rounded-xl shadow-2xl z-50 max-h-64 overflow-y-auto divide-y divide-slate-100 p-1.5 animate-in fade-in slide-in-from-top-2 duration-150">
-                      {registeredClubs.map(c => {
-                        const isSelected = c.id === targetManagerId;
-                        return (
-                          <div
-                            key={c.id}
-                            onClick={() => {
-                              setTargetManagerId(c.id);
-                              setIsOpen(false);
-                            }}
-                            className={`flex items-center justify-between p-2 rounded-lg cursor-pointer transition-all ${
-                              isSelected
-                                ? 'bg-emerald-50 text-emerald-950 font-bold border border-emerald-200'
-                                : 'hover:bg-slate-50 text-slate-800'
-                            }`}
-                          >
-                            <div className="flex items-center gap-2.5">
-                              <ClubLogo
-                                src={c.logoUrl}
-                                alt={c.name}
-                                className="w-8 h-8 object-cover rounded-full border border-slate-200 shadow-xs shrink-0"
-                              />
-                              <div className="leading-tight">
-                                <div className="flex items-center gap-1.5">
-                                  <span className="text-xs font-bold uppercase">{c.name || 'Sin equipo'}</span>
-                                  {c.platform && (
-                                    <span className="px-1 py-0.2 bg-slate-200 text-slate-700 text-[8px] font-black rounded font-mono">
-                                      {c.platform}
-                                    </span>
-                                  )}
-                                </div>
-                                <div className="text-[10px] text-slate-500 font-mono">
-                                  ${((c.budget || 0) / 1000000).toFixed(1)}M • <span className="text-emerald-700 font-bold">@{c.manager}</span>
-                                </div>
-                              </div>
-                            </div>
-
-                            {isSelected && (
-                              <CheckCircle className="w-4 h-4 text-emerald-600 shrink-0" />
-                            )}
-                          </div>
-                        );
-                      })}
-                    </div>
-                  )}
-                </div>
-              );
-            })()}
+            <ManagerDropdownSelector
+              registeredClubs={registeredClubs}
+              targetManagerId={targetManagerId}
+              setTargetManagerId={setTargetManagerId}
+            />
           </div>
 
           <div className="space-y-4 pt-2 border-t border-slate-100">
