@@ -42,7 +42,11 @@ export const DraftLotteryModule: React.FC<DraftLotteryModuleProps> = ({
   // base: la regla real la hace cumplir el trigger de la migracion 016. El
   // admin queda exento porque es quien rehace plantillas.
   const alreadyDrafted = !isAdmin && alreadyDraftedProp;
-  const canDraft = isAdmin || (draftOpen && !alreadyDrafted);
+  // Sin club destino, el insert sale con clubId vacio y la base lo rechaza con
+  // un error de RLS que no le dice nada al usuario. Pasa cuando la sesion
+  // quedo con un club viejo (ej: el admin le cambio el club al manager).
+  const missingClub = !targetManagerId;
+  const canDraft = !missingClub && (isAdmin || (draftOpen && !alreadyDrafted));
 
   useEffect(() => {
     if (registeredClubs.length > 0 && !targetManagerId) {
@@ -577,9 +581,11 @@ export const DraftLotteryModule: React.FC<DraftLotteryModuleProps> = ({
 
           {!canDraft && (
             <p className="text-[11px] text-amber-300 font-tech text-center bg-amber-500/10 border border-amber-500/30 rounded-lg px-3 py-2">
-              {alreadyDrafted
-                ? 'Ya usaste tu Draft en esta temporada. Para incorporar jugadores, usá el mercado de fichajes.'
-                : 'El Draft está cerrado. Un administrador tiene que abrirlo desde el Panel para poder repartir plantillas.'}
+              {missingClub
+                ? 'Tu sesión no tiene un club asignado. Cerrá sesión y volvé a entrar para actualizarla.'
+                : alreadyDrafted
+                  ? 'Ya usaste tu Draft en esta temporada. Para incorporar jugadores, usá el mercado de fichajes.'
+                  : 'El Draft está cerrado. Un administrador tiene que abrirlo desde el Panel para poder repartir plantillas.'}
             </p>
           )}
 

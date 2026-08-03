@@ -357,9 +357,12 @@ export default function App() {
 
   const handleLogoutAdmin = () => {
     signOut();
-    if (activeTab === 'admin') {
-      setActiveTab('foro');
-    }
+    // Al salir se vuelve al foro y se abre el login: quedarse en una pestana
+    // como 'plantilla' o 'admin' sin sesion mostraba una pantalla que ya no
+    // corresponde al usuario. Ademas, entrar de nuevo recarga el perfil, asi
+    // que no queda cacheado un club viejo de la sesion anterior.
+    setActiveTab('foro');
+    setIsAdminModalOpen(true);
   };
 
   // Ticker News Handlers
