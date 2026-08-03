@@ -35,6 +35,7 @@ import {
   ToggleRight,
   Sparkles,
   Globe,
+  AlertTriangle,
   Users,
   Handshake
 } from 'lucide-react';
@@ -188,6 +189,44 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
     }
     if (parsed === currentSeasonNumber) return;
     onSetCurrentSeasonNumber(parsed);
+  };
+
+  // Reinicio total de la liga. El borrado lo hace la RPC admin_reset_league
+  // (migracion 020) en una sola transaccion: hacerlo tabla por tabla desde
+  // aca quedaria sujeto a RLS y podria cortarse por la mitad.
+  const [resetConfirmText, setResetConfirmText] = useState('');
+  const [isResetting, setIsResetting] = useState(false);
+  const [resetResult, setResetResult] = useState<string | null>(null);
+
+  const handleResetLeague = async () => {
+    if (resetConfirmText !== 'REINICIAR' || isResetting) return;
+    setIsResetting(true);
+    setResetResult(null);
+
+    const { data, error } = await supabase.rpc('admin_reset_league', {
+      p_confirmacion: 'REINICIAR'
+    });
+
+    if (error) {
+      setResetResult(`No se pudo reiniciar: ${error.message}`);
+      setIsResetting(false);
+      return;
+    }
+
+    const resumen = data as Record<string, number> | null;
+    setResetResult(
+      resumen
+        ? `Listo. Partidos: ${resumen.partidos_borrados} · Jugadores: ${resumen.jugadores_borrados} · ` +
+          `Transacciones: ${resumen.transacciones_borradas} · Fichajes: ${resumen.fichajes_borrados} · ` +
+          `Cuentas: ${resumen.cuentas_borradas} · Clubes liberados: ${resumen.clubes_liberados}. Recargando...`
+        : 'Listo. Recargando...'
+    );
+    setResetConfirmText('');
+
+    // Se recarga la pagina entera: despues de vaciar casi todas las tablas, es
+    // mas confiable volver a levantar el estado desde cero que ir refrescando
+    // hook por hook.
+    setTimeout(() => window.location.reload(), 1500);
   };
 
   const [managers, setManagers] = useState<ManagerRow[]>([]);
@@ -1704,6 +1743,45 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
             >
               {draftOpen ? 'Cerrar Draft' : 'Abrir Draft'}
             </button>
+          </div>
+
+          <div className="p-4 bg-rose-50 border-2 border-rose-300 rounded-xl space-y-3">
+            <h3 className="font-display font-bold text-sm text-rose-900 uppercase italic flex items-center gap-2">
+              <AlertTriangle className="w-4 h-4" /> Zona de peligro — Reiniciar la liga
+            </h3>
+            <p className="text-[11px] text-rose-900 font-tech leading-relaxed">
+              Borra <strong>todo</strong> y deja la liga como el día cero: actas, jornadas,
+              goleadores, tarjetas, plantillas, mercado de fichajes, movimientos de dinero y
+              las cuentas de los managers. Los clubes se conservan pero quedan libres, con
+              presupuesto inicial y la tabla en cero.
+            </p>
+            <p className="text-[11px] text-rose-900 font-tech leading-relaxed">
+              No se borran tu cuenta de admin ni la del fundador, ni el foro. <strong>Esto no
+              se puede deshacer.</strong>
+            </p>
+
+            {resetResult && (
+              <div className="p-2.5 bg-white border border-rose-200 rounded-lg text-[11px] font-mono text-rose-900">
+                {resetResult}
+              </div>
+            )}
+
+            <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+              <input
+                type="text"
+                value={resetConfirmText}
+                onChange={(e) => setResetConfirmText(e.target.value)}
+                placeholder="Escribí REINICIAR"
+                className="px-3 py-2 bg-white border border-rose-300 rounded-lg text-xs font-bold text-rose-900 placeholder:text-rose-300 focus:outline-none focus:border-rose-500"
+              />
+              <button
+                onClick={handleResetLeague}
+                disabled={resetConfirmText !== 'REINICIAR' || isResetting}
+                className="px-3.5 py-2 bg-rose-600 hover:bg-rose-700 disabled:bg-slate-300 disabled:cursor-not-allowed text-white rounded-xl text-xs font-black uppercase transition border border-rose-500 disabled:border-slate-300 shadow-sm"
+              >
+                {isResetting ? 'Reiniciando...' : 'Reiniciar todo'}
+              </button>
+            </div>
           </div>
 
           <div className="p-4 bg-sky-50 border border-sky-200 rounded-xl space-y-2">
