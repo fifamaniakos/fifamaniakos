@@ -189,6 +189,33 @@ Un tercer detalle que habría sido un bug silencioso: en un `BEFORE INSERT` las 
 generadas todavía no están calculadas, así que el trigger lee `data->>'clubId'` y no
 `new.club_id` (que sería `NULL`).
 
+**015 salió mal y hubo que corregirla en `016`.** El trigger se declaró `security definer`
+(necesitaba escribir en `draft_claims`), pero dentro de una función `security definer`
+`current_user` pasa a ser el dueño (`postgres`), así que la guarda
+`if current_user not in ('authenticated','anon') then return new` se cumplía **siempre** y
+el trigger salía sin hacer nada. Falló en silencio permitiendo todo, que es el peor modo de
+fallo para un control de seguridad. `016` separa responsabilidades: el trigger vuelve a ser
+SECURITY INVOKER y la escritura privilegiada queda en el helper `claim_draft()`.
+
+**Verificado (2026-08-03)** simulando una sesión de manager desde el SQL Editor, sin
+depender de con qué cuenta esté abierta la app:
+
+```sql
+begin;
+select set_config('request.jwt.claims',
+  json_build_object('sub', (select user_id from public.managers where club_id = '<club>' limit 1),
+                    'role','authenticated')::text, true);
+set local role authenticated;
+insert into public.players (key, data) values ('test', jsonb_build_object('clubId','<club>'));
+rollback;
+```
+
+Resultado: `ERROR 23514: Este club ya uso su Draft en la temporada 1.` — el control actúa.
+
+Nota sobre cómo probarlo: **el admin sí puede sortear ilimitadamente**, por diseño (es quien
+rehace plantillas). Probar el límite con una sesión de admin da un falso negativo; hay que
+usar una cuenta de manager real o la simulación de arriba.
+
 ### 4.3 ALTO — Cualquier autenticado puede crear clubes arbitrarios
 
 ```sql
