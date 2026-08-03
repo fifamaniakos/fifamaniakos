@@ -1,16 +1,23 @@
 import React, { useState, useMemo } from 'react';
 import { SOFIFA_PLAYERS_DATABASE, SoFifaPlayerPreset } from '../data/sofifaPlayersDatabase';
-import { Search, Filter, Shield, User, Sparkles, Award, ChevronLeft, ChevronRight, Zap } from 'lucide-react';
+import { Search, Filter, Shield, User, Sparkles, Award, ChevronLeft, ChevronRight, Zap, RotateCcw, SlidersHorizontal, X } from 'lucide-react';
 import { Club, Player } from '../types';
 
 interface SofifaPlayersExplorerProps {
   currentClub?: Club | null;
   onSignPlayer?: (playerPreset: SoFifaPlayerPreset) => void;
+  signedPlayers?: Player[];
+  // Cuando se usa embebido dentro de otra pantalla que ya tiene su propio
+  // banner (ej: Mercado de Fichajes), se oculta el banner propio para no
+  // mostrar dos carteles apilados diciendo básicamente lo mismo.
+  compact?: boolean;
 }
 
 export const SofifaPlayersExplorer: React.FC<SofifaPlayersExplorerProps> = ({
   currentClub,
-  onSignPlayer
+  onSignPlayer,
+  signedPlayers = [],
+  compact = false
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedPosition, setSelectedPosition] = useState<string>('');
@@ -65,45 +72,132 @@ export const SofifaPlayersExplorer: React.FC<SofifaPlayersExplorerProps> = ({
     return new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(amount);
   };
 
+  const normalizeName = (s: string) =>
+    s ? s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim() : '';
+
+  // Build a lookup map from signed players (live state) by normalized name
+  // Checks releaseClause set explicitly by manager
+  const signedPlayerClauseMap = useMemo(() => {
+    const map = new Map<string, number>();
+    signedPlayers.forEach(p => {
+      const norm = normalizeName(p.name);
+      if (norm && p.releaseClause && p.releaseClause > 0) {
+        map.set(norm, p.releaseClause);
+      }
+    });
+    return map;
+  }, [signedPlayers]);
+
+  // Un jugador ya fichado en esta liga puede tener su Valor de Mercado
+  // editado a mano desde Mi Club -- sin este mapa, la columna "Valor
+  // Mercado" siempre mostraba el dato estatico de la base SOFIFA, ignorando
+  // el valor real que el manager le puso al jugador que ya tiene en su
+  // plantilla.
+  const signedPlayerValueMap = useMemo(() => {
+    const map = new Map<string, number>();
+    signedPlayers.forEach(p => {
+      const norm = normalizeName(p.name);
+      if (norm && p.value && p.value > 0) {
+        map.set(norm, p.value);
+      }
+    });
+    return map;
+  }, [signedPlayers]);
+
+  // Set de jugadores ya fichados en algun club de la liga, para no ofrecer
+  // "Fichar" de nuevo sobre alguien que ya esta en una plantilla real (eso
+  // creaba un jugador duplicado y descontaba presupuesto otra vez).
+  const signedPlayerNames = useMemo(() => {
+    const set = new Set<string>();
+    signedPlayers.forEach(p => {
+      const norm = normalizeName(p.name);
+      if (norm) set.add(norm);
+    });
+    return set;
+  }, [signedPlayers]);
+
   return (
     <div className="space-y-6">
-      {/* Header Banner */}
-      <div className="fc-card p-6 md:p-8 rounded-2xl bg-gradient-to-r from-slate-900 via-emerald-950 to-slate-900 border-slate-800 text-white shadow-2xl relative overflow-hidden">
-        <div className="flex flex-col md:flex-row items-center justify-between gap-6 relative z-10">
-          <div className="flex items-center gap-4">
-            <div className="w-14 h-14 rounded-2xl bg-emerald-500/20 border-2 border-[#02f59b] flex items-center justify-center shrink-0 shadow-inner">
-              <Zap className="w-8 h-8 text-[#02f59b] animate-pulse" />
-            </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="px-2.5 py-0.5 rounded-full bg-[#02f59b]/20 border border-[#02f59b]/40 text-[#02f59b] text-[10px] font-mono font-bold uppercase tracking-wider">
-                  Base de Datos Oficial EA FC 27
-                </span>
+      {/* Header Banner (se oculta en modo compact, cuando ya hay un banner arriba) */}
+      {!compact && (
+        <div className="fc-card p-6 md:p-8 rounded-2xl bg-gradient-to-r from-slate-900 via-emerald-950 to-slate-900 border-slate-800 text-white shadow-2xl relative overflow-hidden">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-6 relative z-10">
+            <div className="flex items-center gap-4">
+              <div className="w-14 h-14 rounded-2xl bg-emerald-500/20 border-2 border-[#02f59b] flex items-center justify-center shrink-0 shadow-inner">
+                <Zap className="w-8 h-8 text-[#02f59b] animate-pulse" />
               </div>
-              <h2 className="font-display font-black text-2xl md:text-3xl text-white uppercase italic tracking-wide mt-1">
-                Base de Datos de Jugadores ({SOFIFA_PLAYERS_DATABASE.length.toLocaleString('es-ES')})
-              </h2>
-              <p className="text-xs text-slate-300 font-tech mt-0.5">
-                Explora las estadísticas oficiales, medias, posiciones y valores del mercado global
-              </p>
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="px-2.5 py-0.5 rounded-full bg-[#02f59b]/20 border border-[#02f59b]/40 text-[#02f59b] text-[10px] font-mono font-bold uppercase tracking-wider">
+                    Base de Datos Oficial EA FC 27
+                  </span>
+                </div>
+                <h2 className="font-display font-black text-2xl md:text-3xl text-white uppercase italic tracking-wide mt-1">
+                  Base de Datos de Jugadores ({SOFIFA_PLAYERS_DATABASE.length.toLocaleString('es-ES')})
+                </h2>
+                <p className="text-xs text-slate-300 font-tech mt-0.5">
+                  Explora las estadísticas oficiales, medias y posiciones de los jugadores
+                </p>
+              </div>
             </div>
           </div>
         </div>
-      </div>
+      )}
 
-      {/* Control Panel: Buscador & Filtros */}
-      <div className="fc-card p-5 rounded-2xl bg-white border-slate-200 shadow-md space-y-4">
+      {/* Control Panel: Buscador & Filtros Tácticos (Tema Claro) */}
+      <div className="fc-card p-5 md:p-6 rounded-3xl bg-white border border-slate-200 text-slate-900 shadow-md space-y-5 relative overflow-hidden">
+        {/* Cabecera del Panel de Control */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
+          <div className="flex items-center gap-2">
+            <SlidersHorizontal className="w-4 h-4 text-emerald-600" />
+            <h3 className="font-display font-black text-sm text-slate-900 uppercase italic tracking-wider">
+              Panel de Filtros & Búsqueda Táctica
+            </h3>
+          </div>
+
+          <div className="flex items-center gap-3 text-xs font-tech text-slate-500">
+            <span className="bg-emerald-50 border border-emerald-200 px-3 py-1 rounded-full text-[11px] font-mono font-bold text-emerald-800">
+              {filteredPlayers.length.toLocaleString('es-ES')} resultados
+            </span>
+
+            {(searchTerm || selectedPosition || selectedLeague || selectedNation || minRating > 50) && (
+              <button
+                onClick={() => {
+                  setSearchTerm('');
+                  setSelectedPosition('');
+                  setSelectedLeague('');
+                  setSelectedNation('');
+                  setMinRating(50);
+                  setCurrentPage(1);
+                }}
+                className="px-2.5 py-1 rounded-full bg-rose-50 text-rose-700 hover:bg-rose-100 border border-rose-200 text-[10px] font-bold uppercase transition flex items-center gap-1 cursor-pointer"
+              >
+                <RotateCcw className="w-3 h-3" /> Restablecer
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* Fila Principal: Buscador + Posición + Ordenar */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
-          {/* Search Input */}
+          {/* Buscador de Nombre/Club */}
           <div className="md:col-span-2 relative">
-            <Search className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
+            <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5" />
             <input
               type="text"
               value={searchTerm}
               onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
               placeholder="Buscar por nombre de jugador o club..."
-              className="w-full pl-9 pr-4 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs font-semibold text-slate-900 focus:outline-none focus:border-[#00ba68] focus:bg-white transition"
+              className="w-full pl-10 pr-9 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 placeholder-slate-400 focus:outline-none focus:border-emerald-500 focus:bg-white focus:ring-1 focus:ring-emerald-500 transition"
             />
+            {searchTerm && (
+              <button
+                onClick={() => setSearchTerm('')}
+                className="absolute right-3 top-3 text-slate-400 hover:text-slate-700"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            )}
           </div>
 
           {/* Posición Filter */}
@@ -111,7 +205,7 @@ export const SofifaPlayersExplorer: React.FC<SofifaPlayersExplorerProps> = ({
             <select
               value={selectedPosition}
               onChange={(e) => { setSelectedPosition(e.target.value); setCurrentPage(1); }}
-              className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs font-semibold text-slate-900 focus:outline-none focus:border-[#00ba68] transition"
+              className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-900 focus:outline-none focus:border-emerald-500 focus:bg-white transition cursor-pointer"
             >
               <option value="">⚽ Todas las Posiciones</option>
               <option value="POR">🧤 Arquero (POR)</option>
@@ -132,24 +226,23 @@ export const SofifaPlayersExplorer: React.FC<SofifaPlayersExplorerProps> = ({
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value as any)}
-              className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs font-bold text-slate-900 focus:outline-none focus:border-[#00ba68] transition"
+              className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-900 focus:outline-none focus:border-emerald-500 focus:bg-white transition cursor-pointer"
             >
               <option value="rating">🌟 Mayor Rating (Overall)</option>
-              <option value="value">💰 Mayor Valor de Mercado</option>
               <option value="age">👶 Más Joven</option>
               <option value="name">🔤 Orden Alfabético</option>
             </select>
           </div>
         </div>
 
-        {/* Advanced Filters */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2 border-t border-slate-100">
+        {/* Fila Secundaria: Liga + País + Slider de Rating */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-3 border-t border-slate-100">
           <div>
-            <label className="block text-[10px] text-slate-500 font-tech font-bold uppercase mb-1">Liga Oficial</label>
+            <label className="block text-[10px] text-slate-500 font-tech font-extrabold uppercase tracking-wider mb-1">Liga Oficial</label>
             <select
               value={selectedLeague}
               onChange={(e) => { setSelectedLeague(e.target.value); setCurrentPage(1); }}
-              className="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-300 rounded-lg text-xs text-slate-800 focus:outline-none focus:border-[#00ba68]"
+              className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 focus:outline-none focus:border-emerald-500 focus:bg-white transition cursor-pointer"
             >
               <option value="">🏆 Todas las Ligas ({leaguesList.length})</option>
               {leaguesList.map(l => <option key={l} value={l}>{l}</option>)}
@@ -157,11 +250,11 @@ export const SofifaPlayersExplorer: React.FC<SofifaPlayersExplorerProps> = ({
           </div>
 
           <div>
-            <label className="block text-[10px] text-slate-500 font-tech font-bold uppercase mb-1">Nacionalidad</label>
+            <label className="block text-[10px] text-slate-500 font-tech font-extrabold uppercase tracking-wider mb-1">Nacionalidad</label>
             <select
               value={selectedNation}
               onChange={(e) => { setSelectedNation(e.target.value); setCurrentPage(1); }}
-              className="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-300 rounded-lg text-xs text-slate-800 focus:outline-none focus:border-[#00ba68]"
+              className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 focus:outline-none focus:border-emerald-500 focus:bg-white transition cursor-pointer"
             >
               <option value="">🌍 Todos los Países ({nationsList.length})</option>
               {nationsList.map(n => <option key={n} value={n}>{n}</option>)}
@@ -169,16 +262,19 @@ export const SofifaPlayersExplorer: React.FC<SofifaPlayersExplorerProps> = ({
           </div>
 
           <div>
-            <label className="block text-[10px] text-slate-500 font-tech font-bold uppercase mb-1">
-              Rating Mínimo: <span className="text-emerald-700 font-bold">{minRating} OVR</span>
-            </label>
+            <div className="flex items-center justify-between mb-1">
+              <label className="text-[10px] text-slate-500 font-tech font-extrabold uppercase tracking-wider">Rating Mínimo</label>
+              <span className="text-xs font-mono font-bold text-emerald-800 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded">
+                {minRating > 50 ? `${minRating}+ OVR` : 'TODAS LAS MEDIAS'}
+              </span>
+            </div>
             <input
               type="range"
               min="50"
               max="95"
               value={minRating}
               onChange={(e) => { setMinRating(Number(e.target.value)); setCurrentPage(1); }}
-              className="w-full accent-[#00ba68]"
+              className="w-full accent-emerald-600 h-2 bg-slate-200 rounded-lg cursor-pointer transition-all"
             />
           </div>
         </div>
@@ -225,6 +321,7 @@ export const SofifaPlayersExplorer: React.FC<SofifaPlayersExplorerProps> = ({
                 <th className="py-3 px-4 font-bold">Liga / País</th>
                 <th className="py-3 px-4 font-bold text-center">Stats (PAC | SHO | PAS | DRI | DEF | PHY)</th>
                 <th className="py-3 px-4 font-bold text-right">Valor Mercado</th>
+                <th className="py-3 px-4 font-bold text-right">Cláusula</th>
                 {onSignPlayer && <th className="py-3 px-4 font-bold text-center">Acción</th>}
               </tr>
             </thead>
@@ -308,22 +405,47 @@ export const SofifaPlayersExplorer: React.FC<SofifaPlayersExplorerProps> = ({
                       </div>
                     </td>
 
-                    {/* Valor de Mercado */}
+                    {/* Valor de Mercado (SOFIFA, o el valor editado por el manager si ya esta fichado) */}
                     <td className="py-3 px-4 whitespace-nowrap text-right">
-                      <span className="font-mono font-bold text-xs text-[#00ba68]">
-                        {formatMoney(player.value)}
+                      <span className="font-mono text-xs text-slate-500 font-semibold">
+                        {formatMoney(signedPlayerValueMap.get(normalizeName(player.name)) ?? player.value)}
                       </span>
+                    </td>
+
+                    {/* Cláusula de Rescisión (Establecida por Manager) */}
+                    <td className="py-3 px-4 whitespace-nowrap text-right">
+                      {(() => {
+                        const managerClause = signedPlayerClauseMap.get(normalizeName(player.name));
+                        return managerClause ? (
+                          <span className="font-mono font-bold text-xs text-[#00ba68]">
+                            {formatMoney(managerClause)}
+                          </span>
+                        ) : (
+                          <span className="text-slate-400 font-mono text-xs font-semibold px-2 py-0.5 bg-slate-100 rounded border border-slate-200">
+                            Sin Cláusula
+                          </span>
+                        );
+                      })()}
                     </td>
 
                     {/* Acción de Fichaje */}
                     {onSignPlayer && (
                       <td className="py-3 px-4 whitespace-nowrap text-center">
-                        <button
-                          onClick={() => onSignPlayer(player)}
-                          className="fc-button-primary px-3 py-1.5 text-[11px] font-extrabold uppercase rounded shadow-xs hover:scale-105 transition"
-                        >
-                          Fichar
-                        </button>
+                        {signedPlayerNames.has(normalizeName(player.name)) ? (
+                          <span
+                            className="inline-block px-3 py-1.5 text-[10px] font-extrabold uppercase rounded bg-slate-200 text-slate-600 border border-slate-300"
+                            title="Este jugador ya está en la plantilla de un club de la liga"
+                          >
+                            Ya Fichado
+                          </span>
+                        ) : (
+                          <button
+                            onClick={() => onSignPlayer(player)}
+                            className="fc-button-primary px-3 py-1.5 text-[11px] font-extrabold uppercase rounded shadow-xs hover:scale-105 transition"
+                          >
+                            Fichar
+                          </button>
+                        )}
                       </td>
                     )}
                   </tr>

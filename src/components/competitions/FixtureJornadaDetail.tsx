@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Club, MatchResult, Player, PlayerMatchEvent } from '../../types';
 import { GET_OFFICIAL_SQUAD_BY_CLUB_NAME } from '../../data/officialCurrentSquads';
 import { PHASE_LABELS } from '../../utils/competitionStats';
+import { buildMatchReportSquad } from '../../utils/matchReportSquad';
 import { ArrowLeft, ChevronRight, Image as ImageIcon, CheckCircle2, PlusCircle, Upload, X } from 'lucide-react';
 import { ImageUploader } from '../ImageUploader';
 import { CompetitionLogo } from './CompetitionLogo';
@@ -15,6 +16,10 @@ interface FixtureJornadaDetailProps {
   matches: MatchResult[];
   roundLabel: string;
   competition: string;
+  isAdmin?: boolean;
+  currentClubId?: string;
+  canReportResults?: boolean;
+  subscriptionRequiredMessage?: string;
   onAddMatchResult?: (match: MatchResult) => void;
   onBack: () => void;
 }
@@ -22,17 +27,10 @@ interface FixtureJornadaDetailProps {
 const getClubPlayersList = (club: Club | undefined, players: Player[]) => {
   if (!club) return [];
 
-  const clubSquadPlayers = players.filter(p => p.clubId === club.id);
-  if (clubSquadPlayers.length > 0) {
-    return clubSquadPlayers.map(p => ({ name: p.name, pos: p.position }));
-  }
-
-  const officialSquad = GET_OFFICIAL_SQUAD_BY_CLUB_NAME(club.name);
-  if (officialSquad.length > 0) {
-    return officialSquad.map(sp => ({ name: sp.name, pos: sp.position }));
-  }
-
-  return [];
+  return buildMatchReportSquad(
+    players.filter(p => p.clubId === club.id),
+    GET_OFFICIAL_SQUAD_BY_CLUB_NAME(club.name)
+  );
 };
 
 const appendPlayerToField = (
@@ -50,10 +48,25 @@ const appendPlayerToField = (
   }
 };
 
+// En la alineacion solo interesa quien jugo, sin cantidad ni minuto: agregar
+// "(1)" como en goles/asistencias solo ensuciaria la lista.
+const appendPlayerToLineup = (
+  currentText: string,
+  setText: (val: string) => void,
+  playerName: string
+) => {
+  if (!playerName) return;
+  const alreadyListed = currentText
+    .split(',')
+    .some(item => item.trim().toLowerCase() === playerName.trim().toLowerCase());
+  if (alreadyListed) return;
+  setText(currentText.trim() ? `${currentText}, ${playerName}` : playerName);
+};
+
 const parseTextToEvents = (
   text: string,
   clubId: string,
-  eventType: 'GOAL' | 'ASSIST' | 'YELLOW_CARD' | 'RED_CARD'
+  eventType: PlayerMatchEvent['type']
 ): PlayerMatchEvent[] => {
   if (!text || text === '-') return [];
   const events: PlayerMatchEvent[] = [];
@@ -79,9 +92,27 @@ export const FixtureJornadaDetail: React.FC<FixtureJornadaDetailProps> = ({
   matches,
   roundLabel,
   competition,
+  isAdmin = false,
+  currentClubId,
+  canReportResults = true,
+  subscriptionRequiredMessage,
   onAddMatchResult,
   onBack
 }) => {
+  // Un manager solo puede cargar el acta de sus propios partidos: la politica
+  // RLS manager_update_own_pending_matches rechaza cualquier otro, asi que
+  // mostrar el boton para partidos ajenos solo produce errores 403.
+  const isOwnMatch = (match: MatchResult) =>
+    !!currentClubId &&
+    (match.homeClubId === currentClubId || match.awayClubId === currentClubId);
+
+  // Desde la Temporada 2, reportar resultados requiere suscripcion activa
+  // (canReportResults llega calculado desde App.tsx). Un admin nunca esta
+  // bloqueado por esto.
+  const canReportMatch = (match: MatchResult) =>
+    isAdmin || (isOwnMatch(match) && canReportResults);
+  const isBlockedBySubscription = (match: MatchResult) =>
+    !isAdmin && isOwnMatch(match) && !canReportResults;
   const [selectedMatch, setSelectedMatch] = useState<MatchResult | null>(null);
   const [reportingMatch, setReportingMatch] = useState<MatchResult | null>(null);
   const [reportHomeClubId, setReportHomeClubId] = useState<string>('');
@@ -96,6 +127,8 @@ export const FixtureJornadaDetail: React.FC<FixtureJornadaDetailProps> = ({
   const [reportAwayYellowCards, setReportAwayYellowCards] = useState<string>('');
   const [reportHomeRedCards, setReportHomeRedCards] = useState<string>('');
   const [reportAwayRedCards, setReportAwayRedCards] = useState<string>('');
+  const [reportHomeLineup, setReportHomeLineup] = useState<string>('');
+  const [reportAwayLineup, setReportAwayLineup] = useState<string>('');
   const [reportProofImage, setReportProofImage] = useState<string>('');
   const [reportNotes, setReportNotes] = useState<string>('');
   const [reportPenaltyWinnerClubId, setReportPenaltyWinnerClubId] = useState<string>('');
@@ -103,7 +136,8 @@ export const FixtureJornadaDetail: React.FC<FixtureJornadaDetailProps> = ({
   const [formError, setFormError] = useState<string>('');
   const [successResult, setSuccessResult] = useState<{ homeGoals: number; awayGoals: number } | null>(null);
 
-  const jornadaMatches = matches;
+  const [onlyMyMatch, setOnlyMyMatch] = useState(false);
+  const jornadaMatches = onlyMyMatch ? matches.filter(isOwnMatch) : matches;
   const isKnockoutMatch = !!reportingMatch?.phase && reportingMatch.phase !== 'GRUPOS';
   const isDrawNeedingPenalties = isKnockoutMatch && reportHomeGoals === reportAwayGoals;
 
@@ -111,6 +145,12 @@ export const FixtureJornadaDetail: React.FC<FixtureJornadaDetailProps> = ({
   const reportAwayClub = clubs.find(c => c.id === reportAwayClubId);
   const reportHomeSquad = getClubPlayersList(reportHomeClub, players);
   const reportAwaySquad = getClubPlayersList(reportAwayClub, players);
+
+  const defaultLineupForClub = (clubId: string) =>
+    players
+      .filter(p => p.clubId === clubId && p.isStarter)
+      .map(p => p.name)
+      .join(', ');
 
   const openReportModalForMatch = (match: MatchResult, e?: React.MouseEvent) => {
     if (e) e.stopPropagation();
@@ -127,6 +167,11 @@ export const FixtureJornadaDetail: React.FC<FixtureJornadaDetailProps> = ({
     setReportAwayYellowCards(match.awayYellowCards || '');
     setReportHomeRedCards(match.homeRedCards || '');
     setReportAwayRedCards(match.awayRedCards || '');
+    // La alineacion arranca con los 11 titulares que el DT ya dejo armados en
+    // Mi Club -> Alineaciones: cargarla a mano en cada partido seria un plomo,
+    // y sin ella no hay forma de contar PJ.
+    setReportHomeLineup(match.homeLineup || defaultLineupForClub(match.homeClubId));
+    setReportAwayLineup(match.awayLineup || defaultLineupForClub(match.awayClubId));
     setReportProofImage(match.proofImageUrl || '');
     setReportNotes(match.notes || '');
     setReportPenaltyWinnerClubId(match.penaltyWinnerClubId || '');
@@ -156,7 +201,9 @@ export const FixtureJornadaDetail: React.FC<FixtureJornadaDetailProps> = ({
       ...parseTextToEvents(reportHomeYellowCards, reportHomeClubId, 'YELLOW_CARD'),
       ...parseTextToEvents(reportAwayYellowCards, reportAwayClubId, 'YELLOW_CARD'),
       ...parseTextToEvents(reportHomeRedCards, reportHomeClubId, 'RED_CARD'),
-      ...parseTextToEvents(reportAwayRedCards, reportAwayClubId, 'RED_CARD')
+      ...parseTextToEvents(reportAwayRedCards, reportAwayClubId, 'RED_CARD'),
+      ...parseTextToEvents(reportHomeLineup, reportHomeClubId, 'APPEARANCE'),
+      ...parseTextToEvents(reportAwayLineup, reportAwayClubId, 'APPEARANCE')
     ];
 
     const updated: MatchResult = {
@@ -173,11 +220,18 @@ export const FixtureJornadaDetail: React.FC<FixtureJornadaDetailProps> = ({
       awayYellowCards: reportAwayYellowCards || undefined,
       homeRedCards: reportHomeRedCards || undefined,
       awayRedCards: reportAwayRedCards || undefined,
+      homeLineup: reportHomeLineup || undefined,
+      awayLineup: reportAwayLineup || undefined,
       proofImageUrl: reportProofImage || undefined,
       notes: reportNotes || undefined,
       penaltyWinnerClubId: isDrawNeedingPenalties ? reportPenaltyWinnerClubId : undefined,
       playerEvents,
-      status: 'CONFIRMADO',
+      reportedAt: new Date().toLocaleString('es-ES', { dateStyle: 'short', timeStyle: 'short' }),
+      // Un admin puede confirmar el resultado directo; un manager solo puede
+      // dejarlo en PENDIENTE (la politica RLS de manager_update_own_pending_matches
+      // rechaza cualquier otro estado) a la espera de que un admin lo confirme
+      // desde el Panel de Administracion.
+      status: isAdmin ? 'CONFIRMADO' : 'PENDIENTE',
       createdAt: new Date().toLocaleString('es-ES', { dateStyle: 'short', timeStyle: 'short' })
     };
 
@@ -197,9 +251,9 @@ export const FixtureJornadaDetail: React.FC<FixtureJornadaDetailProps> = ({
         <ArrowLeft className="w-4 h-4" /> Volver a Jornadas
       </button>
 
-      <div className="bg-slate-900 text-white p-4 rounded-xl border border-slate-800 shadow-md flex items-center gap-3">
+      <div className="bg-slate-900 text-white p-4 rounded-xl border border-slate-800 shadow-md flex items-center gap-3 flex-wrap">
         <CompetitionLogo competition={competition} size="md" />
-        <div>
+        <div className="flex-1">
           <span className="text-[10px] font-bold uppercase font-tech text-[#02f59b] block">
             {competition}
           </span>
@@ -207,11 +261,27 @@ export const FixtureJornadaDetail: React.FC<FixtureJornadaDetailProps> = ({
             {roundLabel}
           </h2>
         </div>
+
+        {!isAdmin && !!currentClubId && (
+          <button
+            type="button"
+            onClick={() => setOnlyMyMatch(v => !v)}
+            className={`px-3 py-1.5 rounded-lg text-[11px] font-tech font-extrabold uppercase transition-colors shrink-0 ${
+              onlyMyMatch
+                ? 'bg-[#00ba68] text-white'
+                : 'bg-white/10 text-slate-200 hover:bg-white/20'
+            }`}
+          >
+            {onlyMyMatch ? '✓ Solo mi partido' : 'Solo mi partido'}
+          </button>
+        )}
       </div>
 
       {jornadaMatches.length === 0 ? (
         <div className="fc-card p-10 text-center space-y-3 border-dashed border-slate-300 bg-white">
-          <p className="text-xs font-tech font-bold text-slate-600">No hay partidos cargados para esta ronda.</p>
+          <p className="text-xs font-tech font-bold text-slate-600">
+            {onlyMyMatch ? 'Tu club no tiene un partido en esta jornada.' : 'No hay partidos cargados para esta ronda.'}
+          </p>
         </div>
       ) : (
         jornadaMatches.map(match => {
@@ -250,12 +320,23 @@ export const FixtureJornadaDetail: React.FC<FixtureJornadaDetailProps> = ({
               </div>
 
               <div className="flex items-center gap-3 text-xs font-mono">
-                <button
-                  onClick={(e) => openReportModalForMatch(match, e)}
-                  className="px-3 py-1.5 bg-[#00ba68] hover:bg-[#00d282] text-white font-tech font-extrabold text-xs uppercase rounded-lg shadow flex items-center gap-1.5 transition-all shrink-0"
-                >
-                  <PlusCircle className="w-4 h-4" /> Reportar Resultado
-                </button>
+                {canReportMatch(match) && (
+                  <button
+                    onClick={(e) => openReportModalForMatch(match, e)}
+                    className="px-3 py-1.5 bg-[#00ba68] hover:bg-[#00d282] text-white font-tech font-extrabold text-xs uppercase rounded-lg shadow flex items-center gap-1.5 transition-all shrink-0"
+                  >
+                    <PlusCircle className="w-4 h-4" /> Reportar Resultado
+                  </button>
+                )}
+
+                {isBlockedBySubscription(match) && (
+                  <span
+                    title={subscriptionRequiredMessage}
+                    className="px-3 py-1.5 bg-amber-50 text-amber-800 border border-amber-300 font-tech font-extrabold text-[10px] uppercase rounded-lg shadow-xs flex items-center gap-1.5 shrink-0"
+                  >
+                    Suscripción requerida
+                  </span>
+                )}
 
                 {match.proofImageUrl && (
                   <span className="px-2 py-0.5 bg-emerald-100 text-emerald-800 border border-emerald-300 rounded-md flex items-center gap-1 text-[10px] font-tech font-bold hidden sm:flex">
@@ -615,6 +696,70 @@ export const FixtureJornadaDetail: React.FC<FixtureJornadaDetailProps> = ({
                 </div>
               </div>
 
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div>
+                  <div className="flex items-center justify-between mb-0.5">
+                    <label className="block text-[11px] font-bold font-tech uppercase text-slate-700">
+                      👥 Alineación (Local)
+                    </label>
+                    {reportHomeSquad.length > 0 && (
+                      <select
+                        onChange={(e) => {
+                          if (e.target.value) {
+                            appendPlayerToLineup(reportHomeLineup, setReportHomeLineup, e.target.value);
+                            e.target.value = '';
+                          }
+                        }}
+                        className="text-[10px] bg-slate-200 text-slate-800 font-bold rounded px-1.5 py-0.5"
+                      >
+                        <option value="">+ Agregar jugador</option>
+                        {reportHomeSquad.map((p, i) => (
+                          <option key={i} value={p.name}>{p.name} ({p.pos})</option>
+                        ))}
+                      </select>
+                    )}
+                  </div>
+                  <input
+                    type="text"
+                    value={reportHomeLineup}
+                    onChange={(e) => setReportHomeLineup(e.target.value)}
+                    placeholder="Se completa con tus 11 titulares — editá si hubo cambios"
+                    className="w-full px-3 py-2.5 bg-white border border-slate-300 rounded-lg text-sm text-slate-900 focus:outline-none focus:border-[#00ba68]"
+                  />
+                </div>
+
+                <div>
+                  <div className="flex items-center justify-between mb-0.5">
+                    <label className="block text-[11px] font-bold font-tech uppercase text-slate-700">
+                      👥 Alineación (Visitante)
+                    </label>
+                    {reportAwaySquad.length > 0 && (
+                      <select
+                        onChange={(e) => {
+                          if (e.target.value) {
+                            appendPlayerToLineup(reportAwayLineup, setReportAwayLineup, e.target.value);
+                            e.target.value = '';
+                          }
+                        }}
+                        className="text-[10px] bg-slate-200 text-slate-800 font-bold rounded px-1.5 py-0.5"
+                      >
+                        <option value="">+ Agregar jugador</option>
+                        {reportAwaySquad.map((p, i) => (
+                          <option key={i} value={p.name}>{p.name} ({p.pos})</option>
+                        ))}
+                      </select>
+                    )}
+                  </div>
+                  <input
+                    type="text"
+                    value={reportAwayLineup}
+                    onChange={(e) => setReportAwayLineup(e.target.value)}
+                    placeholder="Se completa con tus 11 titulares — editá si hubo cambios"
+                    className="w-full px-3 py-2.5 bg-white border border-slate-300 rounded-lg text-sm text-slate-900 focus:outline-none focus:border-[#00ba68]"
+                  />
+                </div>
+              </div>
+
               <div className="flex items-center justify-between gap-2">
                 <button
                   type="button"
@@ -666,32 +811,49 @@ export const FixtureJornadaDetail: React.FC<FixtureJornadaDetailProps> = ({
         )}
       </Modal>
 
-      {selectedMatch && (
-        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="fc-card max-w-lg w-full p-6 rounded-2xl border-emerald-300 shadow-2xl space-y-4 animate-scale-up">
-            <div className="flex justify-between items-center border-b border-slate-200 pb-3">
-              <h2 className="font-display font-bold text-lg text-slate-900 uppercase italic flex items-center gap-2">
-                <CheckCircle2 className="w-5 h-5 text-[#00ba68]" /> Acta de Partido Jornada {selectedMatch.matchday}
-              </h2>
-              <button onClick={() => setSelectedMatch(null)} className="text-slate-400 hover:text-slate-800">✕</button>
-            </div>
-
-            <div className="text-center space-y-2 py-2">
-              <div className="font-display font-black text-3xl text-slate-900">
-                {selectedMatch.homeGoals} - {selectedMatch.awayGoals}
+      {selectedMatch && (() => {
+        const matchHomeClub = clubs.find(c => c.id === selectedMatch.homeClubId);
+        const matchAwayClub = clubs.find(c => c.id === selectedMatch.awayClubId);
+        return (
+          <Modal
+            isOpen={Boolean(selectedMatch)}
+            onClose={() => setSelectedMatch(null)}
+            title={`Acta de Partido · ${matchRoundLabel(selectedMatch)}`}
+            subtitle="Marcador oficial y eventos del partido"
+            badgeText="ACTA OFICIAL FIFAMANIAKOS"
+            icon={<CheckCircle2 className="w-5 h-5 text-[#02f59b]" />}
+            maxWidth="lg"
+          >
+            <div className="flex items-center justify-center gap-4 sm:gap-6 py-2">
+              <div className="flex flex-col items-center gap-2 flex-1 min-w-0">
+                <ClubLogo src={matchHomeClub?.logoUrl} alt={matchHomeClub?.name} className="w-14 h-14 rounded-lg object-cover border border-slate-200 shrink-0" />
+                <span className="font-display font-extrabold text-xs sm:text-sm text-slate-900 text-center truncate w-full">{matchHomeClub?.name || 'Local'}</span>
               </div>
-              <div className="text-xs text-slate-500 font-mono">{selectedMatch.createdAt}</div>
+
+              <div className="flex flex-col items-center gap-1 shrink-0">
+                <div className="px-4 py-1.5 bg-slate-900 rounded-lg border border-emerald-500 font-display font-black text-2xl text-[#02f59b] tracking-wider shadow-sm">
+                  {selectedMatch.homeGoals} - {selectedMatch.awayGoals}
+                </div>
+                <div className="text-[10px] text-slate-500 font-mono">{selectedMatch.createdAt}</div>
+              </div>
+
+              <div className="flex flex-col items-center gap-2 flex-1 min-w-0">
+                <ClubLogo src={matchAwayClub?.logoUrl} alt={matchAwayClub?.name} className="w-14 h-14 rounded-lg object-cover border border-slate-200 shrink-0" />
+                <span className="font-display font-extrabold text-xs sm:text-sm text-slate-900 text-center truncate w-full">{matchAwayClub?.name || 'Visitante'}</span>
+              </div>
             </div>
 
             <div className="space-y-2 text-xs font-sans bg-slate-50 p-3.5 rounded-xl border border-slate-200">
-              <p><strong className="text-emerald-700">Goleadores Local:</strong> {selectedMatch.homeScorers}</p>
-              <p><strong className="text-emerald-700">Goleadores Visitante:</strong> {selectedMatch.awayScorers}</p>
+              <p><strong className="text-emerald-700">Goleadores Local:</strong> {selectedMatch.homeScorers || '-'}</p>
+              <p><strong className="text-emerald-700">Goleadores Visitante:</strong> {selectedMatch.awayScorers || '-'}</p>
               {selectedMatch.homeAssists && <p><strong className="text-cyan-700">Asistencias Local:</strong> {selectedMatch.homeAssists}</p>}
               {selectedMatch.awayAssists && <p><strong className="text-cyan-700">Asistencias Visitante:</strong> {selectedMatch.awayAssists}</p>}
               {selectedMatch.homeYellowCards && <p><strong className="text-amber-700">T. Amarillas Local:</strong> {selectedMatch.homeYellowCards}</p>}
               {selectedMatch.awayYellowCards && <p><strong className="text-amber-700">T. Amarillas Visitante:</strong> {selectedMatch.awayYellowCards}</p>}
               {selectedMatch.homeRedCards && <p><strong className="text-rose-700">T. Rojas Local:</strong> {selectedMatch.homeRedCards}</p>}
               {selectedMatch.awayRedCards && <p><strong className="text-rose-700">T. Rojas Visitante:</strong> {selectedMatch.awayRedCards}</p>}
+              {selectedMatch.homeLineup && <p><strong className="text-slate-700">Alineación Local:</strong> {selectedMatch.homeLineup}</p>}
+              {selectedMatch.awayLineup && <p><strong className="text-slate-700">Alineación Visitante:</strong> {selectedMatch.awayLineup}</p>}
               {selectedMatch.notes && <p className="text-slate-600 italic mt-2 border-t pt-2">"{selectedMatch.notes}"</p>}
             </div>
 
@@ -700,9 +862,9 @@ export const FixtureJornadaDetail: React.FC<FixtureJornadaDetailProps> = ({
                 <ImageWithFallback src={selectedMatch.proofImageUrl} alt="Prueba de Partido FC 27" className="w-full object-cover max-h-72" />
               </div>
             )}
-          </div>
-        </div>
-      )}
+          </Modal>
+        );
+      })()}
 
       {successResult && (
         <div className="fixed inset-0 z-50 bg-slate-900/70 backdrop-blur-sm flex items-center justify-center p-4">
@@ -712,7 +874,9 @@ export const FixtureJornadaDetail: React.FC<FixtureJornadaDetailProps> = ({
               ¡Resultado Publicado!
             </h2>
             <p className="text-sm text-slate-600">
-              {successResult.homeGoals} - {successResult.awayGoals} registrado exitosamente. La tabla de posiciones y las estadísticas se actualizaron.
+              {isAdmin
+                ? `${successResult.homeGoals} - ${successResult.awayGoals} registrado exitosamente. La tabla de posiciones y las estadísticas se actualizaron.`
+                : `${successResult.homeGoals} - ${successResult.awayGoals} enviado para revisión. Un administrador debe confirmarlo antes de que se refleje en la tabla de posiciones.`}
             </p>
             <button
               onClick={() => setSuccessResult(null)}

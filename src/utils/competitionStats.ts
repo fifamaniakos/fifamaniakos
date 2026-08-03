@@ -88,10 +88,29 @@ export interface PlayerStatsAggregate {
   disciplinaryPoints: number;
 }
 
+// La busqueda se hace por cada goleador de cada partido y por cada jugador de
+// cada plantilla, asi que un .find() lineal recorria los ~16.000 registros de
+// SOFIFA (y re-normalizaba cada nombre) en cada llamada. El indice se arma una
+// sola vez, de forma perezosa, para que el costo no se pague si la pantalla de
+// estadisticas nunca se abre.
+let sofifaPlayersByName: Map<string, (typeof SOFIFA_PLAYERS_DATABASE)[number]> | null = null;
+
+const getSofifaIndex = () => {
+  if (!sofifaPlayersByName) {
+    sofifaPlayersByName = new Map();
+    for (const player of SOFIFA_PLAYERS_DATABASE) {
+      const key = player.name.trim().toLowerCase();
+      // El primero gana, igual que el .find() anterior ante nombres repetidos.
+      if (key && !sofifaPlayersByName.has(key)) sofifaPlayersByName.set(key, player);
+    }
+  }
+  return sofifaPlayersByName;
+};
+
 const findSofifaPlayerByName = (name: string) => {
   const normalized = name.trim().toLowerCase();
   if (!normalized) return undefined;
-  return SOFIFA_PLAYERS_DATABASE.find(p => p.name.trim().toLowerCase() === normalized);
+  return getSofifaIndex().get(normalized);
 };
 
 export function computePlayerStatsForCompetition(
@@ -105,7 +124,10 @@ export function computePlayerStatsForCompetition(
   matches
     .filter(m => m.competition === competition && m.status === 'CONFIRMADO')
     .forEach(match => {
-      (match.playerEvents || []).forEach(ev => {
+      // Las alineaciones (APPEARANCE) solo sirven para contar PJ: sin este
+      // filtro, cualquiera que haya sido titular apareceria en la tabla de
+      // goleadores con 0 goles.
+      (match.playerEvents || []).filter(ev => ev.type !== 'APPEARANCE').forEach(ev => {
         const key = ev.playerId || `${ev.playerName}-${ev.clubId}`;
         if (!statsMap[key]) {
           const club = clubs.find(c => c.id === ev.clubId);
@@ -140,6 +162,99 @@ export function computePlayerStatsForCompetition(
     });
 
   return Object.values(statsMap);
+}
+
+export interface ClubPlayerStatRow {
+  id: string;
+  name: string;
+  position: string;
+  rating: number;
+  photoUrl?: string;
+  isStarter?: boolean;
+  matchesPlayed: number;
+  goals: number;
+  assists: number;
+  yellowCards: number;
+  redCards: number;
+}
+
+// Estadisticas de los jugadores de un club sumando TODAS las competiciones.
+// Se derivan de los eventos del acta de cada partido confirmado (la misma
+// fuente que las tablas de goleadores/asistencias), no de campos guardados
+// en el jugador: esos nunca se actualizan al reportar un partido, asi que la
+// tabla de "Estadisticas completas" mostraba siempre 0.
+export function computeClubPlayerStats(
+  clubId: string,
+  players: Player[],
+  matches: MatchResult[]
+): ClubPlayerStatRow[] {
+  const rows: Record<string, ClubPlayerStatRow> = {};
+
+  // El plantel entero aparece listado, aunque todavia no tenga eventos.
+  players
+    .filter(p => p.clubId === clubId)
+    .forEach(p => {
+      const sofifaPlayer = findSofifaPlayerByName(p.name);
+      rows[p.name.trim().toLowerCase()] = {
+        id: p.id,
+        name: p.name,
+        position: p.position,
+        rating: p.rating,
+        photoUrl: p.photoUrl || sofifaPlayer?.photoUrl || '',
+        isStarter: p.isStarter,
+        matchesPlayed: 0,
+        goals: 0,
+        assists: 0,
+        yellowCards: 0,
+        redCards: 0
+      };
+    });
+
+  matches
+    .filter(m => m.status === 'CONFIRMADO')
+    .forEach(match => {
+      // PJ se cuenta una vez por partido aunque el acta liste al jugador
+      // repetido en la alineacion.
+      const countedAppearances = new Set<string>();
+
+      (match.playerEvents || [])
+        .filter(ev => ev.clubId === clubId)
+        .forEach(ev => {
+          const key = ev.playerName.trim().toLowerCase();
+          if (!key) return;
+
+          if (!rows[key]) {
+            // Un acta puede nombrar a alguien que ya no esta en el plantel
+            // (vendido, o cargado a mano): igual cuenta lo que hizo.
+            const sofifaPlayer = findSofifaPlayerByName(ev.playerName);
+            rows[key] = {
+              id: key,
+              name: ev.playerName,
+              position: sofifaPlayer?.position || '—',
+              rating: sofifaPlayer?.rating || 0,
+              photoUrl: sofifaPlayer?.photoUrl || '',
+              matchesPlayed: 0,
+              goals: 0,
+              assists: 0,
+              yellowCards: 0,
+              redCards: 0
+            };
+          }
+
+          if (ev.type === 'APPEARANCE' && !countedAppearances.has(key)) {
+            countedAppearances.add(key);
+            rows[key].matchesPlayed += 1;
+          }
+          if (ev.type === 'GOAL') rows[key].goals += ev.count;
+          if (ev.type === 'ASSIST') rows[key].assists += ev.count;
+          if (ev.type === 'YELLOW_CARD') rows[key].yellowCards += ev.count;
+          if (ev.type === 'RED_CARD') rows[key].redCards += ev.count;
+        });
+    });
+
+  return Object.values(rows).sort(
+    (a, b) => b.goals - a.goals || b.assists - a.assists || a.name.localeCompare(b.name)
+  );
 }
 
 export type EuropeanQualificationZone = 'CHAMPIONS' | 'EUROPA' | 'CONFERENCE';

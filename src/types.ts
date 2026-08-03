@@ -9,6 +9,11 @@ export interface Club {
   budget: number; // In Euros (€)
   division: string;
   stadium: string;
+  country?: string;
+  league?: string;
+  stadiumCity?: string;
+  stadiumCapacity?: number;
+  stadiumPhotoUrl?: string;
   played: number;
   won: number;
   drawn: number;
@@ -38,7 +43,8 @@ export interface Player {
   rating: number; // 40-99 OVR
   stats: PlayerStats;
   cardType: 'Gold' | 'Special' | 'Icon' | 'Silver';
-  value: number; // Value in Euros (€)
+  value: number; // Value in Euros (€) - Market value from SOFIFA/database
+  releaseClause?: number; // Release clause set by manager (€)
   photoUrl: string;
   isStarter: boolean;
   nationality?: string;
@@ -52,13 +58,18 @@ export interface Player {
 
 export type ForumCategory =
   | 'Anuncios'
+  | 'Normas competiciones'
+  | 'Ganancias competiciones'
+  | 'Sanciones'
+  | 'Apuestas deportivas'
   | 'Quejas y sugerencias';
 
 export type ForumSectionTag =
   | 'normas'
   | 'ganancias'
   | 'sanciones'
-  | 'apuestas';
+  | 'apuestas'
+  | 'mercado';
 
 export interface ForumReply {
   id: string;
@@ -69,6 +80,7 @@ export interface ForumReply {
   imageUrl?: string;
   createdAt: string;
   likes: number;
+  isFounderAuthor?: boolean;
 }
 
 export interface ForumTopic {
@@ -85,6 +97,7 @@ export interface ForumTopic {
   likes: number;
   replies: ForumReply[];
   isPinned?: boolean;
+  isFounderAuthor?: boolean;
 }
 
 export interface CompetitionSection {
@@ -100,11 +113,25 @@ export interface BudgetPackage {
   priceUsd: number;
 }
 
+export interface LeagueSettings {
+  id: string;
+  currentSeasonNumber: number;
+  division1TeamCount?: number;
+  division2TeamCount?: number;
+  // Mientras esta en true, un manager puede recibir la plantilla del Draft sin
+  // pagarla (una sola vez por temporada). Lo hace cumplir la base en la
+  // migracion 015; este flag es la unica forma de abrir esa ventana.
+  draftOpen?: boolean;
+}
+
 export interface PlayerMatchEvent {
   playerId?: string;
   playerName: string;
   clubId: string;
-  type: 'GOAL' | 'ASSIST' | 'YELLOW_CARD' | 'RED_CARD';
+  // APPEARANCE marca que el jugador estuvo en la alineacion de ese partido:
+  // es lo unico que permite contar partidos jugados (PJ), porque el resto de
+  // los eventos solo registran lo que hizo, no si jugo.
+  type: 'GOAL' | 'ASSIST' | 'YELLOW_CARD' | 'RED_CARD' | 'APPEARANCE';
   count: number;
 }
 
@@ -127,12 +154,19 @@ export interface MatchResult {
   awayYellowCards?: string;
   homeRedCards?: string;
   awayRedCards?: string;
+  homeLineup?: string;
+  awayLineup?: string;
   playerEvents?: PlayerMatchEvent[];
   proofImageUrl?: string;
   penaltyWinnerClubId?: string;
   status: 'PENDIENTE' | 'CONFIRMADO' | 'RECHAZADO';
   createdAt: string;
   notes?: string;
+  // Marca que alguien cargó un acta para este partido. Distingue un partido
+  // del fixture que nadie tocó todavía de uno con resultado cargado esperando
+  // validación del admin. No se puede deducir de proofImageUrl porque la
+  // captura es opcional al reportar.
+  reportedAt?: string;
 }
 
 export interface TransferItem {
@@ -159,4 +193,53 @@ export interface TickerNewsItem {
   text: string;
   active: boolean;
   createdAt?: string;
+}
+
+export type SponsorObjectiveKind =
+  | 'CHAMPION'
+  | 'RUNNER_UP'
+  | 'REACH_PHASE'
+  | 'LEAGUE_WINS'
+  | 'TOP_SCORER'
+  | 'ASSISTS_THRESHOLD';
+
+export interface Sponsor {
+  id: string;
+  name: string;
+  logoUrl: string;
+  tier: number; // 1 = mas exigente y mejor pago, 5 = mas accesible
+  requirementDivision?: string;
+  // Definido en la spec pero todavia sin usar: la app no guarda historial por
+  // temporada (MatchResult no tiene seasonNumber), asi que no se puede saber
+  // en que puesto termino un club la temporada pasada.
+  requirementMaxPosition?: number;
+  active: boolean;
+}
+
+export interface SponsorObjective {
+  id: string;
+  sponsorId: string;
+  kind: SponsorObjectiveKind;
+  competition?: string;
+  phase?: MatchPhase;
+  threshold?: number;
+  rewardMillions: number;
+  label: string;
+}
+
+export interface ClubSponsorContract {
+  id: string;
+  clubId: string;
+  sponsorId: string;
+  seasonNumber: number;
+  signedAt: string;
+}
+
+export interface SponsorPayout {
+  id: string;
+  clubId: string;
+  seasonNumber: number;
+  objectiveId: string;
+  amount: number; // en euros
+  paidAt: string;
 }

@@ -1,8 +1,33 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { ForumTopic, ForumCategory, ForumReply, Club } from '../types';
-import { MessageSquare, Plus, Eye, Heart, Pin, Share2, Search, CornerDownRight, Shield, User, Image as ImageIcon, ArrowLeft, Clock, Trash2, X, Edit3, Scale, Coins, Gavel, Dice5 } from 'lucide-react';
+import { MessageSquare, Plus, Eye, Pin, Search, CornerDownRight, Shield, Image as ImageIcon, ArrowLeft, Clock, Trash2, X, Edit3, Scale, Coins, Gavel, Dice5, Crown } from 'lucide-react';
 import { ImageWithFallback } from './ImageWithFallback';
 import { ClubLogo } from './ClubLogo';
+import { FC27_ADMIN_AVATAR } from '../data/initialData';
+import { MarkdownRenderer } from './MarkdownRenderer';
+import { MarkdownToolbar } from './MarkdownToolbar';
+
+// Fuente unica de color por categoria: antes esto vivia duplicado en el detalle
+// del tema y en el listado, y la copia del detalle seguia comparando contra
+// 'Resultados'/'Fichajes', categorias que ya no existen en ForumCategory, asi
+// que todos los temas se pintaban con el color de fallback.
+const CATEGORY_BADGE_CLASS: Record<ForumCategory, string> = {
+  'Anuncios': 'bg-amber-100 text-amber-800 border border-amber-300',
+  'Normas competiciones': 'bg-blue-100 text-blue-800 border border-blue-300',
+  'Ganancias competiciones': 'bg-amber-100 text-amber-800 border border-amber-300',
+  'Sanciones': 'bg-rose-100 text-rose-800 border border-rose-300',
+  'Apuestas deportivas': 'bg-purple-100 text-purple-800 border border-purple-300',
+  'Quejas y sugerencias': 'bg-slate-100 text-slate-800 border border-slate-300'
+};
+
+const FounderBadge: React.FC<{ className?: string }> = ({ className }) => (
+  <span
+    title="Fundador de la liga"
+    className={`inline-flex items-center gap-1 px-2 py-0.5 bg-gradient-to-r from-amber-400 to-yellow-500 text-slate-950 text-[9px] font-black font-mono uppercase rounded-full border border-amber-500 shadow-sm ${className || ''}`}
+  >
+    <Crown className="w-3 h-3" /> Fundador
+  </span>
+);
 
 interface ForumModuleProps {
   topics: ForumTopic[];
@@ -12,6 +37,7 @@ interface ForumModuleProps {
   currentClub: Club | null;
   registeredClubs?: Club[];
   isAdmin?: boolean;
+  isFounder?: boolean;
   onTogglePinTopic?: (topicId: string) => void;
   onDeleteTopic?: (topicId: string) => void;
   onEditTopic?: (topicId: string, title: string, content: string) => void;
@@ -33,6 +59,7 @@ export const ForumModule: React.FC<ForumModuleProps> = ({
   currentClub,
   registeredClubs = [],
   isAdmin,
+  isFounder = false,
   onTogglePinTopic,
   onDeleteTopic,
   onEditTopic,
@@ -55,6 +82,10 @@ export const ForumModule: React.FC<ForumModuleProps> = ({
 
   const availableCategories: ForumCategory[] = [
     'Anuncios',
+    'Normas competiciones',
+    'Ganancias competiciones',
+    'Sanciones',
+    'Apuestas deportivas',
     'Quejas y sugerencias'
   ].filter(cat => isAdmin || !ADMIN_ONLY_CATEGORIES.includes(cat as ForumCategory)) as ForumCategory[];
 
@@ -65,6 +96,12 @@ export const ForumModule: React.FC<ForumModuleProps> = ({
 
   // Reply Form State
   const [replyContent, setReplyContent] = useState('');
+
+  // Textarea Refs for Markdown Toolbar integration
+  const newContentRef = useRef<HTMLTextAreaElement>(null);
+  const editContentRef = useRef<HTMLTextAreaElement>(null);
+  const replyContentRef = useRef<HTMLTextAreaElement>(null);
+  const editReplyContentRef = useRef<HTMLTextAreaElement>(null);
 
   // Filter topics
   const filteredTopics = topics.filter(t => {
@@ -94,12 +131,13 @@ export const ForumModule: React.FC<ForumModuleProps> = ({
       category: newCategory,
       authorName: currentClub ? currentClub.manager : 'Manager_Anon',
       authorClub: currentClub ? currentClub.name : 'Libre',
-      authorAvatar: currentClub ? currentClub.logoUrl : 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&auto=format&fit=crop&q=80',
+      authorAvatar: currentClub ? currentClub.logoUrl : FC27_ADMIN_AVATAR,
       content: newContent,
       createdAt: new Date().toLocaleString('es-ES', { dateStyle: 'short', timeStyle: 'short' }),
       views: 1,
       likes: 0,
-      replies: []
+      replies: [],
+      isFounderAuthor: isFounder
     };
 
     onCreateTopic(topic);
@@ -116,10 +154,11 @@ export const ForumModule: React.FC<ForumModuleProps> = ({
       id: `reply-${Date.now()}`,
       authorName: currentClub ? currentClub.manager : 'Manager_Anon',
       authorClub: currentClub ? currentClub.name : 'Libre',
-      authorAvatar: currentClub ? currentClub.logoUrl : 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&auto=format&fit=crop&q=80',
+      authorAvatar: currentClub ? currentClub.logoUrl : FC27_ADMIN_AVATAR,
       content: replyContent,
       createdAt: new Date().toLocaleString('es-ES', { dateStyle: 'short', timeStyle: 'short' }),
-      likes: 0
+      likes: 0,
+      isFounderAuthor: isFounder
     };
 
     onAddReply(activeTopic.id, reply);
@@ -222,12 +261,7 @@ export const ForumModule: React.FC<ForumModuleProps> = ({
             )}
 
             <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 pb-4">
-              <span className={`px-3 py-1 rounded text-xs font-bold font-tech uppercase ${
-                activeTopic.category === 'Anuncios' ? 'bg-amber-100 text-amber-800 border border-amber-300' :
-                activeTopic.category === 'Resultados' ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' :
-                activeTopic.category === 'Fichajes' ? 'bg-purple-100 text-purple-800 border border-purple-300' :
-                'bg-blue-100 text-blue-800 border border-blue-300'
-              }`}>
+              <span className={`px-3 py-1 rounded text-xs font-bold font-tech uppercase ${CATEGORY_BADGE_CLASS[activeTopic.category]}`}>
                 {activeTopic.category}
               </span>
               <div className="flex items-center gap-4 text-xs text-slate-500 font-mono">
@@ -264,15 +298,18 @@ export const ForumModule: React.FC<ForumModuleProps> = ({
                     <span className="text-[10px] bg-slate-200 text-slate-800 font-mono px-2 py-0.5 rounded">
                       {activeTopic.authorClub}
                     </span>
+                    {activeTopic.isFounderAuthor && <FounderBadge />}
                   </div>
-                  <span className="text-[11px] text-slate-500 font-tech">Manager de la Liga FC 27</span>
+                  <span className="text-[11px] text-slate-500 font-tech">
+                    {activeTopic.authorClub === 'Comisario de Liga' || activeTopic.authorName.toLowerCase().includes('admin') ? 'Comisario de la Liga FC 27' : 'Manager de la Liga FC 27'}
+                  </span>
                 </div>
               </div>
             </div>
 
             {/* Main Topic Body Content */}
-            <div className="text-slate-800 text-sm leading-relaxed whitespace-pre-line font-sans">
-              {activeTopic.content}
+            <div className="text-slate-800 text-sm leading-relaxed font-sans bg-slate-50/50 p-4 rounded-xl border border-slate-200/80">
+              <MarkdownRenderer content={activeTopic.content} />
             </div>
 
             {/* Si el tema trata sobre Inscripciones, renderizar la lista completa de Equipos Inscritos */}
@@ -304,7 +341,7 @@ export const ForumModule: React.FC<ForumModuleProps> = ({
                       className="p-3 bg-white border border-slate-200 rounded-xl flex items-center gap-3 hover:border-emerald-400 transition-all shadow-xs"
                     >
                       <ClubLogo
-                        src={club.logoUrl || club.badgeUrl}
+                        src={club.logoUrl}
                         alt={club.name}
                         className="w-10 h-10 object-contain rounded-full bg-white p-0.5 border border-slate-200 shrink-0"
                       />
@@ -351,9 +388,10 @@ export const ForumModule: React.FC<ForumModuleProps> = ({
                 <div className="flex items-center justify-between border-b border-slate-100 pb-2">
                   <div className="flex items-center gap-2.5">
                     <ImageWithFallback src={reply.authorAvatar} alt={reply.authorName} className="w-8 h-8 rounded-full object-cover border border-slate-300" />
-                    <div>
+                    <div className="flex items-center gap-2">
                       <span className="font-bold text-xs text-slate-900">{reply.authorName}</span>
-                      <span className="text-[10px] text-emerald-700 font-mono ml-2">({reply.authorClub})</span>
+                      <span className="text-[10px] text-emerald-700 font-mono">({reply.authorClub})</span>
+                      {reply.isFounderAuthor && <FounderBadge />}
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
@@ -385,7 +423,9 @@ export const ForumModule: React.FC<ForumModuleProps> = ({
                     )}
                   </div>
                 </div>
-                <p className="text-xs text-slate-700 leading-relaxed whitespace-pre-line">{reply.content}</p>
+                <div className="text-xs text-slate-700 leading-relaxed font-sans">
+                  <MarkdownRenderer content={reply.content} />
+                </div>
                 {reply.imageUrl && (
                   <div className="rounded-lg overflow-hidden border border-slate-200 max-h-80 bg-slate-900 mt-2">
                     <ImageWithFallback src={reply.imageUrl} alt="Adjunto de respuesta" className="w-full h-full object-cover" />
@@ -400,14 +440,25 @@ export const ForumModule: React.FC<ForumModuleProps> = ({
                 <CornerDownRight className="w-4 h-4 text-[#00ba68]" /> Responder como {currentClub ? currentClub.manager : 'Manager'}
               </h4>
 
-              <textarea
-                value={replyContent}
-                onChange={(e) => setReplyContent(e.target.value)}
-                placeholder="Escribe tu respuesta al tema, análisis o propuesta de partido..."
-                rows={3}
-                required
-                className="w-full p-3 bg-slate-50 border border-slate-300 rounded-lg text-xs text-slate-900 focus:outline-none focus:border-[#00ba68]"
-              />
+              <div>
+                <label className="block text-xs font-bold uppercase text-slate-700 font-tech mb-1">
+                  TU RESPUESTA (FORMATO CON NEGRIFA, TÍTULOS Y LISTAS)
+                </label>
+                <MarkdownToolbar
+                  value={replyContent}
+                  onChange={setReplyContent}
+                  textareaRef={replyContentRef}
+                />
+                <textarea
+                  ref={replyContentRef}
+                  value={replyContent}
+                  onChange={(e) => setReplyContent(e.target.value)}
+                  placeholder="Escribe tu respuesta... Podés usar las herramientas arriba para negrita (**), títulos (##), listas (-), etc."
+                  rows={3}
+                  required
+                  className="w-full p-3 bg-slate-50 border border-slate-300 border-t-0 rounded-b-lg text-xs text-slate-900 focus:outline-none focus:border-[#00ba68]"
+                />
+              </div>
 
               <div className="flex justify-end">
                 <button
@@ -457,7 +508,7 @@ export const ForumModule: React.FC<ForumModuleProps> = ({
                   onClick={() => setSelectedCategory(cat)}
                   className={`px-3 py-1.5 rounded-lg text-xs font-tech font-bold uppercase transition-all whitespace-nowrap flex items-center gap-1.5 ${
                     selectedCategory === cat
-                      ? 'bg-[#00ba68] text-white shadow-sm'
+                      ? 'bg-[#00ba68] text-white shadow-md shadow-emerald-500/20 border border-emerald-400 font-extrabold'
                       : 'bg-slate-100 text-slate-600 hover:text-slate-900 hover:bg-slate-200'
                   }`}
                 >
@@ -498,12 +549,7 @@ export const ForumModule: React.FC<ForumModuleProps> = ({
                           <Pin className="w-3 h-3" /> Fijado
                         </span>
                       )}
-                      <span className={`px-2 py-0.5 rounded text-[10px] font-bold font-tech uppercase ${
-                        topic.category === 'Anuncios' ? 'bg-amber-100 text-amber-800 border border-amber-300' :
-                        topic.category === 'Resultados' ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' :
-                        topic.category === 'Fichajes' ? 'bg-purple-100 text-purple-800 border border-purple-300' :
-                        'bg-blue-100 text-blue-800 border border-blue-300'
-                      }`}>
+                      <span className={`px-2 py-0.5 rounded text-[10px] font-bold font-tech uppercase ${CATEGORY_BADGE_CLASS[topic.category]}`}>
                         {topic.category}
                       </span>
                       {topic.imageUrl && (
@@ -517,8 +563,9 @@ export const ForumModule: React.FC<ForumModuleProps> = ({
                       {topic.title}
                     </h3>
 
-                    <div className="flex items-center gap-3 text-[11px] text-slate-500 font-tech">
+                    <div className="flex items-center gap-3 text-[11px] text-slate-500 font-tech flex-wrap">
                       <span>Por <strong className="text-slate-800">{topic.authorName}</strong> ({topic.authorClub})</span>
+                      {topic.isFounderAuthor && <FounderBadge />}
                       <span>•</span>
                       <span>{topic.createdAt}</span>
                     </div>
@@ -653,13 +700,19 @@ export const ForumModule: React.FC<ForumModuleProps> = ({
                 <label className="block text-xs font-bold uppercase text-slate-700 font-tech mb-1.5">
                   CONTENIDO DEL MENSAJE *
                 </label>
+                <MarkdownToolbar
+                  value={newContent}
+                  onChange={setNewContent}
+                  textareaRef={newContentRef}
+                />
                 <textarea
+                  ref={newContentRef}
                   value={newContent}
                   onChange={(e) => setNewContent(e.target.value)}
-                  rows={5}
-                  placeholder="Escribe el mensaje completo de tu publicación..."
+                  placeholder="Escribe el mensaje del tema aquí... Podés formatear con **negrita**, *cursiva*, ## Títulos y listas."
+                  rows={7}
                   required
-                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-lg text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-[#00ba68] focus:ring-1 focus:ring-[#00ba68] transition"
+                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 border-t-0 rounded-b-lg text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-[#00ba68] transition"
                 />
               </div>
 
@@ -785,12 +838,18 @@ export const ForumModule: React.FC<ForumModuleProps> = ({
                 <label className="block text-xs font-bold uppercase text-slate-700 font-tech mb-1.5">
                   CONTENIDO DEL MENSAJE *
                 </label>
+                <MarkdownToolbar
+                  value={editContent}
+                  onChange={setEditContent}
+                  textareaRef={editContentRef}
+                />
                 <textarea
+                  ref={editContentRef}
                   value={editContent}
                   onChange={(e) => setEditContent(e.target.value)}
-                  rows={6}
+                  rows={7}
                   required
-                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-lg text-xs text-slate-900 focus:outline-none focus:bg-white focus:border-[#00ba68] focus:ring-1 focus:ring-[#00ba68] transition"
+                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 border-t-0 rounded-b-lg text-xs text-slate-900 focus:outline-none focus:bg-white focus:border-[#00ba68] transition"
                 />
               </div>
 
@@ -905,12 +964,18 @@ export const ForumModule: React.FC<ForumModuleProps> = ({
                 <label className="block text-xs font-bold uppercase text-slate-700 font-tech mb-1.5">
                   CONTENIDO DE LA RESPUESTA *
                 </label>
+                <MarkdownToolbar
+                  value={editReplyContent}
+                  onChange={setEditReplyContent}
+                  textareaRef={editReplyContentRef}
+                />
                 <textarea
+                  ref={editReplyContentRef}
                   value={editReplyContent}
                   onChange={(e) => setEditReplyContent(e.target.value)}
                   rows={5}
                   required
-                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-lg text-xs text-slate-900 focus:outline-none focus:bg-white focus:border-[#00ba68] focus:ring-1 focus:ring-[#00ba68] transition"
+                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 border-t-0 rounded-b-lg text-xs text-slate-900 focus:outline-none focus:bg-white focus:border-[#00ba68] transition"
                 />
               </div>
 

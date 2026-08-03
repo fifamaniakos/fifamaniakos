@@ -3,7 +3,7 @@ import { ClubLogo } from './ClubLogo';
 import { Club, Player, TransferItem, FinancialTransaction } from '../types';
 import { SOFIFA_PLAYERS, SoFifaPlayerPreset } from '../data/sofifaData';
 import { SofifaPlayersExplorer } from './SofifaPlayersExplorer';
-import { DollarSign, ShoppingBag, Tag, Shield, Search, ArrowRight, Wallet, RefreshCw, AlertCircle, Sparkles, UserPlus, Edit3, X } from 'lucide-react';
+import { DollarSign, ShoppingBag, Tag, Shield, Search, ArrowRight, Wallet, RefreshCw, AlertCircle, Sparkles, UserPlus, Edit3, X, Users } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
 interface TransferMarketProps {
@@ -11,12 +11,9 @@ interface TransferMarketProps {
   clubs: Club[];
   transfers: TransferItem[];
   transactions: FinancialTransaction[];
-  onBuyPlayer: (transfer: TransferItem, buyerClub: Club) => void;
-  onListPlayerForSale: (player: Player, price: number) => void;
-  onCancelTransfer?: (transferId: string) => void;
-  onUpdateTransferClause?: (transferId: string, newAskingPrice: number) => void;
-  onDirectTransferPlayer: (player: Player, buyerClub: Club, sellerClub: Club, price: number) => void;
-  onSignSofifaPlayer?: (playerPreset: SoFifaPlayerPreset, buyerClub: Club, price: number) => void;
+  onBuyPlayer: (transfer: TransferItem, buyerClub: Club) => boolean | Promise<boolean>;
+  onDirectTransferPlayer: (player: Player, buyerClub: Club, sellerClub: Club, price: number) => boolean | Promise<boolean>;
+  onSignSofifaPlayer?: (playerPreset: SoFifaPlayerPreset, buyerClub: Club, price: number) => boolean | Promise<boolean>;
   onPopulateClubWithSofifa?: (targetClub: Club) => void;
   players: Player[];
 }
@@ -26,24 +23,18 @@ export const TransferMarket: React.FC<TransferMarketProps> = ({
   clubs,
   transfers,
   onBuyPlayer,
-  onListPlayerForSale,
-  onCancelTransfer,
-  onUpdateTransferClause,
   onDirectTransferPlayer,
   onSignSofifaPlayer,
   onPopulateClubWithSofifa,
   players
 }) => {
-  const [activeSubTab, setActiveSubTab] = useState<'libres' | 'comprar' | 'mercado'>('libres');
-
-  // Modals state
-  const [showListModal, setShowListModal] = useState(false);
-  const [selectedPlayerForSaleId, setSelectedPlayerForSaleId] = useState('');
-  const [askingPrice, setAskingPrice] = useState(30000000);
-
-  // Edit Transfer Clause Modal state
-  const [selectedEditClauseTransfer, setSelectedEditClauseTransfer] = useState<TransferItem | null>(null);
-  const [newClausePrice, setNewClausePrice] = useState<number>(30000000);
+  // Solo 2 pestañas: Traspasos de la Liga (planteles + fichar por cláusula u
+  // oferta especial) y Fichajes Libres (base de datos, sin club todavia).
+  // Antes habia una 3ra pestaña "Mercado de Cláusulas" que mostraba lo mismo
+  // que "Traspasos de la Liga" filtrado, con su propio modal de compra --
+  // se unifico todo en un solo lugar para no tener dos caminos distintos
+  // para hacer lo mismo.
+  const [activeSubTab, setActiveSubTab] = useState<'libres' | 'comprar'>('libres');
 
   // Direct transfer modal state
   const [selectedPlayerForDirectBuy, setSelectedPlayerForDirectBuy] = useState<Player | null>(null);
@@ -58,11 +49,6 @@ export const TransferMarket: React.FC<TransferMarketProps> = ({
   // Market Clause Buy Modal State
   const [selectedMarketTransfer, setSelectedMarketTransfer] = useState<TransferItem | null>(null);
   const [marketBuyerClubId, setMarketBuyerClubId] = useState<string>(currentClub?.id || '');
-
-  // Filters for SOFIFA Buscador
-  const [sofifaSearch, setSofifaSearch] = useState('');
-  const [sofifaPosFilter, setSofifaPosFilter] = useState('ALL');
-  const [sofifaClubFilter, setSofifaClubFilter] = useState('ALL');
 
   // Filters for Comprar Jugador de Club
   const [searchQuery, setSearchQuery] = useState('');
@@ -88,7 +74,7 @@ export const TransferMarket: React.FC<TransferMarketProps> = ({
     setSofifaSignPrice(preset.value);
   };
 
-  const handleConfirmSofifaSign = (e: React.FormEvent) => {
+  const handleConfirmSofifaSign = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedSofifaPreset) return;
 
@@ -103,22 +89,8 @@ export const TransferMarket: React.FC<TransferMarketProps> = ({
       return;
     }
 
-    const newPlayer: Player = {
-      id: `pl-sofifa-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
-      clubId: buyerClub.id,
-      name: selectedSofifaPreset.name,
-      position: selectedSofifaPreset.position,
-      rating: selectedSofifaPreset.rating,
-      cardType: selectedSofifaPreset.cardType || 'Gold',
-      value: sofifaSignPrice,
-      photoUrl: selectedSofifaPreset.photoUrl,
-      stats: selectedSofifaPreset.stats,
-      isStarter: false
-    };
-
-    if (onSignSofifaPlayer) {
-      onSignSofifaPlayer(selectedSofifaPreset, buyerClub, sofifaSignPrice);
-    }
+    const completed = await onSignSofifaPlayer?.(selectedSofifaPreset, buyerClub, sofifaSignPrice);
+    if (!completed) return;
 
     confetti({
       particleCount: 80,
@@ -134,10 +106,14 @@ export const TransferMarket: React.FC<TransferMarketProps> = ({
   const openDirectBuyModal = (player: Player) => {
     setSelectedPlayerForDirectBuy(player);
     setDirectBuyerClubId(currentClub.id);
-    setDirectTransferPrice(player.value || 25000000);
+    // Si el jugador tiene cláusula de rescisión, esa es la referencia de
+    // precio (garantiza el traspaso); si no, se parte del valor de mercado.
+    setDirectTransferPrice(
+      player.releaseClause && player.releaseClause > 0 ? player.releaseClause : (player.value || 25000000)
+    );
   };
 
-  const handleConfirmDirectBuy = (e: React.FormEvent) => {
+  const handleConfirmDirectBuy = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedPlayerForDirectBuy) return;
 
@@ -159,7 +135,8 @@ export const TransferMarket: React.FC<TransferMarketProps> = ({
       return;
     }
 
-    onDirectTransferPlayer(selectedPlayerForDirectBuy, buyerClub, sellerClub, Number(directTransferPrice));
+    const completed = await onDirectTransferPlayer(selectedPlayerForDirectBuy, buyerClub, sellerClub, Number(directTransferPrice));
+    if (!completed) return;
 
     confetti({
       particleCount: 75,
@@ -172,35 +149,6 @@ export const TransferMarket: React.FC<TransferMarketProps> = ({
     setSelectedPlayerForDirectBuy(null);
   };
 
-  // List player for sale handler
-  const handleListPlayer = (e: React.FormEvent) => {
-    e.preventDefault();
-    const playerToList = myClubPlayers.find(p => p.id === selectedPlayerForSaleId);
-    if (!playerToList) return;
-
-    onListPlayerForSale(playerToList, Number(askingPrice));
-    setShowListModal(false);
-    setSelectedPlayerForSaleId('');
-  };
-
-  // Edit Clause Handlers
-  const openEditClauseModal = (transfer: TransferItem) => {
-    setSelectedEditClauseTransfer(transfer);
-    setNewClausePrice(transfer.askingPrice);
-  };
-
-  const handleConfirmEditClause = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!selectedEditClauseTransfer) return;
-
-    if (onUpdateTransferClause) {
-      onUpdateTransferClause(selectedEditClauseTransfer.id, Number(newClausePrice));
-      alert(`¡Cláusula actualizada! La nueva cláusula para ${selectedEditClauseTransfer.player.name} es €${(Number(newClausePrice) / 1000000).toFixed(1)}M.`);
-    }
-
-    setSelectedEditClauseTransfer(null);
-  };
-
   // Market Clause Buy Handlers
   const openMarketBuyModal = (transfer: TransferItem) => {
     setSelectedMarketTransfer(transfer);
@@ -210,7 +158,7 @@ export const TransferMarket: React.FC<TransferMarketProps> = ({
     setMarketBuyerClubId(defaultBuyer);
   };
 
-  const handleConfirmMarketBuy = (e: React.FormEvent) => {
+  const handleConfirmMarketBuy = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedMarketTransfer) return;
 
@@ -230,7 +178,8 @@ export const TransferMarket: React.FC<TransferMarketProps> = ({
       return;
     }
 
-    onBuyPlayer(selectedMarketTransfer, buyerClub);
+    const completed = await onBuyPlayer(selectedMarketTransfer, buyerClub);
+    if (!completed) return;
 
     confetti({
       particleCount: 80,
@@ -243,17 +192,6 @@ export const TransferMarket: React.FC<TransferMarketProps> = ({
     setSelectedMarketTransfer(null);
   };
 
-  // Filtered SOFIFA Players
-  const filteredSofifaPlayers = SOFIFA_PLAYERS.filter(sp => {
-    if (sofifaPosFilter !== 'ALL' && sp.position !== sofifaPosFilter) return false;
-    if (sofifaClubFilter !== 'ALL' && sp.clubName !== sofifaClubFilter) return false;
-    if (sofifaSearch.trim()) {
-      const q = sofifaSearch.toLowerCase().trim();
-      return sp.name.toLowerCase().includes(q) || (sp.clubName && sp.clubName.toLowerCase().includes(q)) || sp.nationality.toLowerCase().includes(q);
-    }
-    return true;
-  });
-
   // Filtered clubs for "Traspasos entre Clubes"
   const visibleClubs = clubs.filter(c => selectedClubFilter === 'ALL' || c.id === selectedClubFilter);
 
@@ -262,74 +200,81 @@ export const TransferMarket: React.FC<TransferMarketProps> = ({
 
   return (
     <div className="space-y-6">
-      {/* Header Budget Bar */}
-      <div className="fc-card p-6 rounded-2xl border-slate-200 flex flex-col md:flex-row items-center justify-between gap-6 shadow-xl">
-        <div className="flex items-center gap-4">
-          <div className="w-14 h-14 bg-gradient-to-br from-[#02f59b] to-[#00a362] rounded-2xl flex items-center justify-center text-black shadow-md shrink-0">
-            <Wallet className="w-8 h-8" />
+      {/* Banner unico, mismo lenguaje visual que las secciones del Foro
+          (CompetitionSectionView): banda oscura con badge + titulo + tagline,
+          y pestañas a la derecha. Antes habia un segundo banner separado (el
+          de la Base de Datos) apilado justo abajo repitiendo informacion. */}
+      <div className="fc-card p-6 md:p-8 rounded-2xl border-emerald-500/40 bg-gradient-to-r from-slate-950 via-emerald-950 to-slate-900 text-white shadow-2xl relative overflow-hidden">
+        <div className="absolute -right-10 -bottom-10 w-64 h-64 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="flex flex-col md:flex-row items-center justify-between gap-6 relative z-10">
+          <div className="flex items-center gap-4">
+            <div className="w-16 h-16 rounded-2xl bg-white/10 border-2 border-white/20 flex items-center justify-center shrink-0 shadow-inner">
+              <Wallet className="w-9 h-9 text-emerald-300" />
+            </div>
+            <div>
+              <span className="px-2.5 py-0.5 bg-emerald-500 text-white text-[10px] font-tech font-extrabold uppercase rounded tracking-wider">
+                MERCADO DE FICHAJES
+              </span>
+              <h1 className="font-display font-black text-2xl md:text-3xl text-white uppercase italic tracking-wide mt-1">
+                {currentClub.name}
+              </h1>
+              <p className="text-xs text-slate-300 font-tech">
+                Manager: @{currentClub.manager}
+              </p>
+            </div>
           </div>
-          <div>
-            <span className="text-xs font-tech font-bold uppercase text-slate-500">Presupuesto Disponible del Club</span>
-            <h1 className="font-display font-black text-3xl text-emerald-600">
-              €{(currentClub.budget / 1000000).toFixed(2)}M
-            </h1>
-            <span className="text-[11px] text-slate-500 font-mono">
-              Club: <strong className="text-slate-800">{currentClub.name}</strong> • Manager: @{currentClub.manager}
-            </span>
+
+          <div className="flex items-center gap-2 flex-wrap justify-center">
+            <button
+              onClick={() => setActiveSubTab('libres')}
+              className={`px-4 py-2.5 rounded-xl font-display font-extrabold text-xs uppercase transition-all flex items-center gap-2 border ${
+                activeSubTab === 'libres'
+                  ? 'bg-[#00ba68] text-white border-[#00ba68] shadow-md scale-105'
+                  : 'bg-white/10 text-white border-white/20 hover:bg-white/20'
+              }`}
+            >
+              <Users className="w-4 h-4" /> Jugadores Libres / Base de Datos
+            </button>
+
+            <button
+              onClick={() => setActiveSubTab('comprar')}
+              className={`px-4 py-2.5 rounded-xl font-display font-extrabold text-xs uppercase transition-all flex items-center gap-2 border ${
+                activeSubTab === 'comprar'
+                  ? 'bg-[#00ba68] text-white border-[#00ba68] shadow-md scale-105'
+                  : 'bg-white/10 text-white border-white/20 hover:bg-white/20'
+              }`}
+            >
+              <ShoppingBag className="w-4 h-4" /> Traspasos de la Liga
+            </button>
           </div>
-        </div>
-
-        <div className="flex items-center gap-2 flex-wrap justify-center">
-          <button
-            onClick={() => setActiveSubTab('libres')}
-            className={`px-4 py-2.5 rounded-xl font-display font-extrabold text-xs uppercase transition-all flex items-center gap-2 ${
-              activeSubTab === 'libres'
-                ? 'bg-[#00ba68] text-white shadow-md scale-105'
-                : 'bg-slate-100 text-slate-700 hover:bg-slate-200 border border-slate-200'
-            }`}
-          >
-            <Sparkles className="w-4 h-4" /> Jugadores Libres / Base de Datos
-          </button>
-
-          <button
-            onClick={() => setActiveSubTab('comprar')}
-            className={`px-4 py-2.5 rounded-xl font-display font-extrabold text-xs uppercase transition-all flex items-center gap-2 ${
-              activeSubTab === 'comprar'
-                ? 'bg-[#00ba68] text-white shadow-md scale-105'
-                : 'bg-slate-100 text-slate-700 hover:bg-slate-200 border border-slate-200'
-            }`}
-          >
-            <ShoppingBag className="w-4 h-4" /> Traspasos entre Clubes
-          </button>
-
-          <button
-            onClick={() => setActiveSubTab('mercado')}
-            className={`px-4 py-2.5 rounded-xl font-display font-extrabold text-xs uppercase transition-all flex items-center gap-2 ${
-              activeSubTab === 'mercado'
-                ? 'bg-[#00ba68] text-white shadow-md scale-105'
-                : 'bg-slate-100 text-slate-700 hover:bg-slate-200 border border-slate-200'
-            }`}
-          >
-            <RefreshCw className="w-4 h-4" /> Mercado de Cláusulas
-          </button>
-
-          <button
-            onClick={() => setShowListModal(true)}
-            className="fc-button-primary px-4 py-2.5 text-xs uppercase flex items-center gap-1.5 shadow-md"
-          >
-            <Tag className="w-4 h-4" /> Vender Jugador
-          </button>
         </div>
       </div>
+
+      {/* Explicacion de como funciona el mercado, siempre visible */}
+      <div className="fc-card p-4 md:p-5 rounded-2xl border-emerald-200 bg-emerald-50 text-[11px] text-emerald-900 font-tech leading-relaxed">
+        💡 <strong>Cómo funciona:</strong> si un jugador tiene <strong>Precio de Traspaso</strong> fijado por su
+        club (se configura desde Mi Club), lo podés fichar ya mismo pagando exactamente ese monto en{' '}
+        <strong>Traspasos de la Liga</strong>. Si no lo tiene, podés hacerle una <strong>Oferta Especial</strong>{' '}
+        (requiere que el otro manager esté de acuerdo). Los jugadores de <strong>Jugadores Libres / Base de
+        Datos</strong> no tienen club todavía: los fichás directo pagando el valor que se muestra.
+      </div>
+
+      {/* Para poner un jugador en venta / fijarle precio de traspaso, se
+          hace desde Mi Club -- un solo lugar, evita que el precio del
+          Mercado y la Cláusula del jugador queden desincronizados. */}
 
       {/* VIEW 1: BASE DE DATOS DE JUGADORES (VISTA EN FILAS/TABLA) */}
       {activeSubTab === 'libres' && (
         <div className="pt-2">
           <SofifaPlayersExplorer
             currentClub={currentClub}
-            onSignPlayer={(preset) => {
+            signedPlayers={players}
+            compact
+            onSignPlayer={async (preset) => {
               if (currentClub) {
-                onSignSofifaPlayer?.(preset, currentClub, preset.value);
+                const completed = await onSignSofifaPlayer?.(preset, currentClub, preset.value);
+                if (!completed) return;
+                alert(`Fichaje completado: ${preset.name} ya figura en ${currentClub.name} y el movimiento quedo registrado en Estado Financiero.`);
               } else {
                 alert('Selecciona un club en la barra superior para fichar este jugador.');
               }
@@ -348,7 +293,9 @@ export const TransferMarket: React.FC<TransferMarketProps> = ({
                   <ShoppingBag className="w-5 h-5 text-emerald-600" /> Plantillas de Equipos de la Liga
                 </h2>
                 <p className="text-xs text-slate-600">
-                  Explora las plantillas de los clubes de la liga y realiza ofertas de compra directas por sus jugadores.
+                  Si un jugador tiene <strong>Precio de Traspaso</strong> fijado por su club, podés ficharlo pagando
+                  exactamente ese monto. Si no lo tiene, podés hacer una <strong>Oferta Especial</strong> (requiere
+                  que las dos partes se pongan de acuerdo fuera de la app).
                 </p>
               </div>
 
@@ -430,7 +377,20 @@ export const TransferMarket: React.FC<TransferMarketProps> = ({
                       </div>
                     </div>
 
-                    <div className="text-right flex items-center gap-2">
+                    <div className="text-right flex items-center gap-2 flex-wrap justify-end">
+                      {onPopulateClubWithSofifa && (
+                        <button
+                          onClick={() => {
+                            if (confirm(`¿Sincronizar plantilla oficial de EA FC para ${club.name}? Se asignarán los jugadores reales del club.`)) {
+                              onPopulateClubWithSofifa(club);
+                            }
+                          }}
+                          className="px-2.5 py-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300 rounded-lg text-[11px] font-bold uppercase flex items-center gap-1 transition shadow-2xs"
+                          title="Cargar o actualizar la plantilla oficial real de este club"
+                        >
+                          <Sparkles className="w-3.5 h-3.5 text-emerald-600" /> Sincronizar Plantilla Oficial
+                        </button>
+                      )}
                       <span className="text-xs font-mono font-bold text-slate-700 bg-slate-100 px-3 py-1 rounded-full border border-slate-200">
                         {clubRoster.length} Jugadores
                       </span>
@@ -453,12 +413,17 @@ export const TransferMarket: React.FC<TransferMarketProps> = ({
                             }`}
                           >
                             <div className="flex items-center gap-2.5 min-w-0">
-                              <div className={`w-8 h-8 rounded-lg font-display font-black text-[10px] flex items-center justify-center shrink-0 border shadow-xs ${
-                                transferItem
-                                  ? 'bg-amber-400 text-slate-950 border-amber-500'
-                                  : 'bg-slate-900 text-[#02f59b] border-slate-700'
-                              }`}>
-                                {player.position}
+                              {/* Real Player Face Photo */}
+                              <div className="w-10 h-10 rounded-full bg-slate-200 overflow-hidden border border-slate-300 shrink-0 relative shadow-2xs">
+                                <img
+                                  src={player.photoUrl || `https://cdn.sofifa.net/players/231/747/25_120.png`}
+                                  alt={player.name}
+                                  referrerPolicy="no-referrer"
+                                  className="w-full h-full object-cover"
+                                  onError={(e) => {
+                                    (e.target as HTMLElement).style.display = 'none';
+                                  }}
+                                />
                               </div>
 
                               <div className="min-w-0">
@@ -478,13 +443,21 @@ export const TransferMarket: React.FC<TransferMarketProps> = ({
                                     </span>
                                   )}
                                 </div>
-                                <div className="flex items-center gap-2 mt-0.5">
-                                  <span className="text-[10px] text-slate-600 font-bold font-mono">
+                                <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 mt-0.5 text-[10px]">
+                                  <span className="text-slate-500 font-mono">
                                     Valor: €{(player.value / 1000000).toFixed(1)}M
                                   </span>
-                                  {transferItem && (
-                                    <span className="text-[10px] text-amber-800 font-extrabold font-mono">
-                                      Cláusula: €{(transferItem.askingPrice / 1000000).toFixed(1)}M
+                                  {player.releaseClause && player.releaseClause > 0 ? (
+                                    <span className="text-[#00ba68] font-extrabold font-mono">
+                                      Precio de Traspaso: €{(player.releaseClause / 1000000).toFixed(1)}M
+                                    </span>
+                                  ) : transferItem ? (
+                                    <span className="text-amber-800 font-extrabold font-mono">
+                                      Precio de Traspaso: €{(transferItem.askingPrice / 1000000).toFixed(1)}M
+                                    </span>
+                                  ) : (
+                                    <span className="text-slate-400 font-mono font-semibold">
+                                      No Transferible
                                     </span>
                                   )}
                                 </div>
@@ -501,8 +474,9 @@ export const TransferMarket: React.FC<TransferMarketProps> = ({
                                   <button
                                     onClick={() => openMarketBuyModal(transferItem)}
                                     className="bg-amber-500 hover:bg-amber-400 text-slate-950 text-[10px] py-1.5 px-2.5 font-black uppercase rounded flex items-center gap-1 shadow border border-amber-600 transition-all scale-105"
+                                    title="Pagar el Precio de Traspaso fijado por el club vendedor: el fichaje se confirma directo, sin negociar."
                                   >
-                                    <ShoppingBag className="w-3 h-3" /> Cláusula (€{(transferItem.askingPrice / 1000000).toFixed(1)}M)
+                                    <ShoppingBag className="w-3 h-3" /> Fichar (€{(transferItem.askingPrice / 1000000).toFixed(1)}M)
                                   </button>
                                 )
                               ) : isMyClub ? (
@@ -512,9 +486,10 @@ export const TransferMarket: React.FC<TransferMarketProps> = ({
                               ) : (
                                 <button
                                   onClick={() => openDirectBuyModal(player)}
-                                  className="fc-button-primary text-[10px] py-1.5 px-2.5 font-bold uppercase flex items-center gap-1 shadow"
+                                  className="bg-slate-700 hover:bg-slate-600 text-white text-[10px] py-1.5 px-2.5 font-bold uppercase rounded flex items-center gap-1 shadow"
+                                  title="Este jugador no tiene Precio de Traspaso fijado: podés proponer un monto, pero el traspaso no se confirma solo -- avisale al manager rival."
                                 >
-                                  Fichar
+                                  Oferta Especial
                                 </button>
                               )}
                             </div>
@@ -553,84 +528,6 @@ export const TransferMarket: React.FC<TransferMarketProps> = ({
               <div className="p-12 text-center fc-card rounded-2xl">
                 <AlertCircle className="w-10 h-10 text-slate-400 mx-auto mb-2" />
                 <p className="text-slate-600 text-sm font-tech">No hay equipos registrados en la liga aún.</p>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* VIEW 3: MERCADO DE TRASPASOS (Puestos a la venta) */}
-      {activeSubTab === 'mercado' && (
-        <div className="space-y-4">
-          <h2 className="font-display font-bold text-xl text-slate-900 uppercase italic tracking-wider flex items-center gap-2">
-            <RefreshCw className="w-5 h-5 text-emerald-600" /> Jugadores Puestos a la Venta en el Mercado
-          </h2>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {transfers.filter(t => t.status === 'DISPONIBLE').map(transfer => {
-              const sellerClub = clubs.find(c => c.id === transfer.sellerClubId);
-
-              return (
-                <div key={transfer.id} className="fc-card fc-card-hover p-5 rounded-2xl border-slate-200 space-y-4 bg-white">
-                  <div className="flex justify-between items-start">
-                    <div className="flex items-center gap-2.5">
-                      <div className="w-10 h-10 rounded-xl bg-slate-900 text-[#02f59b] font-display font-black text-xs flex items-center justify-center shrink-0 border border-slate-700">
-                        {transfer.player.position}
-                      </div>
-                      <div>
-                        <span className="font-display font-black text-base text-slate-900 block leading-tight">
-                          {transfer.player.name}
-                        </span>
-                        <span className="text-[10px] bg-emerald-100 text-emerald-800 px-1.5 py-0.5 rounded font-bold font-mono border border-emerald-200">
-                          {transfer.player.position} • {transfer.player.rating} OVR
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="bg-slate-900 text-white p-3 rounded-xl border border-slate-800 flex justify-between items-center text-xs">
-                    <div>
-                      <span className="text-[10px] text-slate-400 font-tech block uppercase">Vendedor</span>
-                      <span className="font-bold text-white">{sellerClub?.name || 'Club'}</span>
-                    </div>
-                    <div className="text-right">
-                      <span className="text-[10px] text-slate-400 font-tech block uppercase">Cláusula de Venta</span>
-                      <span className="font-display font-black text-[#02f59b] text-lg">
-                        €{(transfer.askingPrice / 1000000).toFixed(1)}M
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="flex flex-col gap-2">
-                    <button
-                      onClick={() => openMarketBuyModal(transfer)}
-                      className="w-full py-2.5 rounded-lg font-display font-extrabold text-xs uppercase transition-all fc-button-primary flex items-center justify-center gap-1.5 shadow-sm"
-                    >
-                      <ShoppingBag className="w-4 h-4" />
-                      {transfer.sellerClubId === currentClub.id ? 'Fichar con otro equipo' : `Fichar por €${(transfer.askingPrice / 1000000).toFixed(1)}M`}
-                    </button>
-
-                    {transfer.sellerClubId === currentClub.id && onCancelTransfer && (
-                      <button
-                        onClick={() => {
-                          if (confirm(`¿Retirar a ${transfer.player.name} del mercado de fichajes?`)) {
-                            onCancelTransfer(transfer.id);
-                          }
-                        }}
-                        className="w-full py-2 px-3 rounded-lg font-display font-extrabold text-xs uppercase transition-all bg-rose-50 text-rose-700 hover:bg-rose-100 border border-rose-200"
-                      >
-                        Retirar del Mercado
-                      </button>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
-
-            {transfers.filter(t => t.status === 'DISPONIBLE').length === 0 && (
-              <div className="col-span-full text-center py-12 fc-card rounded-xl">
-                <Tag className="w-12 h-12 text-slate-400 mx-auto mb-3" />
-                <p className="text-slate-600 text-sm font-tech">No hay jugadores puestos a la venta actualmente.</p>
               </div>
             )}
           </div>
@@ -880,86 +777,7 @@ export const TransferMarket: React.FC<TransferMarketProps> = ({
         );
       })()}
 
-      {/* MODAL 3: Vender Jugador en el Mercado */}
-      {showListModal && (
-        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
-          <div className="relative bg-white border border-slate-200 max-w-md w-full p-6 md:p-8 rounded-2xl shadow-2xl space-y-6 text-slate-800 my-8 animate-scale-up">
-            {/* Header */}
-            <div className="flex justify-between items-center border-b border-slate-100 pb-4">
-              <div className="flex items-center gap-3">
-                <div className="w-11 h-11 bg-slate-900 text-[#02f59b] font-display font-black text-xl flex items-center justify-center rounded-xl italic shadow-md border border-slate-800">
-                  <Tag className="w-6 h-6 text-[#02f59b]" />
-                </div>
-                <div>
-                  <h2 className="font-display font-black text-2xl text-slate-900 uppercase italic tracking-wide">
-                    Poner a la Venta
-                  </h2>
-                  <p className="text-xs text-slate-500 font-tech">Publica en la lista de transferibles</p>
-                </div>
-              </div>
-              <button 
-                onClick={() => setShowListModal(false)} 
-                className="w-9 h-9 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-900 transition flex items-center justify-center border border-slate-200"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            <form onSubmit={handleListPlayer} className="space-y-4">
-              <div>
-                <label className="block text-xs font-bold uppercase text-slate-700 font-tech mb-1">
-                  Selecciona Jugador ({currentClub.name}) *
-                </label>
-                <select
-                  value={selectedPlayerForSaleId}
-                  onChange={(e) => setSelectedPlayerForSaleId(e.target.value)}
-                  required
-                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-lg text-xs font-semibold text-slate-900 focus:outline-none focus:bg-white focus:border-[#00ba68] transition"
-                >
-                  <option value="">-- Seleccionar Jugador --</option>
-                  {myClubPlayers.map(p => (
-                    <option key={p.id} value={p.id}>
-                      {p.name} ({p.position} - {p.rating} OVR) — Valor: €{(p.value / 1000000).toFixed(1)}M
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold uppercase text-slate-700 font-tech mb-1">
-                  Precio de Salida / Cláusula (€) *
-                </label>
-                <input
-                  type="number"
-                  value={askingPrice}
-                  onChange={(e) => setAskingPrice(Number(e.target.value))}
-                  step="1000000"
-                  required
-                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-lg text-xs font-semibold text-slate-900 focus:outline-none focus:bg-white focus:border-[#00ba68] transition"
-                />
-              </div>
-
-              <div className="flex justify-end gap-3 pt-3 border-t border-slate-100">
-                <button
-                  type="button"
-                  onClick={() => setShowListModal(false)}
-                  className="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-tech font-bold uppercase rounded-lg transition border border-slate-200"
-                >
-                  Cancelar
-                </button>
-                <button
-                  type="submit"
-                  className="fc-button-primary px-7 py-2.5 text-xs font-extrabold uppercase shadow-md hover:shadow-lg transition"
-                >
-                  Publicar en Mercado
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* MODAL 4: Fichar Jugador del Mercado de Cláusulas */}
+      {/* MODAL: Fichar Jugador por Precio de Traspaso (antes "Mercado de Cláusulas") */}
       {selectedMarketTransfer && (() => {
         const sellerClub = clubs.find(c => c.id === selectedMarketTransfer.sellerClubId);
         const buyerClub = clubs.find(c => c.id === marketBuyerClubId);
@@ -1080,88 +898,6 @@ export const TransferMarket: React.FC<TransferMarketProps> = ({
         );
       })()}
 
-      {/* MODAL 5: Modificar Cláusula de Rescisión */}
-      {selectedEditClauseTransfer && (
-        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
-          <div className="relative bg-white border border-slate-200 max-w-md w-full p-6 md:p-8 rounded-2xl shadow-2xl space-y-6 text-slate-800 my-8 animate-scale-up">
-            {/* Header */}
-            <div className="flex justify-between items-center border-b border-slate-100 pb-4">
-              <div className="flex items-center gap-3">
-                <div className="w-11 h-11 bg-slate-900 text-[#02f59b] font-display font-black text-xl flex items-center justify-center rounded-xl italic shadow-md border border-slate-800">
-                  <Edit3 className="w-6 h-6 text-[#02f59b]" />
-                </div>
-                <div>
-                  <h2 className="font-display font-black text-2xl text-slate-900 uppercase italic tracking-wide">
-                    Modificar Cláusula
-                  </h2>
-                  <p className="text-xs text-slate-500 font-tech">Actualizar precio de rescisión</p>
-                </div>
-              </div>
-              <button 
-                onClick={() => setSelectedEditClauseTransfer(null)} 
-                className="w-9 h-9 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-900 transition flex items-center justify-center border border-slate-200"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            <div className="bg-slate-900 p-4 rounded-xl border border-slate-800 flex items-center gap-4 text-white">
-              <div className="w-12 h-12 rounded-xl bg-emerald-500/20 text-[#02f59b] font-display font-black text-sm flex items-center justify-center shrink-0 border border-emerald-500">
-                {selectedEditClauseTransfer.player.position}
-              </div>
-              <div>
-                <h3 className="font-display font-black text-lg text-white uppercase leading-tight">
-                  {selectedEditClauseTransfer.player.name}
-                </h3>
-                <div className="flex items-center gap-2 mt-1">
-                  <span className="text-[10px] bg-[#02f59b] text-black font-bold px-1.5 py-0.5 rounded font-mono">
-                    {selectedEditClauseTransfer.player.position}
-                  </span>
-                  <span className="text-xs font-mono font-bold text-amber-400">
-                    {selectedEditClauseTransfer.player.rating} OVR
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            <form onSubmit={handleConfirmEditClause} className="space-y-4">
-              <div>
-                <label className="block text-xs font-bold uppercase text-slate-700 font-tech mb-1">
-                  Nueva Cláusula / Precio de Rescisión (€) *
-                </label>
-                <input
-                  type="number"
-                  value={newClausePrice}
-                  onChange={(e) => setNewClausePrice(Number(e.target.value))}
-                  step="1000000"
-                  min="1000000"
-                  required
-                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-lg text-sm font-display font-extrabold text-[#00ba68] focus:outline-none focus:bg-white focus:border-[#00ba68] transition"
-                />
-                <span className="text-[10px] text-slate-500 font-mono mt-1 block">
-                  Equivalente en M: €{(newClausePrice / 1000000).toFixed(2)}M
-                </span>
-              </div>
-
-              <div className="flex justify-end gap-3 pt-3 border-t border-slate-100">
-                <button
-                  type="button"
-                  onClick={() => setSelectedEditClauseTransfer(null)}
-                  className="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-tech font-bold uppercase rounded-lg transition border border-slate-200"
-                >
-                  Cancelar
-                </button>
-                <button
-                  type="submit"
-                  className="fc-button-primary px-7 py-2.5 text-xs font-extrabold uppercase shadow-md hover:shadow-lg transition flex items-center gap-1.5"
-                >
-                  <Edit3 className="w-4 h-4" /> Guardar Nueva Cláusula
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
     </div>
   );
 };

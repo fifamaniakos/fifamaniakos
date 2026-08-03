@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { BudgetPackage } from '../types';
-import { Wallet, Plus, Trash2, X, Coins, FileText, Edit3 } from 'lucide-react';
+import { Wallet, Plus, Trash2, X, Coins, FileText, Edit3, Crown } from 'lucide-react';
 import { BudgetPackageCard } from './BudgetPackageCard';
 
 const WHATSAPP_NUMBER = '5493434538564';
@@ -9,6 +9,8 @@ interface MonetizationModuleProps {
   packages: BudgetPackage[];
   explanation: string;
   isAdmin: boolean;
+  currentSeasonNumber: number;
+  hasActiveSubscription: boolean;
   onAddPackage: (pkg: BudgetPackage) => void;
   onEditPackage: (id: string, budgetMillions: number, priceUsd: number) => void;
   onDeletePackage: (id: string) => void;
@@ -19,11 +21,17 @@ export const MonetizationModule: React.FC<MonetizationModuleProps> = ({
   packages,
   explanation,
   isAdmin,
+  currentSeasonNumber,
+  hasActiveSubscription,
   onAddPackage,
   onEditPackage,
   onDeletePackage,
   onSaveExplanation
 }) => {
+  const subscriptionRequired = currentSeasonNumber >= 2;
+  const subscriptionWhatsappLink = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(
+    'Hola! Quiero activar mi suscripción mensual de USD 8 para seguir participando en la liga.'
+  )}`;
   const [showFormModal, setShowFormModal] = useState(false);
   const [editingPackage, setEditingPackage] = useState<BudgetPackage | null>(null);
   const [packageToDelete, setPackageToDelete] = useState<BudgetPackage | null>(null);
@@ -108,6 +116,57 @@ export const MonetizationModule: React.FC<MonetizationModuleProps> = ({
             </button>
           )}
         </div>
+      </div>
+
+      {/* Suscripción de la Liga */}
+      <div className="fc-card p-5 md:p-6 rounded-2xl border-emerald-200 bg-gradient-to-br from-emerald-50 via-white to-white shadow-sm space-y-3">
+        <div className="flex items-center justify-between gap-3 flex-wrap">
+          <h2 className="font-display font-bold text-base uppercase tracking-wide text-slate-900 flex items-center gap-2">
+            <Crown className="w-4 h-4 text-amber-500" /> Suscripción de la Liga
+          </h2>
+          <span className="px-2.5 py-0.5 bg-slate-900 text-white text-[10px] font-mono font-bold uppercase rounded tracking-wider">
+            Temporada Actual: {currentSeasonNumber}
+          </span>
+        </div>
+
+        <p className="text-sm text-slate-700 leading-relaxed font-sans">
+          La <strong>Temporada 1 es completamente gratis</strong> para todos los DTs. A partir de la{' '}
+          <strong>Temporada 2</strong>, participar activamente (reportar resultados y fichar jugadores)
+          requiere una <strong>suscripción de USD 8/mes</strong>. El foro y la consulta de fixture,
+          tabla y estadísticas siguen siendo libres siempre, con o sin suscripción.
+        </p>
+
+        {subscriptionRequired ? (
+          <div className={`flex items-center justify-between gap-3 p-3 rounded-xl border flex-wrap ${
+            hasActiveSubscription || isAdmin
+              ? 'bg-emerald-50 border-emerald-300'
+              : 'bg-rose-50 border-rose-300'
+          }`}>
+            <span className={`text-xs font-tech font-bold ${hasActiveSubscription || isAdmin ? 'text-emerald-800' : 'text-rose-800'}`}>
+              {isAdmin
+                ? 'Como admin no necesitás suscripción.'
+                : hasActiveSubscription
+                  ? 'Tu suscripción está ACTIVA. ¡Gracias por apoyar la liga!'
+                  : 'Tu suscripción está INACTIVA — no vas a poder reportar resultados ni fichar hasta activarla.'}
+            </span>
+            {!isAdmin && !hasActiveSubscription && (
+              <a
+                href={subscriptionWhatsappLink}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-tech font-bold uppercase shrink-0"
+              >
+                Activar por WhatsApp
+              </a>
+            )}
+          </div>
+        ) : (
+          <div className="p-3 rounded-xl border border-emerald-300 bg-emerald-50">
+            <span className="text-xs font-tech font-bold text-emerald-800">
+              Estás en Temporada 1: todavía no se cobra suscripción.
+            </span>
+          </div>
+        )}
       </div>
 
       {/* Explanation */}

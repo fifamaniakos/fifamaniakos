@@ -1,12 +1,18 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Modal } from './Modal';
+import { supabase } from '../lib/supabaseClient';
 import { ClubLogo } from './ClubLogo';
+import { SponsorsAdminSection } from './admin/SponsorsAdminSection';
 import {
   Club,
   MatchResult,
   ForumTopic,
   TransferItem,
-  TickerNewsItem
+  TickerNewsItem,
+  Sponsor,
+  SponsorObjective,
+  ClubSponsorContract,
+  SponsorPayout
 } from '../types';
 import {
   ShieldAlert,
@@ -28,7 +34,10 @@ import {
   ToggleLeft,
   ToggleRight,
   Sparkles,
-  Globe
+  Globe,
+  AlertTriangle,
+  Users,
+  Handshake
 } from 'lucide-react';
 import { 
   SOFIFA_CLUBS, 
@@ -37,12 +46,32 @@ import {
   GET_SOFIFA_CLUBS_BY_FILTER 
 } from '../data/sofifaData';
 
+interface ManagerRow {
+  user_id: string;
+  email: string;
+  gamertag: string;
+  platform: string;
+  club_id: string | null;
+  role: 'admin' | 'manager';
+  is_owner: boolean;
+  subscription_status: string | null;
+  created_at: string;
+}
+
 interface AdminPanelProps {
   clubs: Club[];
   matches: MatchResult[];
   topics: ForumTopic[];
   transfers: TransferItem[];
   tickerNews: TickerNewsItem[];
+  currentSeasonNumber: number;
+  onSetCurrentSeasonNumber: (n: number) => void;
+  draftOpen: boolean;
+  onSetDraftOpen: (open: boolean) => void;
+  division1TeamCount: number;
+  division2TeamCount: number;
+  onSetDivision1TeamCount: (n: number) => void;
+  onSetDivision2TeamCount: (n: number) => void;
   onAddTickerNews: (text: string) => void;
   onToggleTickerNews: (id: string) => void;
   onDeleteTickerNews: (id: string) => void;
@@ -50,9 +79,8 @@ interface AdminPanelProps {
   onAddClub: (newClub: Club) => void;
   onUpdateClub: (updatedClub: Club) => void;
   onDeleteClub: (clubId: string) => void;
-  onResetAllClubs?: () => void;
   onAddMatchResult: (newMatch: MatchResult) => void;
-  onUpdateMatchResult: (matchId: string, status: 'CONFIRMADO' | 'RECHAZADO' | 'PENDIENTE', homeGoals?: number, awayGoals?: number) => void;
+  onUpdateMatchResult: (matchId: string, status: 'CONFIRMADO' | 'RECHAZADO' | 'PENDIENTE', homeGoals?: number, awayGoals?: number, homeScorers?: string, awayScorers?: string) => void;
   onDeleteMatchResult: (matchId: string) => void;
   onDeleteTopic: (topicId: string) => void;
   onTogglePinTopic: (topicId: string) => void;
@@ -62,6 +90,13 @@ interface AdminPanelProps {
   onUpdateTransferClause?: (transferId: string, newAskingPrice: number) => void;
   onGenerateFixtures?: (competitionName?: string) => void;
   onLogoutAdmin: () => void;
+  sponsors: Sponsor[];
+  sponsorObjectives: SponsorObjective[];
+  sponsorContracts: ClubSponsorContract[];
+  sponsorPayouts: SponsorPayout[];
+  onUpdateSponsorObjective: (objective: SponsorObjective) => void;
+  onAddSponsorObjective: (objective: SponsorObjective) => void;
+  onDeleteSponsorObjective: (objectiveId: string) => void;
 }
 
 export const AdminPanel: React.FC<AdminPanelProps> = ({
@@ -77,7 +112,6 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
   onAddClub,
   onUpdateClub,
   onDeleteClub,
-  onResetAllClubs,
   onAddMatchResult,
   onUpdateMatchResult,
   onDeleteMatchResult,
@@ -88,9 +122,210 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
   onDeleteTransfer,
   onUpdateTransferClause,
   onGenerateFixtures,
-  onLogoutAdmin
+  onLogoutAdmin,
+  currentSeasonNumber,
+  onSetCurrentSeasonNumber,
+  draftOpen,
+  onSetDraftOpen,
+  division1TeamCount,
+  division2TeamCount,
+  onSetDivision1TeamCount,
+  onSetDivision2TeamCount,
+  sponsors,
+  sponsorObjectives,
+  sponsorContracts,
+  sponsorPayouts,
+  onUpdateSponsorObjective,
+  onAddSponsorObjective,
+  onDeleteSponsorObjective
 }) => {
-  const [adminTab, setAdminTab] = useState<'cartel' | 'clubes' | 'partidos' | 'foro' | 'fichajes' | 'anuncios'>('cartel');
+  const [adminTab, setAdminTab] = useState<'cartel' | 'clubes' | 'partidos' | 'foro' | 'fichajes' | 'anuncios' | 'cuentas' | 'patrocinadores'>('cartel');
+
+  // Los cupos por division se editan en un estado local y recien se confirman
+  // al salir del campo o al apretar Enter. Con un onChange directo, pasar de 36
+  // a 20 disparaba tres cambios: el campo vacio (que parseInt lee como 0), el
+  // "2" intermedio y recien despues el 20. Cada uno regeneraba y reescribia el
+  // fixture entero contra Supabase, y el paso por 0 llegaba a borrar todos los
+  // partidos de la division porque con menos de 2 clubes no hay fixture posible.
+  const [div1Draft, setDiv1Draft] = useState(String(division1TeamCount));
+  const [div2Draft, setDiv2Draft] = useState(String(division2TeamCount));
+
+  // Si el cupo cambia desde afuera (otro admin, via Realtime) el campo se
+  // sincroniza, salvo que lo estes editando en este momento.
+  useEffect(() => setDiv1Draft(String(division1TeamCount)), [division1TeamCount]);
+  useEffect(() => setDiv2Draft(String(division2TeamCount)), [division2TeamCount]);
+
+  const commitDivisionCount = (
+    draft: string,
+    current: number,
+    apply: (n: number) => void,
+    resetDraft: (value: string) => void
+  ) => {
+    const parsed = parseInt(draft, 10);
+    // Campo vacio o basura: se descarta la edicion en vez de interpretarla como
+    // cupo 0, que borraria el fixture de la division.
+    if (Number.isNaN(parsed) || parsed < 0) {
+      resetDraft(String(current));
+      return;
+    }
+    if (parsed === current) return;
+    apply(parsed);
+  };
+
+  // Mismo problema que los cupos: escribir la temporada en cada tecla
+  // publicaba estados intermedios a Supabase. Pasar de 1 a 12 guardaba la
+  // temporada 1 y despues la 12, y cada valor >= 2 activa el muro de
+  // suscripcion para TODOS los managers conectados por Realtime.
+  const [seasonDraft, setSeasonDraft] = useState(String(currentSeasonNumber));
+  useEffect(() => setSeasonDraft(String(currentSeasonNumber)), [currentSeasonNumber]);
+
+  const commitSeasonNumber = () => {
+    const parsed = parseInt(seasonDraft, 10);
+    if (Number.isNaN(parsed) || parsed < 1) {
+      setSeasonDraft(String(currentSeasonNumber));
+      return;
+    }
+    if (parsed === currentSeasonNumber) return;
+    onSetCurrentSeasonNumber(parsed);
+  };
+
+  // Reinicio total de la liga. El borrado lo hace la RPC admin_reset_league
+  // (migracion 020) en una sola transaccion: hacerlo tabla por tabla desde
+  // aca quedaria sujeto a RLS y podria cortarse por la mitad.
+  const [resetConfirmText, setResetConfirmText] = useState('');
+  const [isResetting, setIsResetting] = useState(false);
+  const [resetResult, setResetResult] = useState<string | null>(null);
+
+  const handleResetLeague = async () => {
+    if (resetConfirmText !== 'REINICIAR' || isResetting) return;
+    setIsResetting(true);
+    setResetResult(null);
+
+    const { data, error } = await supabase.rpc('admin_reset_league', {
+      p_confirmacion: 'REINICIAR'
+    });
+
+    if (error) {
+      setResetResult(`No se pudo reiniciar: ${error.message}`);
+      setIsResetting(false);
+      return;
+    }
+
+    const resumen = data as Record<string, number> | null;
+    setResetResult(
+      resumen
+        ? `Listo. Partidos: ${resumen.partidos_borrados} · Jugadores: ${resumen.jugadores_borrados} · ` +
+          `Transacciones: ${resumen.transacciones_borradas} · Fichajes: ${resumen.fichajes_borrados} · ` +
+          `Cuentas: ${resumen.cuentas_borradas} · Clubes liberados: ${resumen.clubes_liberados}. Recargando...`
+        : 'Listo. Recargando...'
+    );
+    setResetConfirmText('');
+
+    // Se recarga la pagina entera: despues de vaciar casi todas las tablas, es
+    // mas confiable volver a levantar el estado desde cero que ir refrescando
+    // hook por hook.
+    setTimeout(() => window.location.reload(), 1500);
+  };
+
+  const [managers, setManagers] = useState<ManagerRow[]>([]);
+  const [managersLoaded, setManagersLoaded] = useState(false);
+  const [managerActionError, setManagerActionError] = useState<string | null>(null);
+
+  const fetchManagers = async () => {
+    const { data, error } = await supabase
+      .from('managers')
+      .select('user_id, email, gamertag, platform, club_id, role, is_owner, created_at')
+      .order('created_at', { ascending: true });
+    if (error) {
+      setManagerActionError(error.message);
+      setManagersLoaded(true);
+      return;
+    }
+
+    // La suscripcion se rastrea por (gamertag, platform) en su propia tabla,
+    // no en la fila del manager -- ver 008_gamertag_subscriptions.sql (asi
+    // una cuenta nueva con otro email no resetea el estado de pago).
+    const { data: subs } = await supabase
+      .from('gamertag_subscriptions')
+      .select('gamertag, platform, status');
+    const subKey = (gamertag: string, platform: string) => `${gamertag}::${platform}`;
+    const subsByKey = new Map((subs ?? []).map(s => [subKey(s.gamertag, s.platform), s.status as string]));
+
+    setManagers(
+      (data ?? []).map(m => ({
+        ...m,
+        subscription_status: subsByKey.get(subKey(m.gamertag, m.platform)) ?? null
+      })) as ManagerRow[]
+    );
+    setManagersLoaded(true);
+  };
+
+  useEffect(() => {
+    if (adminTab === 'cuentas' && !managersLoaded) {
+      fetchManagers();
+    }
+  }, [adminTab, managersLoaded]);
+
+  // Refresca la lista de cuentas en vivo cuando se registra un manager nuevo
+  // (o cambia su rol/suscripcion) desde otra sesion, sin necesitar F5.
+  useEffect(() => {
+    const channel = supabase
+      .channel('realtime:admin-managers')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'managers' }, () => {
+        fetchManagers();
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, []);
+
+  const handleToggleManagerRole = async (manager: ManagerRow) => {
+    const newRole = manager.role === 'admin' ? 'manager' : 'admin';
+    setManagerActionError(null);
+    const { error } = await supabase
+      .from('managers')
+      .update({ role: newRole })
+      .eq('user_id', manager.user_id);
+    if (error) {
+      setManagerActionError(error.message);
+      return;
+    }
+    setManagers(prev => prev.map(m => m.user_id === manager.user_id ? { ...m, role: newRole } : m));
+  };
+
+  const handleToggleSubscription = async (manager: ManagerRow) => {
+    const newStatus = manager.subscription_status === 'active' ? 'inactive' : 'active';
+    setManagerActionError(null);
+    // Se guarda por (gamertag, platform), no por user_id: asi el estado de
+    // pago sigue al DT real aunque cree una cuenta nueva con otro email.
+    const { error } = await supabase
+      .from('gamertag_subscriptions')
+      .upsert({ gamertag: manager.gamertag, platform: manager.platform, status: newStatus });
+    if (error) {
+      setManagerActionError(error.message);
+      return;
+    }
+    setManagers(prev => prev.map(m =>
+      m.gamertag === manager.gamertag && m.platform === manager.platform
+        ? { ...m, subscription_status: newStatus }
+        : m
+    ));
+  };
+
+  const handleDeleteManager = async (manager: ManagerRow) => {
+    if (!confirm(`¿Eliminar la cuenta de ${manager.email} (${manager.gamertag})? Esta acción no se puede deshacer.`)) {
+      return;
+    }
+    setManagerActionError(null);
+    const { error } = await supabase.rpc('admin_delete_manager', { target_user_id: manager.user_id });
+    if (error) {
+      setManagerActionError(error.message);
+      return;
+    }
+    setManagers(prev => prev.filter(m => m.user_id !== manager.user_id));
+  };
 
   // Ticker News State
   const [newNewsText, setNewNewsText] = useState('');
@@ -188,6 +423,10 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
   const [editGamertag, setEditGamertag] = useState<string>('');
   const [editDivision, setEditDivision] = useState<string>('1ra División');
   const [editLogoUrl, setEditLogoUrl] = useState<string>('');
+  const [editStadium, setEditStadium] = useState<string>('');
+  const [editStadiumCity, setEditStadiumCity] = useState<string>('');
+  const [editStadiumCapacity, setEditStadiumCapacity] = useState<number>(0);
+  const [editStadiumPhotoUrl, setEditStadiumPhotoUrl] = useState<string>('');
 
   // Add Match Form State
   const [showAddMatchModal, setShowAddMatchModal] = useState(false);
@@ -211,8 +450,9 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
   const [editTopicTitle, setEditTopicTitle] = useState('');
   const [editTopicContent, setEditTopicContent] = useState('');
 
-  const [adminMatchStatusFilter, setAdminMatchStatusFilter] = useState<'CONFIRMADO' | 'PENDIENTE' | 'TODOS'>('CONFIRMADO');
+  const [adminMatchStatusFilter, setAdminMatchStatusFilter] = useState<'CONFIRMADO' | 'PARA_VALIDAR' | 'PENDIENTE' | 'TODOS'>('PARA_VALIDAR');
   const [adminMatchLimit, setAdminMatchLimit] = useState<number>(25);
+  const [adminMatchSearchQuery, setAdminMatchSearchQuery] = useState<string>('');
 
   // Delete Modal Confirmation State
   const [deleteModal, setDeleteModal] = useState<{
@@ -299,6 +539,10 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
     setEditGamertag(club.gamertag);
     setEditDivision(club.division || '1ra División');
     setEditLogoUrl(club.logoUrl);
+    setEditStadium(club.stadium || '');
+    setEditStadiumCity(club.stadiumCity || '');
+    setEditStadiumCapacity(club.stadiumCapacity || 0);
+    setEditStadiumPhotoUrl(club.stadiumPhotoUrl || '');
   };
 
   const saveClubEdit = (club: Club) => {
@@ -309,7 +553,11 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
       gamertag: editGamertag,
       budget: editBudget,
       division: editDivision,
-      logoUrl: editLogoUrl || club.logoUrl
+      logoUrl: editLogoUrl || club.logoUrl,
+      stadium: editStadium || club.stadium,
+      stadiumCity: editStadiumCity || undefined,
+      stadiumCapacity: editStadiumCapacity > 0 ? editStadiumCapacity : undefined,
+      stadiumPhotoUrl: editStadiumPhotoUrl || undefined
     });
     setEditingClubId(null);
   };
@@ -478,6 +726,28 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
         >
           <Megaphone className="w-4 h-4" /> Anuncio Oficial
         </button>
+
+        <button
+          onClick={() => setAdminTab('cuentas')}
+          className={`px-4 py-2.5 rounded-t-xl text-xs font-bold uppercase font-tech flex items-center gap-2 transition-all ${
+            adminTab === 'cuentas'
+              ? 'bg-[#00ba68] text-white shadow-md'
+              : 'bg-slate-200 text-slate-700 hover:bg-slate-300'
+          }`}
+        >
+          <Users className="w-4 h-4" /> Cuentas ({managers.length})
+        </button>
+
+        <button
+          onClick={() => setAdminTab('patrocinadores')}
+          className={`px-4 py-2.5 rounded-t-xl text-xs font-bold uppercase font-tech flex items-center gap-2 transition-all ${
+            adminTab === 'patrocinadores'
+              ? 'bg-[#00ba68] text-white shadow-md'
+              : 'bg-slate-200 text-slate-700 hover:bg-slate-300'
+          }`}
+        >
+          <Handshake className="w-4 h-4" /> Patrocinadores ({sponsorContracts.length})
+        </button>
       </div>
 
       {/* TAB 1: CARTEL DE NOTICIAS EN MOVIMIENTO */}
@@ -630,21 +900,6 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                 <PlusCircle className="w-4 h-4" /> Inscribir Club
               </button>
 
-              <button
-                onClick={() => {
-                  if (confirm('⚠️ ¿DESEAS VACIAR Y RESETEAR TODAS LAS INSCRIPCIONES?\n\nEsta acción eliminará todos los clubes inscritos para empezar desde cero.')) {
-                    if (onResetAllClubs) {
-                      onResetAllClubs();
-                    } else {
-                      clubs.forEach(c => onDeleteClub(c.id));
-                    }
-                  }
-                }}
-                className="px-3.5 py-2 bg-rose-600/90 hover:bg-rose-600 text-white text-xs font-bold font-tech uppercase rounded-xl flex items-center gap-1.5 shadow transition-colors"
-                title="Elimina todas las inscripciones para empezar de nuevo"
-              >
-                <Trash2 className="w-4 h-4" /> Vaciar / Resetear Inscripciones
-              </button>
             </div>
           </div>
 
@@ -737,6 +992,39 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                             className="w-full px-2 py-1 bg-white border border-slate-300 rounded text-[10px] text-slate-600 font-mono"
                             placeholder="URL de imagen (https://...)"
                           />
+                          <div className="pt-1.5 mt-1.5 border-t border-slate-200 space-y-1">
+                            <span className="text-[9px] font-tech font-bold text-slate-400 uppercase block">Estadio</span>
+                            <input
+                              type="text"
+                              value={editStadium}
+                              onChange={(e) => setEditStadium(e.target.value)}
+                              className="w-full px-2 py-1 bg-white border border-slate-300 rounded text-[10px] text-slate-700"
+                              placeholder="Nombre del estadio"
+                            />
+                            <div className="flex gap-1">
+                              <input
+                                type="text"
+                                value={editStadiumCity}
+                                onChange={(e) => setEditStadiumCity(e.target.value)}
+                                className="flex-1 px-2 py-1 bg-white border border-slate-300 rounded text-[10px] text-slate-700"
+                                placeholder="Ciudad"
+                              />
+                              <input
+                                type="number"
+                                value={editStadiumCapacity || ''}
+                                onChange={(e) => setEditStadiumCapacity(Number(e.target.value))}
+                                className="w-24 px-2 py-1 bg-white border border-slate-300 rounded text-[11px] text-slate-700 font-mono"
+                                placeholder="Capacidad"
+                              />
+                            </div>
+                            <input
+                              type="text"
+                              value={editStadiumPhotoUrl}
+                              onChange={(e) => setEditStadiumPhotoUrl(e.target.value)}
+                              className="w-full px-2 py-1 bg-white border border-slate-300 rounded text-[10px] text-slate-600 font-mono"
+                              placeholder="URL de foto del estadio (https://...)"
+                            />
+                          </div>
                         </div>
                       ) : (
                         <div>
@@ -881,17 +1169,46 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
 
           {/* Filtro Rápido de Estado para Rendimiento Ultra Rápido */}
           {(() => {
+            const searchQuery = adminMatchSearchQuery.trim().toLowerCase();
+            // Un acta fue cargada si tiene reportedAt. Se acepta proofImageUrl
+            // como señal de respaldo para los reportes previos a que existiera
+            // ese campo.
+            const hasActa = (m: MatchResult) => !!m.reportedAt || !!m.proofImageUrl;
             const filteredMatches = matches.filter(match => {
-              if (adminMatchStatusFilter === 'CONFIRMADO') return match.status === 'CONFIRMADO';
-              if (adminMatchStatusFilter === 'PENDIENTE') return match.status === 'PENDIENTE';
-              return true;
+              if (adminMatchStatusFilter === 'CONFIRMADO' && match.status !== 'CONFIRMADO') return false;
+              if (adminMatchStatusFilter === 'PARA_VALIDAR' && !(match.status === 'PENDIENTE' && hasActa(match))) return false;
+              if (adminMatchStatusFilter === 'PENDIENTE' && !(match.status === 'PENDIENTE' && !hasActa(match))) return false;
+              if (!searchQuery) return true;
+              const homeName = clubs.find(c => c.id === match.homeClubId)?.name || '';
+              const awayName = clubs.find(c => c.id === match.awayClubId)?.name || '';
+              return homeName.toLowerCase().includes(searchQuery) || awayName.toLowerCase().includes(searchQuery);
             });
             const visibleMatches = filteredMatches.slice(0, adminMatchLimit);
 
+            const pendingToValidateCount = matches.filter(m => m.status === 'PENDIENTE' && hasActa(m)).length;
+            const fixtureWithoutActaCount = matches.filter(m => m.status === 'PENDIENTE' && !hasActa(m)).length;
+
             return (
               <div className="space-y-3">
+                <input
+                  type="text"
+                  value={adminMatchSearchQuery}
+                  onChange={(e) => { setAdminMatchSearchQuery(e.target.value); setAdminMatchLimit(25); }}
+                  placeholder="🔎 Buscar por nombre de club (local o visitante)..."
+                  className="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-xs font-semibold text-slate-900 placeholder-slate-400 focus:outline-none focus:border-[#00ba68] focus:ring-1 focus:ring-[#00ba68] transition"
+                />
                 <div className="flex flex-wrap items-center justify-between gap-2 bg-slate-100 p-2 rounded-xl border border-slate-200">
                   <div className="flex items-center gap-1.5 overflow-x-auto">
+                    <button
+                      onClick={() => { setAdminMatchStatusFilter('PARA_VALIDAR'); setAdminMatchLimit(25); }}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-bold font-tech uppercase transition-all ${
+                        adminMatchStatusFilter === 'PARA_VALIDAR'
+                          ? 'bg-amber-500 text-white shadow-sm'
+                          : 'bg-white text-slate-700 hover:bg-slate-200'
+                      }`}
+                    >
+                      🔔 Actas a Validar ({pendingToValidateCount})
+                    </button>
                     <button
                       onClick={() => { setAdminMatchStatusFilter('CONFIRMADO'); setAdminMatchLimit(25); }}
                       className={`px-3 py-1.5 rounded-lg text-xs font-bold font-tech uppercase transition-all ${
@@ -900,17 +1217,17 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                           : 'bg-white text-slate-700 hover:bg-slate-200'
                       }`}
                     >
-                      ⚽ Solo Actas Cargadas ({matches.filter(m => m.status === 'CONFIRMADO').length})
+                      ⚽ Confirmadas ({matches.filter(m => m.status === 'CONFIRMADO').length})
                     </button>
                     <button
                       onClick={() => { setAdminMatchStatusFilter('PENDIENTE'); setAdminMatchLimit(25); }}
                       className={`px-3 py-1.5 rounded-lg text-xs font-bold font-tech uppercase transition-all ${
                         adminMatchStatusFilter === 'PENDIENTE'
-                          ? 'bg-amber-500 text-white shadow-sm'
+                          ? 'bg-slate-600 text-white shadow-sm'
                           : 'bg-white text-slate-700 hover:bg-slate-200'
                       }`}
                     >
-                      ⏳ Fixture Pendiente ({matches.filter(m => m.status === 'PENDIENTE').length})
+                      ⏳ Fixture Sin Acta ({fixtureWithoutActaCount})
                     </button>
                     <button
                       onClick={() => { setAdminMatchStatusFilter('TODOS'); setAdminMatchLimit(25); }}
@@ -931,9 +1248,13 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                 {visibleMatches.length === 0 ? (
                   <div className="text-center py-8 bg-slate-50 rounded-xl border border-slate-200">
                     <p className="text-xs text-slate-500 font-tech font-bold uppercase">
-                      {adminMatchStatusFilter === 'CONFIRMADO'
-                        ? 'Aún no hay actas de partidos cargadas por los usuarios.'
-                        : 'No hay partidos pendientes en esta vista.'}
+                      {searchQuery
+                        ? `Ningún partido coincide con "${adminMatchSearchQuery}".`
+                        : adminMatchStatusFilter === 'PARA_VALIDAR'
+                        ? '✅ No hay actas pendientes de validación. Todo está al día.'
+                        : adminMatchStatusFilter === 'CONFIRMADO'
+                        ? 'Aún no hay actas de partidos confirmadas.'
+                        : 'No hay partidos en esta vista.'}
                     </p>
                   </div>
                 ) : (
@@ -1328,6 +1649,283 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
             </button>
           </form>
         </div>
+      )}
+
+      {/* TAB 7: CUENTAS DE MANAGERS */}
+      {adminTab === 'cuentas' && (
+        <div className="fc-card p-6 rounded-2xl border-slate-200 space-y-6 shadow-md">
+          <div className="border-b border-slate-200 pb-3">
+            <h2 className="font-display font-extrabold text-xl text-slate-900 uppercase italic flex items-center gap-2">
+              <Users className="w-6 h-6 text-emerald-700" /> Cuentas de DTs Registrados
+            </h2>
+            <p className="text-xs text-slate-500 font-tech mt-1">
+              Gestioná el rol de los managers registrados. La cuenta del Fundador de la
+              liga está protegida y no puede modificarse desde aquí.
+            </p>
+          </div>
+
+          <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-xl space-y-2">
+            <h3 className="font-display font-bold text-sm text-emerald-900 uppercase italic">
+              Temporada Actual y Suscripciones
+            </h3>
+            <p className="text-[11px] text-emerald-800 font-tech leading-relaxed">
+              La Temporada 1 es gratuita para todos. Desde la Temporada 2, reportar
+              resultados y fichar jugadores requiere una suscripción activa (USD 8/mes).
+              Activá o desactivá la suscripción de cada DT abajo — todavía no hay cobro
+              automático, así que este estado se maneja a mano hasta integrar una pasarela de pago.
+            </p>
+            <div className="flex items-center gap-2 pt-1">
+              <label className="text-xs font-bold uppercase text-emerald-900">Temporada:</label>
+              <input
+                type="number"
+                min={1}
+                value={seasonDraft}
+                onChange={(e) => setSeasonDraft(e.target.value)}
+                onBlur={commitSeasonNumber}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') (e.target as HTMLInputElement).blur();
+                }}
+                className="w-16 px-2 py-1 bg-white border border-emerald-300 rounded text-xs font-bold text-center"
+              />
+              {currentSeasonNumber >= 2 && (
+                <span className="px-2 py-0.5 bg-amber-100 text-amber-800 border border-amber-300 rounded-full text-[10px] font-bold uppercase">
+                  Suscripción requerida
+                </span>
+              )}
+            </div>
+          </div>
+
+          <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-2">
+            <div className="flex items-center justify-between gap-3">
+              <h3 className="font-display font-bold text-sm text-slate-900 uppercase italic">
+                Ventana del Draft
+              </h3>
+              <span
+                className={`px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase border ${
+                  draftOpen
+                    ? 'bg-emerald-100 text-emerald-800 border-emerald-300'
+                    : 'bg-slate-200 text-slate-600 border-slate-300'
+                }`}
+              >
+                {draftOpen ? 'Abierta' : 'Cerrada'}
+              </span>
+            </div>
+            <p className="text-[11px] text-slate-600 font-tech leading-relaxed">
+              Con la ventana abierta, cada manager puede sortear la plantilla de su club
+              <strong> una sola vez por temporada</strong>. Con la ventana cerrada, nadie
+              puede incorporar jugadores gratis: solo se ficha por el mercado, que cobra.
+              Esto lo hace cumplir la base de datos, no la pantalla.
+            </p>
+            <button
+              onClick={() => onSetDraftOpen(!draftOpen)}
+              className={`px-3.5 py-2 rounded-xl text-xs font-black uppercase transition border shadow-sm ${
+                draftOpen
+                  ? 'bg-rose-600 hover:bg-rose-500 text-white border-rose-400'
+                  : 'bg-[#00ba68] hover:bg-emerald-600 text-white border-emerald-400'
+              }`}
+            >
+              {draftOpen ? 'Cerrar Draft' : 'Abrir Draft'}
+            </button>
+          </div>
+
+          <div className="p-4 bg-rose-50 border-2 border-rose-300 rounded-xl space-y-3">
+            <h3 className="font-display font-bold text-sm text-rose-900 uppercase italic flex items-center gap-2">
+              <AlertTriangle className="w-4 h-4" /> Zona de peligro — Reiniciar la liga
+            </h3>
+            <p className="text-[11px] text-rose-900 font-tech leading-relaxed">
+              Borra <strong>todo</strong> y deja la liga como el día cero: actas, jornadas,
+              goleadores, tarjetas, plantillas, mercado de fichajes, movimientos de dinero y
+              las cuentas de los managers. Los clubes se conservan pero quedan libres, con
+              presupuesto inicial y la tabla en cero.
+            </p>
+            <p className="text-[11px] text-rose-900 font-tech leading-relaxed">
+              No se borran tu cuenta de admin ni la del fundador, ni el foro. <strong>Esto no
+              se puede deshacer.</strong>
+            </p>
+
+            {resetResult && (
+              <div className="p-2.5 bg-white border border-rose-200 rounded-lg text-[11px] font-mono text-rose-900">
+                {resetResult}
+              </div>
+            )}
+
+            <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+              <input
+                type="text"
+                value={resetConfirmText}
+                onChange={(e) => setResetConfirmText(e.target.value)}
+                placeholder="Escribí REINICIAR"
+                className="px-3 py-2 bg-white border border-rose-300 rounded-lg text-xs font-bold text-rose-900 placeholder:text-rose-300 focus:outline-none focus:border-rose-500"
+              />
+              <button
+                onClick={handleResetLeague}
+                disabled={resetConfirmText !== 'REINICIAR' || isResetting}
+                className="px-3.5 py-2 bg-rose-600 hover:bg-rose-700 disabled:bg-slate-300 disabled:cursor-not-allowed text-white rounded-xl text-xs font-black uppercase transition border border-rose-500 disabled:border-slate-300 shadow-sm"
+              >
+                {isResetting ? 'Reiniciando...' : 'Reiniciar todo'}
+              </button>
+            </div>
+          </div>
+
+          <div className="p-4 bg-sky-50 border border-sky-200 rounded-xl space-y-2">
+            <h3 className="font-display font-bold text-sm text-sky-900 uppercase italic">
+              Cupos por División
+            </h3>
+            <p className="text-[11px] text-sky-800 font-tech leading-relaxed">
+              Cuántos clubes tiene cada división en total. Si hay menos clubes reales inscriptos
+              que el cupo, se completa con "Equipo N" vacantes para que los managers puedan inscribirse.
+              Bajar el número no borra clubes ya cargados, solo deja de agregar vacantes de más.
+            </p>
+            <div className="flex flex-wrap items-center gap-4 pt-1">
+              <div className="flex items-center gap-2">
+                <label className="text-xs font-bold uppercase text-sky-900">1ra División:</label>
+                <input
+                  type="number"
+                  min={0}
+                  value={div1Draft}
+                  onChange={(e) => setDiv1Draft(e.target.value)}
+                  onBlur={() =>
+                    commitDivisionCount(div1Draft, division1TeamCount, onSetDivision1TeamCount, setDiv1Draft)
+                  }
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') (e.target as HTMLInputElement).blur();
+                  }}
+                  className="w-16 px-2 py-1 bg-white border border-sky-300 rounded text-xs font-bold text-center"
+                />
+              </div>
+              <div className="flex items-center gap-2">
+                <label className="text-xs font-bold uppercase text-sky-900">2da División:</label>
+                <input
+                  type="number"
+                  min={0}
+                  value={div2Draft}
+                  onChange={(e) => setDiv2Draft(e.target.value)}
+                  onBlur={() =>
+                    commitDivisionCount(div2Draft, division2TeamCount, onSetDivision2TeamCount, setDiv2Draft)
+                  }
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') (e.target as HTMLInputElement).blur();
+                  }}
+                  className="w-16 px-2 py-1 bg-white border border-sky-300 rounded text-xs font-bold text-center"
+                />
+              </div>
+            </div>
+            <p className="text-[11px] text-sky-900 font-tech font-bold pt-1">
+              Apretá Enter o hacé clic afuera para confirmar: ahí se regeneran las jornadas de esa división.
+            </p>
+          </div>
+
+          {managerActionError && (
+            <div className="p-3 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-700 font-tech">
+              {managerActionError}
+            </div>
+          )}
+
+          {!managersLoaded ? (
+            <p className="text-xs text-slate-500 font-tech">Cargando cuentas...</p>
+          ) : managers.length === 0 ? (
+            <p className="text-xs text-slate-500 font-tech">Todavía no hay DTs registrados.</p>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-xs font-tech">
+                <thead>
+                  <tr className="text-left text-slate-500 uppercase border-b border-slate-200">
+                    <th className="py-2 pr-3">Email</th>
+                    <th className="py-2 pr-3">Gamertag</th>
+                    <th className="py-2 pr-3">Plataforma</th>
+                    <th className="py-2 pr-3">Club</th>
+                    <th className="py-2 pr-3">Rol</th>
+                    <th className="py-2 pr-3">Suscripción</th>
+                    <th className="py-2 pr-3">Creado el</th>
+                    <th className="py-2 pr-3">Acciones</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {managers.map(manager => {
+                    const linkedClub = clubs.find(c => c.id === manager.club_id);
+                    return (
+                      <tr key={manager.user_id} className="border-b border-slate-100">
+                        <td className="py-2 pr-3 font-semibold text-slate-800">{manager.email}</td>
+                        <td className="py-2 pr-3">{manager.gamertag}</td>
+                        <td className="py-2 pr-3">{manager.platform}</td>
+                        <td className="py-2 pr-3">
+                          {linkedClub ? (
+                            <span className="flex items-center gap-2">
+                              <ClubLogo
+                                src={linkedClub.logoUrl}
+                                alt={linkedClub.name}
+                                className="w-6 h-6 rounded object-cover border border-slate-200 shrink-0"
+                              />
+                              <span>{linkedClub.name}</span>
+                            </span>
+                          ) : (
+                            '—'
+                          )}
+                        </td>
+                        <td className="py-2 pr-3 uppercase">{manager.role}</td>
+                        <td className="py-2 pr-3">
+                          {manager.is_owner ? (
+                            <span className="text-slate-400">—</span>
+                          ) : (
+                            <button
+                              onClick={() => handleToggleSubscription(manager)}
+                              className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase border ${
+                                manager.subscription_status === 'active'
+                                  ? 'bg-emerald-100 text-emerald-800 border-emerald-300 hover:bg-emerald-200'
+                                  : 'bg-rose-50 text-rose-700 border-rose-200 hover:bg-rose-100'
+                              }`}
+                            >
+                              {manager.subscription_status === 'active' ? 'Activa' : 'Inactiva'}
+                            </button>
+                          )}
+                        </td>
+                        <td className="py-2 pr-3">{new Date(manager.created_at).toLocaleDateString('es-ES')}</td>
+                        <td className="py-2 pr-3">
+                          {manager.is_owner ? (
+                            <span className="px-2 py-1 bg-emerald-100 text-emerald-800 rounded-full font-bold uppercase text-[10px]">
+                              Fundador
+                            </span>
+                          ) : (
+                            <div className="flex items-center gap-2">
+                              <button
+                                onClick={() => handleToggleManagerRole(manager)}
+                                className="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 border border-slate-300 rounded text-[10px] font-bold uppercase"
+                              >
+                                {manager.role === 'admin' ? 'Quitar admin' : 'Hacer admin'}
+                              </button>
+                              <button
+                                onClick={() => handleDeleteManager(manager)}
+                                className="px-2.5 py-1 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 rounded text-[10px] font-bold uppercase flex items-center gap-1"
+                              >
+                                <Trash2 className="w-3 h-3" /> Eliminar
+                              </button>
+                            </div>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* TAB: PATROCINADORES */}
+      {adminTab === 'patrocinadores' && (
+        <SponsorsAdminSection
+          clubs={clubs}
+          matches={matches}
+          sponsors={sponsors}
+          sponsorObjectives={sponsorObjectives}
+          sponsorContracts={sponsorContracts}
+          sponsorPayouts={sponsorPayouts}
+          currentSeasonNumber={currentSeasonNumber}
+          onUpdateObjective={onUpdateSponsorObjective}
+          onAddObjective={onAddSponsorObjective}
+          onDeleteObjective={onDeleteSponsorObjective}
+        />
       )}
 
       {/* Modal: Inscribir Nuevo Club (Admin) */}

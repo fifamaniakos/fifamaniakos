@@ -82,6 +82,41 @@ export function generateFixtureForClubs(
 }
 
 /**
+ * Cantidad de jornadas que DEBE tener el fixture de una liga con `teamCount`
+ * equipos. Con impares se agrega un BYE, por eso se redondea a par.
+ */
+export function expectedMatchdayCount(teamCount: number, includeReturnLeg: boolean = true): number {
+  if (teamCount < 2) return 0;
+  const evenCount = teamCount % 2 === 0 ? teamCount : teamCount + 1;
+  const rounds = evenCount - 1;
+  return includeReturnLeg ? rounds * 2 : rounds;
+}
+
+/**
+ * ¿El fixture guardado se corresponde con la cantidad actual de participantes?
+ *
+ * El cupo de una división y su fixture se pueden desincronizar: el fixture se
+ * regeneraba solo como efecto puntual de "el cupo cambió", así que si ese
+ * efecto no corría (admin que no estaba logueado en ese momento, cupo ya
+ * guardado en la base pero fixture viejo, escritura fallida) quedaba para
+ * siempre el fixture anterior. Con 36 equipos son 70 jornadas y con 20 son 38:
+ * comparar jornadas esperadas vs. reales permite reconciliar en vez de confiar
+ * en haber visto el cambio.
+ */
+export function isFixtureInSyncWithParticipants(
+  matches: MatchResult[],
+  competition: string,
+  teamCount: number,
+  includeReturnLeg: boolean = true
+): boolean {
+  const groupMatches = matches.filter(
+    m => m.competition === competition && (!m.phase || m.phase === 'GRUPOS')
+  );
+  const matchdays = new Set(groupMatches.map(m => m.matchday));
+  return matchdays.size === expectedMatchdayCount(teamCount, includeReturnLeg);
+}
+
+/**
  * Genera automáticamente el fixture de las ligas domésticas:
  * - 1ra División
  * - 2da División
@@ -96,8 +131,11 @@ export function generateAllCompetitionsFixtures(clubs: Club[]): MatchResult[] {
   const div1Clubs = clubs.filter(c => !c.division || c.division === '1ra División' || c.division === 'Primera División');
   const div2Clubs = clubs.filter(c => c.division === '2da División' || c.division === 'Segunda División');
 
-  const targetDiv1 = div1Clubs.length >= 2 ? div1Clubs : clubs;
-  const div1Matches = generateFixtureForClubs(targetDiv1, '1ra División', true);
+  // Antes, si 1ra tenia menos de 2 equipos se caia a `clubs` (TODOS), asi que
+  // los clubes de 2da terminaban jugando el fixture de 1ra y la tabla de la
+  // liga mostraba equipos que no pertenecen a esa division. Con menos de 2
+  // participantes la division simplemente no tiene fixture.
+  const div1Matches = div1Clubs.length >= 2 ? generateFixtureForClubs(div1Clubs, '1ra División', true) : [];
 
   const div2Matches = div2Clubs.length >= 2 ? generateFixtureForClubs(div2Clubs, '2da División', true) : [];
 

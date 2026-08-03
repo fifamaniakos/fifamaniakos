@@ -1,0 +1,37 @@
+-- 018: permitir que el cliente LEA draft_claims.
+--
+-- EL PROBLEMA
+-- 015 creo la tabla con RLS y una policy de lectura para todos:
+--     create policy "draft_claims_read_all" on public.draft_claims for select using (true);
+-- pero una policy solo decide QUE FILAS se ven; el permiso de tocar la tabla es
+-- un GRANT aparte. Si el rol `authenticated` no tiene GRANT SELECT, el cliente
+-- recibe "permission denied for table draft_claims" y nunca ve ninguna fila,
+-- por mas que la policy diga `using (true)`.
+--
+-- Sintoma: el trigger frenaba bien el segundo Draft (en la base quedaba una
+-- sola plantilla y un solo claim), pero la pantalla seguia dejando sortear,
+-- porque la app no podia leer que el DT ya habia usado el suyo.
+--
+-- Se otorga solo SELECT: la escritura la sigue haciendo el trigger via
+-- claim_draft() (`security definer`), y el admin por su policy.
+
+grant select on public.draft_claims to anon, authenticated;
+
+-- ---------------------------------------------------------------------------
+-- Verificacion: tiene que aparecer SELECT para anon y authenticated.
+--
+--   select grantee, privilege_type
+--     from information_schema.role_table_grants
+--    where table_schema = 'public' and table_name = 'draft_claims'
+--    order by grantee;
+--
+-- Y por las dudas, revisar que no le falte el GRANT a ninguna otra tabla que
+-- el cliente tenga que leer:
+--
+--   select c.relname as tabla,
+--          has_table_privilege('authenticated', c.oid, 'select') as authenticated_puede_leer
+--     from pg_class c
+--     join pg_namespace n on n.oid = c.relnamespace
+--    where n.nspname = 'public' and c.relkind = 'r'
+--    order by 2, 1;
+-- ---------------------------------------------------------------------------

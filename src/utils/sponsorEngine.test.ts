@@ -1,0 +1,436 @@
+import { describe, it, expect } from 'vitest';
+import { Club, MatchResult, Sponsor, SponsorObjective } from '../types';
+import { isChampionOf, isRunnerUpOf, reachedPhase, countLeagueWins, topScorerProgress, bestAssistsProgress, evaluateObjective, evaluateContract, eligibleSponsors } from './sponsorEngine';
+
+export const club = (id: string, division = '1ra División'): Club => ({
+  id,
+  name: id,
+  shortName: id,
+  manager: 'M',
+  gamertag: 'G',
+  platform: 'PS5',
+  logoUrl: '',
+  budget: 0,
+  division,
+  stadium: 'E',
+  played: 0,
+  won: 0,
+  drawn: 0,
+  lost: 0,
+  goalsFor: 0,
+  goalsAgainst: 0,
+  points: 0,
+  form: []
+});
+
+export const match = (over: Partial<MatchResult>): MatchResult => ({
+  id: Math.random().toString(),
+  matchday: 1,
+  homeClubId: 'a',
+  awayClubId: 'b',
+  homeGoals: 0,
+  awayGoals: 0,
+  homeScorers: '',
+  awayScorers: '',
+  status: 'CONFIRMADO',
+  createdAt: '',
+  ...over
+});
+
+describe('isChampionOf', () => {
+  const clubs = [club('a'), club('b')];
+
+  it('en copa, el campeon es el ganador de la FINAL', () => {
+    const matches = [
+      match({ competition: 'UEFA Champions League', phase: 'FINAL', homeClubId: 'a', awayClubId: 'b', homeGoals: 2, awayGoals: 1 })
+    ];
+    expect(isChampionOf('a', clubs, matches, 'UEFA Champions League')).toBe(true);
+    expect(isChampionOf('b', clubs, matches, 'UEFA Champions League')).toBe(false);
+  });
+
+  it('en copa, si la FINAL termino empatada usa penaltyWinnerClubId', () => {
+    const matches = [
+      match({ competition: 'UEFA Champions League', phase: 'FINAL', homeClubId: 'a', awayClubId: 'b', homeGoals: 1, awayGoals: 1, penaltyWinnerClubId: 'b' })
+    ];
+    expect(isChampionOf('b', clubs, matches, 'UEFA Champions League')).toBe(true);
+    expect(isChampionOf('a', clubs, matches, 'UEFA Champions League')).toBe(false);
+  });
+
+  it('en liga, el campeon es el primero de la tabla', () => {
+    const matches = [
+      match({ competition: '1ra División', homeClubId: 'b', awayClubId: 'a', homeGoals: 3, awayGoals: 0 })
+    ];
+    expect(isChampionOf('b', clubs, matches, '1ra División')).toBe(true);
+    expect(isChampionOf('a', clubs, matches, '1ra División')).toBe(false);
+  });
+
+  it('en liga, si hay empate perfecto (puntos, diferencia y goles a favor) entre el primero y el segundo, ninguno es campeon', () => {
+    // 'a' y 'b' quedan con las mismas victorias, la misma diferencia de gol y
+    // los mismos goles a favor: el orden entre ellos en la tabla es accidental
+    // (depende del orden de llegada de los partidos), asi que no se paga.
+    const matches = [
+      match({ competition: '1ra División', homeClubId: 'a', awayClubId: 'c', homeGoals: 2, awayGoals: 0 }),
+      match({ competition: '1ra División', homeClubId: 'b', awayClubId: 'c', homeGoals: 2, awayGoals: 0 })
+    ];
+    const threeClubs = [club('a'), club('b'), club('c')];
+    expect(isChampionOf('a', threeClubs, matches, '1ra División')).toBe(false);
+    expect(isChampionOf('b', threeClubs, matches, '1ra División')).toBe(false);
+  });
+
+  it('ignora partidos no confirmados', () => {
+    const matches = [
+      match({ competition: 'UEFA Champions League', phase: 'FINAL', homeClubId: 'a', awayClubId: 'b', homeGoals: 2, awayGoals: 1, status: 'PENDIENTE' })
+    ];
+    expect(isChampionOf('a', clubs, matches, 'UEFA Champions League')).toBe(false);
+  });
+
+  it('devuelve false si la competicion no existe', () => {
+    expect(isChampionOf('a', clubs, [], 'Mundial de Clubes')).toBe(false);
+  });
+
+  it('si hay dos FINALES confirmadas, usa la de createdAt mas alto (la mas reciente)', () => {
+    const matches = [
+      match({ competition: 'UEFA Champions League', phase: 'FINAL', homeClubId: 'a', awayClubId: 'b', homeGoals: 2, awayGoals: 0, createdAt: '01/01/2026' }),
+      match({ competition: 'UEFA Champions League', phase: 'FINAL', homeClubId: 'a', awayClubId: 'b', homeGoals: 0, awayGoals: 3, createdAt: '05/01/2026' })
+    ];
+    expect(isChampionOf('b', clubs, matches, 'UEFA Champions League')).toBe(true);
+    expect(isChampionOf('a', clubs, matches, 'UEFA Champions League')).toBe(false);
+  });
+
+  it('si la FINAL empato y el ganador por penales no jugo la final, no hay campeon (ni el club invalido)', () => {
+    const clubsConIntruso = [...clubs, club('club-que-no-jugo')];
+    const matches = [
+      match({ competition: 'UEFA Champions League', phase: 'FINAL', homeClubId: 'a', awayClubId: 'b', homeGoals: 1, awayGoals: 1, penaltyWinnerClubId: 'club-que-no-jugo' })
+    ];
+    expect(() => isChampionOf('a', clubsConIntruso, matches, 'UEFA Champions League')).not.toThrow();
+    expect(isChampionOf('a', clubsConIntruso, matches, 'UEFA Champions League')).toBe(false);
+    expect(isChampionOf('b', clubsConIntruso, matches, 'UEFA Champions League')).toBe(false);
+    expect(isChampionOf('club-que-no-jugo', clubsConIntruso, matches, 'UEFA Champions League')).toBe(false);
+  });
+});
+
+describe('isRunnerUpOf', () => {
+  const clubs = [club('a'), club('b')];
+
+  it('en copa, el subcampeon es el perdedor de la FINAL', () => {
+    const matches = [
+      match({ competition: 'UEFA Champions League', phase: 'FINAL', homeClubId: 'a', awayClubId: 'b', homeGoals: 2, awayGoals: 1 })
+    ];
+    expect(isRunnerUpOf('b', clubs, matches, 'UEFA Champions League')).toBe(true);
+  });
+
+  it('en liga, el subcampeon es el segundo de la tabla', () => {
+    const matches = [
+      match({ competition: '1ra División', homeClubId: 'b', awayClubId: 'a', homeGoals: 3, awayGoals: 0 })
+    ];
+    expect(isRunnerUpOf('a', clubs, matches, '1ra División')).toBe(true);
+    expect(isRunnerUpOf('b', clubs, matches, '1ra División')).toBe(false);
+  });
+
+  it('en copa, si la FINAL termino empatada usa penaltyWinnerClubId para definir el subcampeon', () => {
+    const matches = [
+      match({ competition: 'UEFA Champions League', phase: 'FINAL', homeClubId: 'a', awayClubId: 'b', homeGoals: 1, awayGoals: 1, penaltyWinnerClubId: 'b' })
+    ];
+    expect(isRunnerUpOf('a', clubs, matches, 'UEFA Champions League')).toBe(true);
+    expect(isRunnerUpOf('b', clubs, matches, 'UEFA Champions League')).toBe(false);
+  });
+});
+
+describe('reachedPhase', () => {
+  it('se cumple si el club jugo esa fase', () => {
+    const matches = [
+      match({ competition: 'UEFA Champions League', phase: 'CUARTOS', homeClubId: 'a', awayClubId: 'b' })
+    ];
+    expect(reachedPhase('a', matches, 'UEFA Champions League', 'CUARTOS')).toBe(true);
+  });
+
+  it('se cumple si el club llego a una fase POSTERIOR', () => {
+    const matches = [
+      match({ competition: 'UEFA Champions League', phase: 'FINAL', homeClubId: 'a', awayClubId: 'b' })
+    ];
+    expect(reachedPhase('a', matches, 'UEFA Champions League', 'CUARTOS')).toBe(true);
+  });
+
+  it('no se cumple si solo llego a una fase ANTERIOR', () => {
+    const matches = [
+      match({ competition: 'UEFA Champions League', phase: 'OCTAVOS', homeClubId: 'a', awayClubId: 'b' })
+    ];
+    expect(reachedPhase('a', matches, 'UEFA Champions League', 'CUARTOS')).toBe(false);
+  });
+
+  it('no cuenta partidos de otro club', () => {
+    const matches = [
+      match({ competition: 'UEFA Champions League', phase: 'FINAL', homeClubId: 'b', awayClubId: 'c' })
+    ];
+    expect(reachedPhase('a', matches, 'UEFA Champions League', 'CUARTOS')).toBe(false);
+  });
+
+  it('ignora partidos no confirmados', () => {
+    const matches = [
+      match({ competition: 'UEFA Champions League', phase: 'FINAL', homeClubId: 'a', awayClubId: 'b', status: 'RECHAZADO' })
+    ];
+    expect(reachedPhase('a', matches, 'UEFA Champions League', 'CUARTOS')).toBe(false);
+  });
+});
+
+describe('countLeagueWins', () => {
+  const clubs = [club('a', '1ra División'), club('b', '1ra División')];
+
+  it('cuenta victorias de local y de visitante en su division', () => {
+    const matches = [
+      match({ competition: '1ra División', homeClubId: 'a', awayClubId: 'b', homeGoals: 2, awayGoals: 0 }),
+      match({ competition: '1ra División', homeClubId: 'b', awayClubId: 'a', homeGoals: 0, awayGoals: 1 })
+    ];
+    expect(countLeagueWins('a', clubs, matches)).toBe(2);
+  });
+
+  it('no cuenta empates ni derrotas', () => {
+    const matches = [
+      match({ competition: '1ra División', homeClubId: 'a', awayClubId: 'b', homeGoals: 1, awayGoals: 1 }),
+      match({ competition: '1ra División', homeClubId: 'a', awayClubId: 'b', homeGoals: 0, awayGoals: 2 })
+    ];
+    expect(countLeagueWins('a', clubs, matches)).toBe(0);
+  });
+
+  it('no cuenta partidos de copa', () => {
+    const matches = [
+      match({ competition: 'UEFA Champions League', homeClubId: 'a', awayClubId: 'b', homeGoals: 3, awayGoals: 0 })
+    ];
+    expect(countLeagueWins('a', clubs, matches)).toBe(0);
+  });
+
+  it('usa la division del propio club', () => {
+    const segunda = [club('a', '2da División'), club('b', '2da División')];
+    const matches = [
+      match({ competition: '2da División', homeClubId: 'a', awayClubId: 'b', homeGoals: 1, awayGoals: 0 })
+    ];
+    expect(countLeagueWins('a', segunda, matches)).toBe(1);
+  });
+
+  it('devuelve 0 si el club no existe', () => {
+    expect(countLeagueWins('zzz', clubs, [])).toBe(0);
+  });
+
+  it('ignora partidos no CONFIRMADO', () => {
+    const matches = [
+      match({ competition: '1ra División', homeClubId: 'a', awayClubId: 'b', homeGoals: 1, awayGoals: 0, status: 'PENDIENTE' }),
+      match({ competition: '1ra División', homeClubId: 'a', awayClubId: 'b', homeGoals: 2, awayGoals: 0, status: 'RECHAZADO' })
+    ];
+    expect(countLeagueWins('a', clubs, matches)).toBe(0);
+  });
+
+  it('devuelve 0 si la division del club no es una division de liga conocida (division desconocida, no cero victorias)', () => {
+    const clubTercera = [club('a', 'Tercera División')];
+    const matches = [
+      match({ competition: 'Tercera División', homeClubId: 'a', awayClubId: 'b', homeGoals: 1, awayGoals: 0 })
+    ];
+    expect(countLeagueWins('a', clubTercera, matches)).toBe(0);
+  });
+});
+
+const goal = (playerName: string, clubId: string, count: number) => ({
+  playerName,
+  clubId,
+  type: 'GOAL' as const,
+  count
+});
+
+const assist = (playerName: string, clubId: string, count: number) => ({
+  playerName,
+  clubId,
+  type: 'ASSIST' as const,
+  count
+});
+
+describe('topScorerProgress', () => {
+  it('el club del maximo goleador cumple si supera el umbral', () => {
+    const matches = [
+      match({ competition: '1ra División', playerEvents: [goal('Haaland', 'a', 31), goal('Mbappe', 'b', 20)] })
+    ];
+    expect(topScorerProgress('a', matches, '1ra División', 30)).toEqual({ met: true, current: 31, target: 30 });
+    expect(topScorerProgress('b', matches, '1ra División', 30).met).toBe(false);
+  });
+
+  it('ser pichichi sin llegar al umbral NO cumple', () => {
+    const matches = [
+      match({ competition: '1ra División', playerEvents: [goal('Haaland', 'a', 28)] })
+    ];
+    expect(topScorerProgress('a', matches, '1ra División', 30).met).toBe(false);
+  });
+
+  it('con umbral 0 alcanza con ser el maximo goleador', () => {
+    const matches = [
+      match({ competition: 'UEFA Champions League', playerEvents: [goal('Haaland', 'a', 5), goal('Mbappe', 'b', 3)] })
+    ];
+    expect(topScorerProgress('a', matches, 'UEFA Champions League', 0).met).toBe(true);
+    expect(topScorerProgress('b', matches, 'UEFA Champions League', 0).met).toBe(false);
+  });
+
+  it('si hay empate en el maximo, cumplen todos los clubes empatados', () => {
+    const matches = [
+      match({ competition: '1ra División', playerEvents: [goal('Haaland', 'a', 30), goal('Mbappe', 'b', 30)] })
+    ];
+    expect(topScorerProgress('a', matches, '1ra División', 30).met).toBe(true);
+    expect(topScorerProgress('b', matches, '1ra División', 30).met).toBe(true);
+  });
+
+  it('suma goles del mismo jugador en varios partidos', () => {
+    const matches = [
+      match({ competition: '1ra División', playerEvents: [goal('Haaland', 'a', 2)] }),
+      match({ competition: '1ra División', playerEvents: [goal('Haaland', 'a', 3)] })
+    ];
+    expect(topScorerProgress('a', matches, '1ra División', 0).current).toBe(5);
+  });
+
+  it('no mezcla competiciones', () => {
+    const matches = [
+      match({ competition: 'UEFA Champions League', playerEvents: [goal('Haaland', 'a', 10)] })
+    ];
+    expect(topScorerProgress('a', matches, '1ra División', 0).current).toBe(0);
+  });
+
+  it('ignora partidos no CONFIRMADO', () => {
+    const matches = [
+      match({ competition: '1ra División', playerEvents: [goal('Haaland', 'a', 31)], status: 'PENDIENTE' })
+    ];
+    expect(topScorerProgress('a', matches, '1ra División', 30)).toEqual({ met: false, current: 0, target: 30 });
+  });
+});
+
+describe('bestAssistsProgress', () => {
+  it('cumple si un jugador supera el umbral, sin ser el maximo', () => {
+    const matches = [
+      match({ competition: '1ra División', playerEvents: [assist('De Bruyne', 'a', 31), assist('Rodri', 'b', 40)] })
+    ];
+    expect(bestAssistsProgress('a', matches, '1ra División', 30)).toEqual({ met: true, current: 31, target: 30 });
+  });
+
+  it('no suma asistencias de dos jugadores distintos del mismo club', () => {
+    const matches = [
+      match({ competition: '1ra División', playerEvents: [assist('De Bruyne', 'a', 20), assist('Foden', 'a', 20)] })
+    ];
+    expect(bestAssistsProgress('a', matches, '1ra División', 30).met).toBe(false);
+  });
+
+  it('sin competicion, toma el mejor total de una sola competicion', () => {
+    const matches = [
+      match({ competition: '1ra División', playerEvents: [assist('De Bruyne', 'a', 9)] }),
+      match({ competition: 'UEFA Champions League', playerEvents: [assist('De Bruyne', 'a', 9)] })
+    ];
+    // 9 + 9 no cuenta como 18: son competiciones distintas.
+    expect(bestAssistsProgress('a', matches, undefined, 10).met).toBe(false);
+    expect(bestAssistsProgress('a', matches, undefined, 10).current).toBe(9);
+  });
+
+  it('ignora partidos no CONFIRMADO', () => {
+    const matches = [
+      match({ competition: '1ra División', playerEvents: [assist('De Bruyne', 'a', 31)], status: 'PENDIENTE' })
+    ];
+    expect(bestAssistsProgress('a', matches, '1ra División', 30)).toEqual({ met: false, current: 0, target: 30 });
+  });
+});
+
+const objective = (over: Partial<SponsorObjective>): SponsorObjective => ({
+  id: 'o1',
+  sponsorId: 's1',
+  kind: 'LEAGUE_WINS',
+  rewardMillions: 10,
+  label: 'test',
+  ...over
+});
+
+describe('evaluateObjective', () => {
+  const clubs = [club('a'), club('b')];
+
+  it('LEAGUE_WINS reporta progreso parcial', () => {
+    const matches = [
+      match({ competition: '1ra División', homeClubId: 'a', awayClubId: 'b', homeGoals: 1, awayGoals: 0 })
+    ];
+    const obj = objective({ kind: 'LEAGUE_WINS', threshold: 20 });
+    expect(evaluateObjective('a', clubs, matches, obj)).toEqual({ met: false, current: 1, target: 20 });
+  });
+
+  it('CHAMPION reporta 1/1 cuando se cumple', () => {
+    const matches = [
+      match({ competition: '1ra División', homeClubId: 'a', awayClubId: 'b', homeGoals: 1, awayGoals: 0 })
+    ];
+    const obj = objective({ kind: 'CHAMPION', competition: '1ra División' });
+    expect(evaluateObjective('a', clubs, matches, obj)).toEqual({ met: true, current: 1, target: 1 });
+  });
+
+  it('una competicion que no existe todavia no se cumple ni rompe', () => {
+    const obj = objective({ kind: 'CHAMPION', competition: 'Mundial de Clubes' });
+    expect(evaluateObjective('a', clubs, [], obj)).toEqual({ met: false, current: 0, target: 1 });
+  });
+
+  it('REACH_PHASE sin phase definida no se cumple', () => {
+    const obj = objective({ kind: 'REACH_PHASE', competition: 'UEFA Champions League' });
+    expect(evaluateObjective('a', clubs, [], obj).met).toBe(false);
+  });
+
+  it('REACH_PHASE en una competicion que no existe todavia no se cumple ni rompe', () => {
+    const obj = objective({ kind: 'REACH_PHASE', competition: 'Mundial de Clubes', phase: 'CUARTOS' });
+    expect(evaluateObjective('a', clubs, [], obj).met).toBe(false);
+  });
+
+  it('TOP_SCORER en una competicion que no existe todavia no se cumple ni rompe', () => {
+    const obj = objective({ kind: 'TOP_SCORER', competition: 'Mundial de Clubes', threshold: 10 });
+    expect(evaluateObjective('a', clubs, [], obj).met).toBe(false);
+  });
+
+  it('ASSISTS_THRESHOLD en una competicion que no existe todavia no se cumple ni rompe', () => {
+    const obj = objective({ kind: 'ASSISTS_THRESHOLD', competition: 'Mundial de Clubes', threshold: 10 });
+    expect(evaluateObjective('a', clubs, [], obj).met).toBe(false);
+  });
+});
+
+describe('evaluateContract', () => {
+  const clubs = [club('a'), club('b')];
+
+  it('devuelve una linea por objetivo con su premio en euros', () => {
+    const matches = [
+      match({ competition: '1ra División', homeClubId: 'a', awayClubId: 'b', homeGoals: 1, awayGoals: 0 })
+    ];
+    const objectives = [
+      objective({ id: 'o1', kind: 'CHAMPION', competition: '1ra División', rewardMillions: 20 }),
+      objective({ id: 'o2', kind: 'LEAGUE_WINS', threshold: 20, rewardMillions: 15 })
+    ];
+    const result = evaluateContract('a', clubs, matches, objectives);
+
+    expect(result.lines).toHaveLength(2);
+    expect(result.lines[0]).toMatchObject({ objectiveId: 'o1', met: true, amount: 20_000_000 });
+    expect(result.lines[1]).toMatchObject({ objectiveId: 'o2', met: false, amount: 0 });
+    expect(result.totalAmount).toBe(20_000_000);
+  });
+});
+
+describe('eligibleSponsors', () => {
+  const sponsors: Sponsor[] = [
+    { id: 's1', name: 'adidas', logoUrl: '', tier: 1, requirementDivision: '1ra División', active: true },
+    { id: 's2', name: 'Samsung', logoUrl: '', tier: 5, active: true },
+    { id: 's3', name: 'Vieja', logoUrl: '', tier: 3, active: false }
+  ];
+
+  it('un club de 1ra puede firmar con todas las activas', () => {
+    // No afirmamos el orden: es un detalle de implementacion, no una regla de
+    // negocio. Un reordenamiento del seed no deberia romper este test.
+    const result = eligibleSponsors(club('a', '1ra División'), sponsors);
+    expect(result).toHaveLength(2);
+    expect(result.map(s => s.id)).toEqual(expect.arrayContaining(['s1', 's2']));
+  });
+
+  it('un club de 2da no puede firmar con las que exigen 1ra', () => {
+    expect(eligibleSponsors(club('a', '2da División'), sponsors).map(s => s.id)).toEqual(['s2']);
+  });
+
+  it('nunca devuelve marcas inactivas', () => {
+    expect(eligibleSponsors(club('a'), sponsors).some(s => s.id === 's3')).toBe(false);
+  });
+
+  it('devuelve marcas con requirementMaxPosition porque todavia no hay historial por temporada', () => {
+    const sponsorsWithMaxPosition: Sponsor[] = [
+      { id: 's4', name: 'MaxPos', logoUrl: '', tier: 2, requirementDivision: '1ra División', requirementMaxPosition: 4, active: true }
+    ];
+    expect(eligibleSponsors(club('a', '1ra División'), sponsorsWithMaxPosition).map(s => s.id)).toEqual(['s4']);
+  });
+});

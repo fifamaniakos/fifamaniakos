@@ -1,9 +1,10 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useRef } from 'react';
 import { createPortal } from 'react-dom';
-import { MessageSquare, Trophy, Shield, DollarSign, UserPlus, PlusCircle, ShieldCheck, Megaphone, LogOut, Users, Shuffle, ChevronDown, Wallet, Scale, Coins, Gavel, Dice5, Star, Globe, Award } from 'lucide-react';
+import { MessageSquare, Trophy, Shield, DollarSign, UserPlus, PlusCircle, ShieldCheck, Megaphone, LogOut, Shuffle, ChevronDown, Wallet, Scale, Coins, Gavel, Dice5, Star, Globe, Award, Search, Briefcase } from 'lucide-react';
 import { Club, TickerNewsItem, ForumSectionTag } from '../types';
 import { ClubLogo } from './ClubLogo';
 import { CompetitionLogo } from './competitions/CompetitionLogo';
+import { MarkdownToolbar } from './MarkdownToolbar';
 
 interface NavbarProps {
   activeTab: string;
@@ -13,6 +14,8 @@ interface NavbarProps {
   clubs: Club[];
   onSelectClub: (clubId: string) => void;
   isAdmin: boolean;
+  isLoggedIn?: boolean;
+  loggedInLabel?: string;
   onOpenAdminLogin: () => void;
   onLogoutAdmin?: () => void;
   tickerNews: TickerNewsItem[];
@@ -29,6 +32,8 @@ export const Navbar: React.FC<NavbarProps> = ({
   clubs,
   onSelectClub,
   isAdmin,
+  isLoggedIn = false,
+  loggedInLabel,
   onOpenAdminLogin,
   onLogoutAdmin,
   tickerNews,
@@ -38,13 +43,19 @@ export const Navbar: React.FC<NavbarProps> = ({
 }) => {
   const [quickNewsInput, setQuickNewsInput] = useState('');
   const [showQuickNewsModal, setShowQuickNewsModal] = useState(false);
+  const quickNewsRef = useRef<HTMLTextAreaElement>(null);
   const [showCompeticionesMenu, setShowCompeticionesMenu] = useState(false);
   const [competicionesMenuPos, setCompeticionesMenuPos] = useState({ top: 0, left: 0 });
   const competicionesButtonRef = useRef<HTMLButtonElement>(null);
 
   const [showMiClubMenu, setShowMiClubMenu] = useState(false);
+  const [miClubSearch, setMiClubSearch] = useState('');
   const [miClubMenuPos, setMiClubMenuPos] = useState({ top: 0, left: 0 });
   const miClubButtonRef = useRef<HTMLButtonElement>(null);
+
+  const [showReglamentoMenu, setShowReglamentoMenu] = useState(false);
+  const [reglamentoMenuPos, setReglamentoMenuPos] = useState({ top: 0, left: 0 });
+  const reglamentoButtonRef = useRef<HTMLButtonElement>(null);
 
   const toggleCompeticionesMenu = () => {
     if (!showCompeticionesMenu && competicionesButtonRef.current) {
@@ -53,6 +64,7 @@ export const Navbar: React.FC<NavbarProps> = ({
     }
     setShowCompeticionesMenu(prev => !prev);
     setShowMiClubMenu(false);
+    setShowReglamentoMenu(false);
   };
 
   const toggleMiClubMenu = () => {
@@ -62,18 +74,35 @@ export const Navbar: React.FC<NavbarProps> = ({
     }
     setShowMiClubMenu(prev => !prev);
     setShowCompeticionesMenu(false);
+    setShowReglamentoMenu(false);
   };
 
-  const forumSections: { tag: ForumSectionTag; label: string }[] = [
-    { tag: 'normas', label: 'Normas competiciones' },
-    { tag: 'ganancias', label: 'Ganancias competiciones' },
-    { tag: 'sanciones', label: 'Sanciones' },
-    { tag: 'apuestas', label: 'Apuestas deportivas' }
-  ];
+  const toggleReglamentoMenu = () => {
+    if (!showReglamentoMenu && reglamentoButtonRef.current) {
+      const rect = reglamentoButtonRef.current.getBoundingClientRect();
+      setReglamentoMenuPos({ top: rect.bottom + 6, left: rect.left });
+    }
+    setShowReglamentoMenu(prev => !prev);
+    setShowCompeticionesMenu(false);
+    setShowMiClubMenu(false);
+  };
 
-  const isCompeticionesActive = activeTab === 'clasificacion' || activeTab === 'fichajes' || activeTab === 'sorteo' || activeTab === 'competicion-seccion';
+  const isCompeticionesActive = activeTab === 'clasificacion' || activeTab === 'fichajes' || activeTab === 'sorteo';
 
   const activeNews = tickerNews.filter(n => n.active);
+  const miClubOptions = isAdmin
+    ? clubs
+    : isLoggedIn && currentClub
+      ? [currentClub]
+      : isLoggedIn
+        ? []
+        : clubs;
+  const filteredMiClubOptions = isAdmin && miClubSearch.trim()
+    ? miClubOptions.filter(club => {
+        const query = miClubSearch.trim().toLowerCase();
+        return club.name.toLowerCase().includes(query) || club.manager?.toLowerCase().includes(query);
+      })
+    : miClubOptions;
 
   const handleQuickAddNewsSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -147,13 +176,29 @@ export const Navbar: React.FC<NavbarProps> = ({
                 )}
               </div>
             </div>
+          ) : isLoggedIn ? (
+            <div className="flex items-center gap-2 bg-slate-800 border border-slate-700 px-2.5 py-0.5 rounded-lg text-[10px]">
+              <span className="w-2 h-2 rounded-full bg-sky-400" />
+              <span className="text-slate-200 font-bold uppercase tracking-wide">
+                {loggedInLabel ? `Conectado: ${loggedInLabel}` : 'Conectado'}
+              </span>
+              {onLogoutAdmin && (
+                <button
+                  onClick={onLogoutAdmin}
+                  className="text-slate-400 hover:text-rose-400 p-0.5 transition-colors border-l border-slate-700 pl-2"
+                  title="Cerrar sesión"
+                >
+                  <LogOut className="w-3.5 h-3.5" />
+                </button>
+              )}
+            </div>
           ) : (
             <button
               onClick={onOpenAdminLogin}
               className="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-emerald-300 hover:text-white rounded border border-emerald-700/50 text-[10px] font-bold uppercase transition-all flex items-center gap-1 cursor-pointer"
             >
               <ShieldCheck className="w-3.5 h-3.5 text-[#00ba68]" />
-              Acceso Admin
+              Iniciar Sesión
             </button>
           )}
 
@@ -207,7 +252,7 @@ export const Navbar: React.FC<NavbarProps> = ({
         <nav className="flex items-center gap-2 overflow-x-auto pb-1 md:pb-0 font-display text-xs md:text-sm uppercase tracking-wider">
           <button
             onClick={() => setActiveTab('foro')}
-            className={`h-10 px-4 min-w-[130px] rounded-lg transition-all flex items-center justify-center gap-1.5 font-bold whitespace-nowrap shrink-0 ${
+            className={`h-10 px-4 w-36 rounded-lg transition-all flex items-center justify-center gap-1.5 font-bold whitespace-nowrap shrink-0 ${
               activeTab === 'foro'
                 ? 'bg-[#00ba68] text-white shadow-md'
                 : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
@@ -221,7 +266,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             <button
               ref={competicionesButtonRef}
               onClick={toggleCompeticionesMenu}
-              className={`h-10 px-4 min-w-[130px] rounded-lg transition-all flex items-center justify-center gap-1.5 font-bold whitespace-nowrap ${
+              className={`h-10 px-4 w-36 rounded-lg transition-all flex items-center justify-center gap-1.5 font-bold whitespace-nowrap ${
                 isCompeticionesActive
                   ? 'bg-[#00ba68] text-white shadow-md'
                   : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
@@ -248,7 +293,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                   }}
                   className="w-full text-left px-3.5 py-2 text-xs font-bold flex items-center gap-2.5 transition-colors text-slate-700 hover:bg-slate-50"
                 >
-                  <Trophy className="w-4 h-4 shrink-0 text-emerald-600" />
+                  <CompetitionLogo competition="1ra División" size="sm" />
                   <span>Liga 1ra División</span>
                 </button>
 
@@ -260,7 +305,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                   }}
                   className="w-full text-left px-3.5 py-2 text-xs font-bold flex items-center gap-2.5 transition-colors text-slate-700 hover:bg-slate-50"
                 >
-                  <Trophy className="w-4 h-4 shrink-0 text-blue-600" />
+                  <CompetitionLogo competition="2da División" size="sm" />
                   <span>Liga 2da División</span>
                 </button>
 
@@ -272,7 +317,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                   }}
                   className="w-full text-left px-3.5 py-2 text-xs font-bold flex items-center gap-2.5 transition-colors text-slate-700 hover:bg-slate-50"
                 >
-                  <Star className="w-4 h-4 shrink-0 text-amber-500" />
+                  <CompetitionLogo competition="UEFA Champions League" size="sm" />
                   <span>UEFA Champions League</span>
                 </button>
 
@@ -284,7 +329,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                   }}
                   className="w-full text-left px-3.5 py-2 text-xs font-bold flex items-center gap-2.5 transition-colors text-slate-700 hover:bg-slate-50"
                 >
-                  <Globe className="w-4 h-4 shrink-0 text-cyan-500" />
+                  <CompetitionLogo competition="UEFA Europa League" size="sm" />
                   <span>UEFA Europa League</span>
                 </button>
 
@@ -296,42 +341,8 @@ export const Navbar: React.FC<NavbarProps> = ({
                   }}
                   className="w-full text-left px-3.5 py-2 text-xs font-bold flex items-center gap-2.5 transition-colors text-slate-700 hover:bg-slate-50"
                 >
-                  <Award className="w-4 h-4 shrink-0 text-emerald-500" />
+                  <CompetitionLogo competition="UEFA Conference League" size="sm" />
                   <span>UEFA Conference League</span>
-                </button>
-
-                <div className="border-t border-slate-100 my-1" />
-
-                <button
-                  onClick={() => { onOpenForumSection('normas'); setShowCompeticionesMenu(false); }}
-                  className="w-full text-left px-3.5 py-2 text-xs font-bold flex items-center gap-2.5 transition-colors text-slate-700 hover:bg-slate-50"
-                >
-                  <Scale className="w-4 h-4 shrink-0 text-blue-500" />
-                  <span>Normas competiciones</span>
-                </button>
-
-                <button
-                  onClick={() => { onOpenForumSection('ganancias'); setShowCompeticionesMenu(false); }}
-                  className="w-full text-left px-3.5 py-2 text-xs font-bold flex items-center gap-2.5 transition-colors text-slate-700 hover:bg-slate-50"
-                >
-                  <Coins className="w-4 h-4 shrink-0 text-amber-500" />
-                  <span>Ganancias competiciones</span>
-                </button>
-
-                <button
-                  onClick={() => { onOpenForumSection('sanciones'); setShowCompeticionesMenu(false); }}
-                  className="w-full text-left px-3.5 py-2 text-xs font-bold flex items-center gap-2.5 transition-colors text-slate-700 hover:bg-slate-50"
-                >
-                  <Gavel className="w-4 h-4 shrink-0 text-rose-500" />
-                  <span>Sanciones</span>
-                </button>
-
-                <button
-                  onClick={() => { onOpenForumSection('apuestas'); setShowCompeticionesMenu(false); }}
-                  className="w-full text-left px-3.5 py-2 text-xs font-bold flex items-center gap-2.5 transition-colors text-slate-700 hover:bg-slate-50"
-                >
-                  <Dice5 className="w-4 h-4 shrink-0 text-purple-500" />
-                  <span>Apuestas deportivas</span>
                 </button>
 
                 <div className="border-t border-slate-100 my-1" />
@@ -360,6 +371,74 @@ export const Navbar: React.FC<NavbarProps> = ({
             document.body
           )}
 
+          {/* Pestaña Reglamento con Portal Desplegable de Secciones del Foro */}
+          <div className="relative shrink-0">
+            <button
+              ref={reglamentoButtonRef}
+              onClick={toggleReglamentoMenu}
+              className={`h-10 px-4 w-36 rounded-lg transition-all flex items-center justify-center gap-1.5 font-bold whitespace-nowrap ${
+                activeTab === 'competicion-seccion'
+                  ? 'bg-[#00ba68] text-white shadow-md'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+              }`}
+            >
+              <Scale className="w-4 h-4 shrink-0" />
+              Reglamento
+              <ChevronDown className={`w-3.5 h-3.5 shrink-0 transition-transform ${showReglamentoMenu ? 'rotate-180' : ''}`} />
+            </button>
+          </div>
+
+          {showReglamentoMenu && createPortal(
+            <>
+              <div className="fixed inset-0 z-40" onClick={() => setShowReglamentoMenu(false)} />
+              <div
+                style={{ top: reglamentoMenuPos.top, left: reglamentoMenuPos.left }}
+                className="fixed w-64 bg-white border border-slate-200 rounded-lg shadow-xl z-50 py-1.5 normal-case tracking-normal font-display text-xs md:text-sm max-h-[70vh] overflow-y-auto"
+              >
+                <button
+                  onClick={() => { onOpenForumSection('normas'); setShowReglamentoMenu(false); }}
+                  className="w-full text-left px-3.5 py-2 text-xs font-bold flex items-center gap-2.5 transition-colors text-slate-700 hover:bg-slate-50"
+                >
+                  <Scale className="w-4 h-4 shrink-0 text-blue-500" />
+                  <span>Normas competiciones</span>
+                </button>
+
+                <button
+                  onClick={() => { onOpenForumSection('ganancias'); setShowReglamentoMenu(false); }}
+                  className="w-full text-left px-3.5 py-2 text-xs font-bold flex items-center gap-2.5 transition-colors text-slate-700 hover:bg-slate-50"
+                >
+                  <Coins className="w-4 h-4 shrink-0 text-amber-500" />
+                  <span>Ganancias competiciones</span>
+                </button>
+
+                <button
+                  onClick={() => { onOpenForumSection('sanciones'); setShowReglamentoMenu(false); }}
+                  className="w-full text-left px-3.5 py-2 text-xs font-bold flex items-center gap-2.5 transition-colors text-slate-700 hover:bg-slate-50"
+                >
+                  <Gavel className="w-4 h-4 shrink-0 text-rose-500" />
+                  <span>Sanciones</span>
+                </button>
+
+                <button
+                  onClick={() => { onOpenForumSection('apuestas'); setShowReglamentoMenu(false); }}
+                  className="w-full text-left px-3.5 py-2 text-xs font-bold flex items-center gap-2.5 transition-colors text-slate-700 hover:bg-slate-50"
+                >
+                  <Dice5 className="w-4 h-4 shrink-0 text-purple-500" />
+                  <span>Apuestas deportivas</span>
+                </button>
+
+                <button
+                  onClick={() => { onOpenForumSection('mercado'); setShowReglamentoMenu(false); }}
+                  className="w-full text-left px-3.5 py-2 text-xs font-bold flex items-center gap-2.5 transition-colors text-slate-700 hover:bg-slate-50"
+                >
+                  <Briefcase className="w-4 h-4 shrink-0 text-emerald-600" />
+                  <span>Mercado de fichajes</span>
+                </button>
+              </div>
+            </>,
+            document.body
+          )}
+
           {/* Pestaña 'Mi Club' con Portal Desplegable de Equipos */}
           <div className="relative shrink-0">
             <button
@@ -367,7 +446,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               onClick={() => {
                 toggleMiClubMenu();
               }}
-              className={`h-10 px-4 min-w-[130px] rounded-lg transition-all flex items-center justify-center gap-1.5 font-bold whitespace-nowrap shrink-0 ${
+              className={`h-10 px-4 w-36 rounded-lg transition-all flex items-center justify-center gap-1.5 font-bold whitespace-nowrap shrink-0 ${
                 activeTab === 'plantilla'
                   ? 'bg-[#00ba68] text-white shadow-md'
                   : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
@@ -381,15 +460,42 @@ export const Navbar: React.FC<NavbarProps> = ({
 
           {showMiClubMenu && createPortal(
             <>
-              <div className="fixed inset-0 z-40" onClick={() => setShowMiClubMenu(false)} />
+              <div
+                className="fixed inset-0 z-40"
+                onClick={() => {
+                  setShowMiClubMenu(false);
+                  setMiClubSearch('');
+                }}
+              />
               <div
                 style={{ top: miClubMenuPos.top, left: miClubMenuPos.left }}
                 className="fixed w-64 bg-white border border-slate-200 rounded-xl shadow-2xl z-50 py-2 normal-case tracking-normal font-display text-xs md:text-sm max-h-[70vh] overflow-y-auto divide-y divide-slate-100 p-1.5 animate-in fade-in slide-in-from-top-2 duration-150"
               >
                 <div className="px-2 py-1 text-[10px] font-mono font-bold text-slate-400 uppercase mb-1">
-                  Seleccionar Club Activo ({clubs.length})
+                  Seleccionar Club Activo ({filteredMiClubOptions.length})
                 </div>
-                {clubs.map(club => {
+                {isAdmin && (
+                  <div className="relative px-1 pb-1.5">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" />
+                    <input
+                      type="text"
+                      autoFocus
+                      value={miClubSearch}
+                      onChange={(e) => setMiClubSearch(e.target.value)}
+                      onClick={(e) => e.stopPropagation()}
+                      placeholder="Buscar club o manager..."
+                      className="w-full pl-8 pr-2 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-[11px] font-semibold text-slate-900 focus:outline-none focus:bg-white focus:border-[#00ba68] transition"
+                    />
+                  </div>
+                )}
+                {filteredMiClubOptions.length === 0 && (
+                  <div className="px-2 py-3 text-[11px] text-slate-500 font-tech">
+                    {miClubOptions.length === 0
+                      ? 'Tu cuenta todavia no tiene un club vinculado.'
+                      : 'No se encontraron clubes con esa busqueda.'}
+                  </div>
+                )}
+                {filteredMiClubOptions.map(club => {
                   const isSelected = club.id === currentClub?.id;
                   return (
                     <div
@@ -398,6 +504,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                         onSelectClub(club.id);
                         setActiveTab('plantilla');
                         setShowMiClubMenu(false);
+                        setMiClubSearch('');
                       }}
                       className={`flex items-center justify-between p-2 rounded-lg cursor-pointer transition-all ${
                         isSelected
@@ -407,7 +514,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                     >
                       <div className="flex items-center gap-2">
                         <ClubLogo
-                          src={club.logoUrl || club.badgeUrl}
+                          src={club.logoUrl}
                           alt={club.name}
                           className="w-7 h-7 object-cover rounded-full border border-slate-200 shrink-0"
                         />
@@ -439,7 +546,7 @@ export const Navbar: React.FC<NavbarProps> = ({
 
           <button
             onClick={() => setActiveTab('tienda')}
-            className={`h-10 px-4 min-w-[130px] rounded-lg transition-all flex items-center justify-center gap-1.5 font-bold whitespace-nowrap shrink-0 ${
+            className={`h-10 px-4 w-36 rounded-lg transition-all flex items-center justify-center gap-1.5 font-bold whitespace-nowrap shrink-0 ${
               activeTab === 'tienda'
                 ? 'bg-[#00ba68] text-white shadow-md'
                 : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
@@ -477,16 +584,22 @@ export const Navbar: React.FC<NavbarProps> = ({
             <form onSubmit={handleQuickAddNewsSubmit} className="space-y-4">
               <div>
                 <label className="block text-xs font-bold text-slate-700 uppercase font-tech mb-1">
-                  Texto de la Noticia o Anuncio
+                  Texto de la Noticia o Anuncio (Formato con Negrita, Títulos y Emojis)
                 </label>
+                <MarkdownToolbar
+                  value={quickNewsInput}
+                  onChange={setQuickNewsInput}
+                  textareaRef={quickNewsRef}
+                />
                 <textarea
+                  ref={quickNewsRef}
                   value={quickNewsInput}
                   onChange={(e) => setQuickNewsInput(e.target.value)}
-                  placeholder="Ej: 🔥 ¡Inscripciones abiertas para la Copa del Rey FIFAMANIAKOS!"
+                  placeholder="Ej: 🔥 ¡**Inscripciones abiertas** para la Copa del Rey FIFAMANIAKOS!"
                   rows={3}
                   required
                   autoFocus
-                  className="w-full p-3 bg-slate-50 border border-slate-300 rounded-xl text-xs text-slate-900 focus:outline-none focus:border-[#00ba68]"
+                  className="w-full p-3 bg-slate-50 border border-slate-300 border-t-0 rounded-b-xl text-xs text-slate-900 focus:outline-none focus:border-[#00ba68]"
                 />
               </div>
 

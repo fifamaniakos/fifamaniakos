@@ -44,7 +44,7 @@
 /* Custom EA FC Light Theme Accents & Utilities */
 .fc-card {
   border: 1px solid #e2e8f0;
-  box-shadow: 0 4px 16px -2px rgba(15, 23, 42, 0.05);
+  box-shadow: 0 4px 16px -2px rgba(15, 23, 42, 0.04);
   position: relative;
   overflow: hidden;
 }
@@ -57,6 +57,44 @@
   border-color: #00ba68;
   transform: translateY(-2px);
   box-shadow: 0 10px 25px -4px rgba(0, 186, 104, 0.15);
+}
+
+/* Dedicated Shimmer effect exclusively for Section Cards in Forum */
+.fc-shimmer-card {
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.fc-shimmer-card::after {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -150%;
+  width: 100%;
+  height: 200%;
+  background: linear-gradient(
+    115deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0) 35%,
+    rgba(255, 255, 255, 0.85) 50%,
+    rgba(255, 255, 255, 0) 65%,
+    transparent 100%
+  );
+  transform: rotate(25deg);
+  transition: left 0.75s ease-in-out;
+  pointer-events: none;
+  z-index: 10;
+}
+
+.fc-shimmer-card:hover::after {
+  left: 170%;
+}
+
+.fc-shimmer-card:hover {
+  border-color: #cbd5e1;
+  transform: translateY(-3px);
+  box-shadow: 0 12px 28px -4px rgba(15, 23, 42, 0.07), 0 0 20px 0 rgba(255, 255, 255, 0.9);
 }
 
 .fc-button-primary {
@@ -90,16 +128,6 @@
   background: linear-gradient(135deg, #02f59b 0%, #059669 50%, #064e3b 100%);
   border: 1px solid #34d399;
   color: #ffffff;
-}
-
-/* Pitch Texture */
-.pitch-bg {
-  background-color: #064e3b;
-  background-image: 
-    repeating-linear-gradient(0deg, transparent, transparent 40px, rgba(255,255,255,0.06) 40px, rgba(255,255,255,0.06) 80px),
-    linear-gradient(to right, rgba(255,255,255,0.1) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(255,255,255,0.1) 1px, transparent 1px);
-  background-size: 100% 80px, 40px 40px, 40px 40px;
 }
 
 /* Cyber Card (Tienda de Presupuesto) */
