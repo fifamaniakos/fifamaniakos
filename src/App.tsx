@@ -31,6 +31,7 @@ import { useAuth } from './contexts/AuthContext';
 import { GET_OFFICIAL_SQUAD_BY_CLUB_NAME } from './data/officialCurrentSquads';
 import { supabase } from './lib/supabaseClient';
 import { confirmOrCorrectMatchResult } from './lib/matchResultRpc';
+import { persistPendingMatchDraft } from './lib/matchDraftPersistence';
 
 
 
@@ -50,7 +51,8 @@ import {
   Sponsor,
   SponsorObjective,
   ClubSponsorContract,
-  SponsorPayout
+  SponsorPayout,
+  CreateMatchResultOutcome
 } from './types';
 
 import {
@@ -69,6 +71,14 @@ import { SOFIFA_PLAYERS, SOFIFA_CLUBS, SoFifaPlayerPreset } from './data/sofifaD
 import { INITIAL_SPONSORS, INITIAL_SPONSOR_OBJECTIVES } from './data/sponsorsData';
 
 import { Trophy, MessageSquare, Shield, DollarSign, PlusCircle, Sparkles, RefreshCw, ShieldCheck } from 'lucide-react';
+
+// Mensaje mostrado cuando handleCreateNewMatchResult persiste el borrador
+// PENDIENTE con exito pero confirmOrCorrectMatchResult falla: el partido ya
+// existe en la base, asi que el mensaje tiene que dejar explicito que no hay
+// que volver a crearlo desde el formulario, solo confirmarlo desde la cola.
+const PARTIAL_CREATION_FAILURE_MESSAGE =
+  'El partido ya fue creado y quedo guardado, pero no se pudo confirmar automaticamente: no lo vuelvas a crear ' +
+  'desde este formulario. Quedo pendiente de validacion en la cola (Validar/Rechazar) para confirmarlo desde ahi.';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState<string>('foro');
@@ -732,6 +742,59 @@ export default function App() {
     }
   };
 
+  // Handler: crear un partido genuinamente nuevo (AdminPanel, modal "Registrar
+  // Resultado de Partido"). Deliberadamente separado de handleAddMatchResult:
+  // ese otro handler tambien lo usa FixtureJornadaDetail para cargar un acta
+  // sobre un fixture YA EXISTENTE, y no hay una senal confiable para
+  // distinguir ambos casos adentro de una funcion compartida. Este handler
+  // nunca toca setMatches/setClubs/setTransactions ni corre matchPrize.ts:
+  // persiste en PENDIENTE, espera el upsert real, y solo entonces confirma
+  // via RPC -- Realtime es la unica fuente del estado persistido.
+  const handleCreateNewMatchResult = async (newMatch: MatchResult): Promise<CreateMatchResultOutcome> => {
+    setMatchResultRpcError(null);
+
+    const draft: MatchResult = {
+      ...newMatch,
+      status: 'PENDIENTE',
+      // Sin esto, si la confirmacion falla mas abajo el partido cae en el
+      // filtro "PENDIENTE" (fixture sin reportar) en vez de "PARA_VALIDAR",
+      // a pesar de tener goles y goleadores ya cargados.
+      reportedAt: new Date().toLocaleString('es-ES', { dateStyle: 'short', timeStyle: 'short' })
+    };
+
+    try {
+      const persistOutcome = await persistPendingMatchDraft(draft);
+      if (persistOutcome.ok === false) {
+        setMatchResultRpcError(persistOutcome.error.message);
+        return { ok: false };
+      }
+    } catch {
+      setMatchResultRpcError('No se pudo crear el partido. Intenta nuevamente.');
+      return { ok: false };
+    }
+
+    try {
+      const confirmOutcome = await confirmOrCorrectMatchResult({
+        matchId: newMatch.id,
+        newStatus: 'CONFIRMADO',
+        homeGoals: newMatch.homeGoals,
+        awayGoals: newMatch.awayGoals,
+        homeScorers: newMatch.homeScorers,
+        awayScorers: newMatch.awayScorers
+      });
+
+      if (confirmOutcome.ok === false) {
+        setMatchResultRpcError(PARTIAL_CREATION_FAILURE_MESSAGE);
+        return { ok: true, state: 'PENDING_CONFIRMATION' };
+      }
+
+      return { ok: true, state: 'CONFIRMED' };
+    } catch {
+      setMatchResultRpcError(PARTIAL_CREATION_FAILURE_MESSAGE);
+      return { ok: true, state: 'PENDING_CONFIRMATION' };
+    }
+  };
+
   // Handler: Remove player from squad
   const handleRemovePlayer = (playerId: string) => {
     setPlayers(prev => prev.filter(p => p.id !== playerId));
@@ -1194,7 +1257,7 @@ export default function App() {
               onAddClub={handleRegisterClub}
               onUpdateClub={handleUpdateClub}
               onDeleteClub={handleDeleteClub}
-              onAddMatchResult={handleAddMatchResult}
+              onCreateMatchResult={handleCreateNewMatchResult}
               onUpdateMatchResult={handleUpdateMatchResult}
               onDeleteMatchResult={handleDeleteMatchResult}
               onDeleteTopic={handleDeleteTopic}

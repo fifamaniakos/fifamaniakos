@@ -169,6 +169,16 @@ export interface MatchResult {
   reportedAt?: string;
 }
 
+// Resultado discriminado de crear un partido nuevo con confirmacion en linea
+// (App.tsx handleCreateNewMatchResult / AdminPanel handleCreateMatchSubmit).
+// PENDING_CONFIRMATION distingue explicitamente "se creo pero la confirmacion
+// economica fallo" de un exito total -- ambos casos cierran el modal, pero
+// solo CONFIRMED significa que el premio ya se liquido.
+export type CreateMatchResultOutcome =
+  | { ok: true; state: 'CONFIRMED' }
+  | { ok: true; state: 'PENDING_CONFIRMATION' }
+  | { ok: false };
+
 export interface TransferItem {
   id: string;
   playerId: string;

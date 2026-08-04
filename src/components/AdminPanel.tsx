@@ -12,7 +12,8 @@ import {
   Sponsor,
   SponsorObjective,
   ClubSponsorContract,
-  SponsorPayout
+  SponsorPayout,
+  CreateMatchResultOutcome
 } from '../types';
 import {
   ShieldAlert,
@@ -79,7 +80,7 @@ interface AdminPanelProps {
   onAddClub: (newClub: Club) => void;
   onUpdateClub: (updatedClub: Club) => void;
   onDeleteClub: (clubId: string) => void;
-  onAddMatchResult: (newMatch: MatchResult) => void;
+  onCreateMatchResult: (newMatch: MatchResult) => Promise<CreateMatchResultOutcome>;
   onUpdateMatchResult: (matchId: string, status: 'CONFIRMADO' | 'RECHAZADO' | 'PENDIENTE', homeGoals?: number, awayGoals?: number, homeScorers?: string, awayScorers?: string) => void;
   onDeleteMatchResult: (matchId: string) => void;
   onDeleteTopic: (topicId: string) => void;
@@ -112,7 +113,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
   onAddClub,
   onUpdateClub,
   onDeleteClub,
-  onAddMatchResult,
+  onCreateMatchResult,
   onUpdateMatchResult,
   onDeleteMatchResult,
   onDeleteTopic,
@@ -430,6 +431,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
 
   // Add Match Form State
   const [showAddMatchModal, setShowAddMatchModal] = useState(false);
+  const [isCreatingMatch, setIsCreatingMatch] = useState(false);
   const [addMatchHomeId, setAddMatchHomeId] = useState(clubs[0]?.id || '');
   const [addMatchAwayId, setAddMatchAwayId] = useState(clubs[1]?.id || clubs[0]?.id || '');
   const [addMatchday, setAddMatchday] = useState<number>(2);
@@ -562,8 +564,9 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
     setEditingClubId(null);
   };
 
-  const handleCreateMatchSubmit = (e: React.FormEvent) => {
+  const handleCreateMatchSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isCreatingMatch) return;
     if (addMatchHomeId === addMatchAwayId) {
       alert('El equipo local y visitante no pueden ser el mismo.');
       return;
@@ -582,12 +585,19 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
       createdAt: new Date().toLocaleString('es-ES', { dateStyle: 'short', timeStyle: 'short' })
     };
 
-    onAddMatchResult(newMatch);
-    setShowAddMatchModal(false);
-    setAddHomeGoals(0);
-    setAddAwayGoals(0);
-    setAddHomeScorers('');
-    setAddAwayScorers('');
+    setIsCreatingMatch(true);
+    try {
+      const outcome = await onCreateMatchResult(newMatch);
+      if (outcome.ok) {
+        setShowAddMatchModal(false);
+        setAddHomeGoals(0);
+        setAddAwayGoals(0);
+        setAddHomeScorers('');
+        setAddAwayScorers('');
+      }
+    } finally {
+      setIsCreatingMatch(false);
+    }
   };
 
   const startEditMatch = (match: MatchResult) => {
@@ -2398,9 +2408,10 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
             </button>
             <button
               type="submit"
-              className="fc-button-primary px-6 py-2.5 text-xs font-extrabold uppercase shadow-lg"
+              disabled={isCreatingMatch}
+              className="fc-button-primary px-6 py-2.5 text-xs font-extrabold uppercase shadow-lg disabled:opacity-60 disabled:cursor-not-allowed"
             >
-              Guardar Resultado
+              {isCreatingMatch ? 'Guardando...' : 'Guardar Resultado'}
             </button>
           </div>
         </form>
