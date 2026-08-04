@@ -30,6 +30,7 @@ import { useSupabaseTable } from './hooks/useSupabaseTable';
 import { useAuth } from './contexts/AuthContext';
 import { GET_OFFICIAL_SQUAD_BY_CLUB_NAME } from './data/officialCurrentSquads';
 import { supabase } from './lib/supabaseClient';
+import { confirmOrCorrectMatchResult } from './lib/matchResultRpc';
 
 
 
@@ -230,11 +231,14 @@ export default function App() {
     refetchDraftClaims();
   }, [players.length, refetchDraftClaims]);
 
-  const dataWriteError = matchesWriteError ?? clubsWriteError ?? playersWriteError;
+  const [matchResultRpcError, setMatchResultRpcError] = useState<string | null>(null);
+
+  const dataWriteError = matchesWriteError ?? clubsWriteError ?? playersWriteError ?? matchResultRpcError;
   const clearDataWriteError = () => {
     clearMatchesWriteError();
     clearClubsWriteError();
     clearPlayersWriteError();
+    setMatchResultRpcError(null);
   };
 
   const [topics, setTopics] = useSupabaseTable<ForumTopic>(
@@ -457,7 +461,7 @@ export default function App() {
     });
   };
 
-  const handleUpdateMatchResult = (
+  const handleUpdateMatchResult = async (
     matchId: string,
     status: 'CONFIRMADO' | 'RECHAZADO' | 'PENDIENTE',
     homeGoals?: number,
@@ -465,19 +469,31 @@ export default function App() {
     homeScorers?: string,
     awayScorers?: string
   ) => {
-    setMatches(prev => prev.map(m => {
-      if (m.id === matchId) {
-        return {
-          ...m,
-          status,
-          homeGoals: homeGoals !== undefined ? homeGoals : m.homeGoals,
-          awayGoals: awayGoals !== undefined ? awayGoals : m.awayGoals,
-          homeScorers: homeScorers !== undefined ? homeScorers : m.homeScorers,
-          awayScorers: awayScorers !== undefined ? awayScorers : m.awayScorers
-        };
+    setMatchResultRpcError(null);
+
+    try {
+      const outcome = await confirmOrCorrectMatchResult({
+        matchId,
+        newStatus: status,
+        homeGoals: homeGoals ?? null,
+        awayGoals: awayGoals ?? null,
+        homeScorers: homeScorers ?? null,
+        awayScorers: awayScorers ?? null
+      });
+
+      // No se toca setMatches en ningun caso: Realtime (useSupabaseTable) es la
+      // unica fuente del estado persistido una vez que la RPC confirma el cambio
+      // en el servidor.
+      if (outcome.ok === false) {
+        setMatchResultRpcError(outcome.error.message);
       }
-      return m;
-    }));
+    } catch {
+      // confirmOrCorrectMatchResult no deberia rechazar la promesa, pero este
+      // caller es fire-and-forget desde un onClick: sin este catch, una
+      // rejection inesperada (ej. excepcion interna de supabase-js) quedaria
+      // sin manejar.
+      setMatchResultRpcError('Ocurrio un error inesperado al confirmar el resultado.');
+    }
   };
 
   const handleDeleteMatchResult = (matchId: string) => {
